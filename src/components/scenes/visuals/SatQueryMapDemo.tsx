@@ -1,0 +1,116 @@
+import { useRef, useState } from 'react'
+import { images } from '../../../data/assets'
+import { webpSrc } from '../../../lib/media'
+import { cn } from '../../../lib/cn'
+
+const regions = [
+  { id: 'change', x: 18, y: 38, w: 22, h: 18, label: 'Surface change' },
+  { id: 'water', x: 58, y: 52, w: 16, h: 14, label: 'Water edge' },
+  { id: 'built', x: 34, y: 22, w: 14, h: 12, label: 'Built-up' },
+]
+
+type Props = {
+  className?: string
+  onExpand?: () => void
+}
+
+export function SatQueryMapDemo({ className = '', onExpand }: Props) {
+  const [active, setActive] = useState<string | null>(null)
+  const [coords, setCoords] = useState('12.9716° N · 77.5946° E')
+  const root = useRef<HTMLDivElement>(null)
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const el = root.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const nx = ((e.clientX - rect.left) / rect.width) * 0.12 + 77.58
+    const ny = 12.97 - ((e.clientY - rect.top) / rect.height) * 0.08
+    setCoords(`${ny.toFixed(4)}° N · ${nx.toFixed(4)}° E`)
+  }
+
+  return (
+    <div
+      ref={root}
+      className={cn('relative w-full overflow-hidden border border-[var(--satquery-purple)]/20 bg-[#f0f0f0] group', className)}
+      style={{ aspectRatio: '1200 / 683' }}
+      onPointerMove={onPointerMove}
+      onPointerLeave={() => setCoords('12.9716° N · 77.5946° E · Sentinel-2')}
+      role="img"
+      aria-label="SatQuery map workstation with selectable evidence regions over satellite imagery"
+    >
+      <picture>
+        <source srcSet={webpSrc(images.satquery)} type="image/webp" />
+        <img
+          src={images.satquery}
+          alt=""
+          aria-hidden
+          width={1200}
+          height={683}
+          className={cn(
+            'w-full h-full object-cover object-center contrast-[1.02] transition-[filter] duration-700',
+            active ? 'grayscale-0' : 'grayscale-[0.45]',
+          )}
+          draggable={false}
+        />
+      </picture>
+
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        {regions.map((r) => (
+          <rect
+            key={r.id}
+            x={r.x}
+            y={r.y}
+            width={r.w}
+            height={r.h}
+            fill={active === r.id ? 'rgba(109,40,217,0.22)' : 'rgba(109,40,217,0.06)'}
+            stroke={active === r.id ? 'rgba(109,40,217,0.9)' : 'rgba(109,40,217,0.45)'}
+            strokeWidth={active === r.id ? 0.35 : 0.2}
+            className="transition-[fill,stroke] duration-300"
+          />
+        ))}
+      </svg>
+
+      <div className="absolute inset-0">
+        {regions.map((r) => (
+          <button
+            key={r.id}
+            type="button"
+            className="absolute min-h-11 min-w-11"
+            style={{
+              left: `${r.x}%`,
+              top: `${r.y}%`,
+              width: `${r.w}%`,
+              height: `${r.h}%`,
+            }}
+            aria-label={`Evidence region: ${r.label}`}
+            onFocus={() => setActive(r.id)}
+            onBlur={() => setActive(null)}
+            onPointerEnter={() => setActive(r.id)}
+            onPointerLeave={() => setActive(null)}
+          />
+        ))}
+      </div>
+
+      <p className="absolute bottom-0 inset-x-0 label-brand text-[var(--satquery-purple)] bg-[var(--satquery-bg)]/90 px-4 py-3 border-t border-[var(--satquery-purple)]/15">
+        {active ? `${regions.find((r) => r.id === active)?.label} · ` : ''}
+        {coords}
+      </p>
+
+      {onExpand && (
+        <button
+          type="button"
+          onClick={onExpand}
+          className="absolute top-4 right-4 label-brand opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity bg-white/90 text-[var(--satquery-purple)] px-3 py-2 min-h-11"
+          aria-label="Expand SatQuery workstation image"
+        >
+          Expand
+        </button>
+      )}
+    </div>
+  )
+}

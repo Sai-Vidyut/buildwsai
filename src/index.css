@@ -1,0 +1,236 @@
+@import 'tailwindcss';
+@import 'lenis/dist/lenis.css';
+
+@theme {
+  --font-display: 'Inter Tight', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-white: #fafafa;
+  --color-black: #0a0a0a;
+  --color-muted: #737373;
+  --color-line: rgba(10, 10, 10, 0.1);
+  --color-line-inverse: rgba(250, 250, 250, 0.12);
+
+  --satquery-bg: #fafafa;
+  --satquery-purple: #6d28d9;
+  --satquery-purple-dim: #5b21b6;
+  --satquery-purple-faint: rgba(109, 40, 217, 0.62);
+
+  --razorflow-bg: #050505;
+  --razorflow-green: #5fd4b8;
+  --razorflow-green-dim: #3d9e88;
+  --razorflow-green-faint: rgba(95, 212, 184, 0.42);
+  --razorflow-line: rgba(95, 212, 184, 0.14);
+
+  --docna-bg: #0a0b10;
+  --docna-text: #e8eaf2;
+  --docna-muted: rgba(200, 204, 220, 0.55);
+  --docna-accent: #7b9cff;
+  --docna-line: rgba(123, 156, 255, 0.12);
+
+  --blueprint-bg: #081424;
+  --blueprint-surface: #0c1c30;
+  --blueprint-text: #b8e4f4;
+  --blueprint-muted: rgba(140, 200, 224, 0.52);
+  --blueprint-accent: #5ec8e8;
+  --blueprint-accent-dim: #3a9fbe;
+  --blueprint-line: rgba(94, 200, 232, 0.16);
+  --blueprint-graph-edge: rgba(94, 200, 232, 0.55);
+  --blueprint-graph-node: rgba(94, 200, 232, 0.1);
+  --blueprint-graph-label: #d4f1fa;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: auto;
+    background: var(--color-white);
+    color: var(--color-black);
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-black);
+    color: var(--color-white);
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  section[id],
+  [id='work'],
+  #main {
+    scroll-margin-top: 5.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .editorial-container {
+    width: 100%;
+    max-width: 1400px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 4rem);
+  }
+
+  .display-hero {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(3.75rem, 13vw, 11rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
+  }
+
+  .hero-line-mask {
+    overflow: hidden;
+    padding-bottom: 0.06em;
+  }
+
+  .display-large {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.25rem, 6.5vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+  }
+
+  .label-brand {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .text-link {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.85;
+    transition: opacity 0.25s ease;
+  }
+
+  .text-link:hover {
+    opacity: 0.45;
+  }
+
+  .text-link-underline {
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 3px;
+  }
+
+  .section-pad {
+    padding-block: clamp(5rem, 12vh, 9rem);
+  }
+
+  .reveal-target {
+    will-change: transform, opacity;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    overflow: visible !important;
+  }
+
+  header,
+  nav,
+  video,
+  canvas {
+    display: none !important;
+  }
+
+  section {
+    break-inside: avoid;
+    min-height: auto !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+
+  section[class*='h-['] {
+    height: auto !important;
+  }
+
+  .section-pad {
+    padding-block: 2rem;
+  }
+
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.75rem;
+    color: #555;
+  }
+
+  a[href^='#']::after,
+  a[href^='mailto:']::after {
+    content: '';
+  }
+}
