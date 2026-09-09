@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { images } from '../../../data/assets'
-import { webpSrc } from '../../../lib/media'
+import { projectPictureSizes, projectSrcSet } from '../../../lib/media'
 import { cn } from '../../../lib/cn'
 
 const regions = [
@@ -11,15 +11,17 @@ const regions = [
 
 type Props = {
   className?: string
+  mobile?: boolean
   onExpand?: () => void
 }
 
-export function SatQueryMapDemo({ className = '', onExpand }: Props) {
+export function SatQueryMapDemo({ className = '', mobile = false, onExpand }: Props) {
   const [active, setActive] = useState<string | null>(null)
   const [coords, setCoords] = useState('12.9716° N · 77.5946° E')
   const root = useRef<HTMLDivElement>(null)
 
   const onPointerMove = (e: React.PointerEvent) => {
+    if (mobile) return
     const el = root.current
     if (!el) return
     const rect = el.getBoundingClientRect()
@@ -28,18 +30,31 @@ export function SatQueryMapDemo({ className = '', onExpand }: Props) {
     setCoords(`${ny.toFixed(4)}° N · ${nx.toFixed(4)}° E`)
   }
 
+  const onRegionTap = (id: string) => {
+    setActive((current) => (current === id ? null : id))
+    const region = regions.find((r) => r.id === id)
+    if (region) {
+      setCoords(`${region.label} · 12.9716° N · 77.5946° E`)
+    }
+  }
+
   return (
     <div
       ref={root}
-      className={cn('relative w-full overflow-hidden border border-[var(--satquery-purple)]/20 bg-[#f0f0f0] group', className)}
+      className={cn(
+        'relative w-full overflow-hidden border border-[var(--satquery-purple)]/20 bg-[#f0f0f0] group',
+        className,
+      )}
       style={{ aspectRatio: '1200 / 683' }}
       onPointerMove={onPointerMove}
-      onPointerLeave={() => setCoords('12.9716° N · 77.5946° E · Sentinel-2')}
+      onPointerLeave={() => {
+        if (!mobile) setCoords('12.9716° N · 77.5946° E · Sentinel-2')
+      }}
       role="img"
       aria-label="SatQuery map workstation with selectable evidence regions over satellite imagery"
     >
       <picture>
-        <source srcSet={webpSrc(images.satquery)} type="image/webp" />
+        <source srcSet={projectSrcSet(images.satquery)} sizes={projectPictureSizes(1200)} type="image/webp" />
         <img
           src={images.satquery}
           alt=""
@@ -88,15 +103,22 @@ export function SatQueryMapDemo({ className = '', onExpand }: Props) {
               height: `${r.h}%`,
             }}
             aria-label={`Evidence region: ${r.label}`}
+            aria-pressed={active === r.id}
+            onClick={() => onRegionTap(r.id)}
             onFocus={() => setActive(r.id)}
             onBlur={() => setActive(null)}
-            onPointerEnter={() => setActive(r.id)}
-            onPointerLeave={() => setActive(null)}
+            onPointerEnter={() => {
+              if (!mobile) setActive(r.id)
+            }}
+            onPointerLeave={() => {
+              if (!mobile) setActive(null)
+            }}
           />
         ))}
       </div>
 
       <p className="absolute bottom-0 inset-x-0 label-brand text-[var(--satquery-purple)] bg-[var(--satquery-bg)]/90 px-4 py-3 border-t border-[var(--satquery-purple)]/15">
+        {mobile && !active ? 'Tap a region to inspect evidence · ' : ''}
         {active ? `${regions.find((r) => r.id === active)?.label} · ` : ''}
         {coords}
       </p>
@@ -105,7 +127,7 @@ export function SatQueryMapDemo({ className = '', onExpand }: Props) {
         <button
           type="button"
           onClick={onExpand}
-          className="absolute top-4 right-4 label-brand opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity bg-white/90 text-[var(--satquery-purple)] px-3 py-2 min-h-11"
+          className="absolute top-4 right-4 label-brand touch-visible transition-opacity bg-white/90 text-[var(--satquery-purple)] px-3 py-2 min-h-11"
           aria-label="Expand SatQuery workstation image"
         >
           Expand

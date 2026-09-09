@@ -7,7 +7,8 @@ export function useHeroIntro() {
   const reduced = usePrefersReducedMotion()
 
   useEffect(() => {
-    if (reduced || !root.current) return
+    const mobile = window.matchMedia('(max-width: 767px)').matches
+    if (reduced || mobile || !root.current) return
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from '../../../lib/gsap'
 import { cn } from '../../../lib/cn'
+import { useIsMobile } from '../../../hooks/useIsMobile'
 import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion'
 
 const steps = [
@@ -14,16 +15,21 @@ const steps = [
 type Props = {
   scrollRoot?: React.RefObject<HTMLElement | null>
   className?: string
+  static?: boolean
 }
 
-export function RazorFlowPipeline({ scrollRoot, className = '' }: Props) {
-  const [active, setActive] = useState(0)
+export function RazorFlowPipeline({ scrollRoot, className = '', static: isStatic = false }: Props) {
+  const [scrubActive, setScrubActive] = useState(0)
   const progress = useRef({ value: 0 })
   const reduced = usePrefersReducedMotion()
+  const mobile = useIsMobile()
+  const active = isStatic || mobile || reduced ? steps.length - 1 : scrubActive
 
   useEffect(() => {
+    if (isStatic || mobile || reduced) return
+
     const target = scrollRoot?.current
-    if (!target || reduced) return
+    if (!target) return
 
     const ctx = gsap.context(() => {
       gsap.to(progress.current, {
@@ -35,12 +41,12 @@ export function RazorFlowPipeline({ scrollRoot, className = '' }: Props) {
           end: 'bottom bottom',
           scrub: 0.4,
         },
-        onUpdate: () => setActive(Math.round(progress.current.value)),
+        onUpdate: () => setScrubActive(Math.round(progress.current.value)),
       })
     })
 
     return () => ctx.revert()
-  }, [reduced, scrollRoot])
+  }, [isStatic, mobile, reduced, scrollRoot])
 
   return (
     <div

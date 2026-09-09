@@ -30,7 +30,7 @@ export function BackToTop() {
       onClick={() => scrollToTop(reduced)}
       aria-label="Back to top"
       className={cn(
-        'fixed bottom-6 right-5 sm:bottom-8 sm:right-8 z-40 print:hidden',
+        'fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-[calc(1rem+env(safe-area-inset-right,0px))] sm:bottom-8 sm:right-8 z-40 print:hidden',
         'label-brand min-h-11 px-4 py-3',
         'border backdrop-blur-md',
         'transition-all duration-500 ease-out',

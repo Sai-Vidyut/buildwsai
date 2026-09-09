@@ -1,5 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { gsap } from '../../../lib/gsap'
+import { useIsMobile } from '../../../hooks/useIsMobile'
 import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion'
 
 const nodes = [
@@ -15,19 +16,25 @@ type BluePrintGraphProps = {
   staticProgress?: number
   scrollRoot?: RefObject<HTMLElement | null>
   progressRef?: RefObject<{ value: number }>
+  static?: boolean
+  mobile?: boolean
 }
 
 export function BluePrintGraph({
   staticProgress = 0.75,
   scrollRoot,
   progressRef,
+  static: isStatic = false,
+  mobile: mobileProp = false,
 }: BluePrintGraphProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const internalProgress = useRef({ value: staticProgress })
+  const internalProgress = useRef({ value: isStatic ? 1 : staticProgress })
   const reduced = usePrefersReducedMotion()
+  const mobileHook = useIsMobile()
+  const mobile = mobileProp || mobileHook
 
   useEffect(() => {
-    if (progressRef || !scrollRoot?.current || reduced) return
+    if (progressRef || isStatic || mobile || !scrollRoot?.current || reduced) return
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -47,7 +54,7 @@ export function BluePrintGraph({
     })
 
     return () => ctx.revert()
-  }, [progressRef, scrollRoot, reduced])
+  }, [isStatic, mobile, progressRef, reduced, scrollRoot])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -57,7 +64,8 @@ export function BluePrintGraph({
     const parent = canvas.parentElement
     if (!parent) return
 
-    const dpr = Math.min(window.devicePixelRatio, 2)
+    const dpr = mobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2)
+    const animate = !isStatic && !mobile && !reduced && !progressRef
 
     const readColor = (name: string, fallback: string) => {
       const value = getComputedStyle(parent).getPropertyValue(name).trim()
@@ -66,7 +74,7 @@ export function BluePrintGraph({
 
     const draw = () => {
       const source = progressRef?.current ?? internalProgress.current
-      const p = source.value
+      const p = isStatic || mobile ? 1 : source.value
       const w = parent.clientWidth
       const h = parent.clientHeight
       canvas.width = w * dpr
@@ -108,20 +116,21 @@ export function BluePrintGraph({
 
         const x = node.x * w
         const y = node.y * h
-        const isActive = i === activeIndex && appear > 0.85
+        const isActive = i === activeIndex && appear > 0.85 && animate
         const pulse = isActive ? 1 + Math.sin(Date.now() * 0.005) * 0.045 : 1
+        const nodeWidth = mobile ? 84 : 100
 
         ctx.fillStyle = isActive ? nodeStroke : nodeFill
         ctx.strokeStyle = nodeStroke
         ctx.lineWidth = isActive ? 1.5 : 1
         ctx.globalAlpha = appear * (isActive ? 1 : 0.75)
         ctx.beginPath()
-        ctx.roundRect(x - 50 * pulse, y - 15 * pulse, 100 * pulse, 30 * pulse, 2)
+        ctx.roundRect(x - nodeWidth * 0.5 * pulse, y - 15 * pulse, nodeWidth * pulse, 30 * pulse, 2)
         ctx.fill()
         ctx.stroke()
 
         ctx.fillStyle = labelColor
-        ctx.font = '10px IBM Plex Mono, monospace'
+        ctx.font = mobile ? '9px IBM Plex Mono, monospace' : '10px IBM Plex Mono, monospace'
         ctx.textAlign = 'center'
         ctx.fillText(node.label, x, y + 4)
       })
@@ -132,9 +141,11 @@ export function BluePrintGraph({
     let raf = 0
     const loop = () => {
       draw()
+      if (animate) raf = requestAnimationFrame(loop)
+    }
+    if (animate) {
       raf = requestAnimationFrame(loop)
     }
-    raf = requestAnimationFrame(loop)
 
     const ro = new ResizeObserver(draw)
     ro.observe(parent)
@@ -142,7 +153,7 @@ export function BluePrintGraph({
       cancelAnimationFrame(raf)
       ro.disconnect()
     }
-  }, [progressRef])
+  }, [isStatic, mobile, progressRef, reduced])
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden />
 }

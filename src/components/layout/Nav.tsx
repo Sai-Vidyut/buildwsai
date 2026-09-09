@@ -57,7 +57,7 @@ export function Nav() {
   return (
     <header
       className={cn(
-        'fixed top-0 inset-x-0 z-50 transition-[transform,background-color,border-color] duration-500 ease-out will-change-transform print:hidden',
+        'fixed top-0 inset-x-0 z-50 safe-top safe-x transition-[transform,background-color,border-color] duration-500 ease-out will-change-transform print:hidden',
         collapsed ? '-translate-y-full' : 'translate-y-0',
         showBar
           ? inverted
@@ -68,7 +68,7 @@ export function Nav() {
     >
       <nav
         aria-label="Primary"
-        className="editorial-container flex items-center justify-between h-16 md:h-[4.5rem] gap-4"
+        className="editorial-container flex items-center justify-between h-14 md:h-[4.5rem] gap-3 md:gap-4"
       >
         <a
           href="#"
@@ -80,7 +80,7 @@ export function Nav() {
           BuildWSai
         </a>
 
-        <ul className="flex items-center gap-4 sm:gap-6 md:gap-10 overflow-x-auto no-scrollbar -mr-1 pr-1">
+        <ul className="flex items-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto no-scrollbar -mr-1 pr-1 scroll-pl-1">
           {links.map((link) => {
             const isActive = activeHref === link.href
             return (

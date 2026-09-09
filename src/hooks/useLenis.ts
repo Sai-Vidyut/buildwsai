@@ -9,7 +9,8 @@ export function useLenis() {
   const reduced = usePrefersReducedMotion()
 
   useEffect(() => {
-    if (reduced) return
+    const mobileMq = window.matchMedia('(max-width: 767px)')
+    if (reduced || mobileMq.matches) return
 
     const lenis = new Lenis({
       duration: 1.15,

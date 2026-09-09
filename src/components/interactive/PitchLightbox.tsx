@@ -52,7 +52,7 @@ export function PitchLightbox({ open, onClose, src, poster, title }: PitchLightb
     <div
       ref={dialogRef}
       className={cn(
-        'fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500',
+        'fixed inset-0 z-[100] flex items-center justify-center safe-top safe-bottom safe-x transition-opacity duration-500',
         open ? 'visible opacity-100' : 'invisible opacity-0 pointer-events-none',
       )}
       role="dialog"
@@ -68,8 +68,8 @@ export function PitchLightbox({ open, onClose, src, poster, title }: PitchLightb
         tabIndex={open ? 0 : -1}
       />
 
-      <div className="relative z-10 w-full max-w-[min(96vw,1280px)] px-[clamp(1rem,3vw,2rem)]">
-        <div className="flex items-center justify-between mb-6">
+      <div className="relative z-10 w-full max-w-[min(100vw,1280px)] px-[clamp(1rem,4vw,2rem)] py-2">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
           <p className="label-brand text-white/50">{title} · Full pitch</p>
           <button
             ref={closeRef}
@@ -89,7 +89,7 @@ export function PitchLightbox({ open, onClose, src, poster, title }: PitchLightb
             controls
             playsInline
             className="w-full h-auto block bg-black object-contain"
-            style={{ maxHeight: '80svh', aspectRatio: '16 / 10' }}
+            style={{ maxHeight: 'min(72dvh, 80svh)', aspectRatio: '16 / 10' }}
             tabIndex={open ? 0 : -1}
           />
         </div>

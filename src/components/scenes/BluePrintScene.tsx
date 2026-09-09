@@ -6,6 +6,7 @@ import { ProjectRole } from '../editorial/ProjectRole'
 import { TextLink } from '../editorial/TextLink'
 import { BluePrintGraph } from './visuals/BluePrintGraph'
 import { BluePrintSchemaProof } from './visuals/BluePrintSchemaProof'
+import { ResponsivePicture } from '../editorial/ResponsivePicture'
 import { webpSrc } from '../../lib/media'
 import { gsap } from '../../lib/gsap'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
@@ -115,18 +116,21 @@ export function BluePrintScene({ project, index }: Props) {
         className="bg-[var(--blueprint-bg)] text-[var(--blueprint-text)] section-pad border-t border-[var(--blueprint-line)]"
         aria-label={project.name}
       >
-        <BluePrintCopy project={project} index={index} />
-        <div className="editorial-container mt-10 space-y-6">
+        <div className="editorial-container space-y-6">
+          <p className="label-brand text-[var(--blueprint-muted)]">Structure → Logic → Output</p>
           <div
             className="relative w-full mx-auto border border-[var(--blueprint-line)] bg-[var(--blueprint-surface)] overflow-hidden"
             style={{ maxWidth: visualWidth, aspectRatio: `${visualWidth} / ${visualHeight}` }}
           >
-            <BluePrintGraph scrollRoot={mobileSection} />
+            <BluePrintGraph static mobile />
           </div>
           <BluePrintSchemaProof />
           {project.image && (
             <BluePrintDiagram src={project.image} alt={`${project.name} full architecture diagram`} />
           )}
+        </div>
+        <div className="editorial-container mt-10 mobile-copy-rhythm">
+          <BluePrintCopy project={project} index={index} />
         </div>
       </section>
     )
@@ -180,18 +184,13 @@ function BluePrintDiagram({ src, alt }: { src: string; alt: string }) {
       className="w-full mx-auto border border-[var(--blueprint-line)] bg-[var(--blueprint-surface)] overflow-hidden"
       style={{ maxWidth: visualWidth, aspectRatio: `${visualWidth} / ${visualHeight}` }}
     >
-      <picture>
-        <source srcSet={webpSrc(src)} type="image/webp" />
-        <img
-          src={src}
-          alt={alt}
-          width={visualWidth}
-          height={visualHeight}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-contain object-center block"
-        />
-      </picture>
+      <ResponsivePicture
+        src={src}
+        alt={alt}
+        width={visualWidth}
+        height={visualHeight}
+        className="w-full h-full object-contain object-center block"
+      />
     </div>
   )
 }

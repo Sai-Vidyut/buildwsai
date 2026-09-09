@@ -92,7 +92,7 @@
   section[id],
   [id='work'],
   #main {
-    scroll-margin-top: 5.5rem;
+    scroll-margin-top: calc(5.5rem + env(safe-area-inset-top, 0px));
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -126,12 +126,46 @@
     padding-inline: clamp(1.25rem, 5vw, 4rem);
   }
 
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-x {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
   .display-hero {
     font-family: var(--font-display);
     font-weight: 700;
     font-size: clamp(3.75rem, 13vw, 11rem);
     line-height: 1;
     letter-spacing: -0.045em;
+  }
+
+  @media (max-width: 767px) {
+    .display-hero {
+      font-size: clamp(3.25rem, 14.5vw, 4.5rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+
+    .display-large {
+      font-size: clamp(2rem, 9.5vw, 2.75rem);
+      line-height: 1;
+    }
+
+    .section-pad {
+      padding-block: clamp(3.25rem, 11vw, 5rem);
+    }
+
+    .mobile-copy-rhythm {
+      max-width: 22rem;
+    }
   }
 
   .hero-line-mask {
@@ -191,6 +225,21 @@
 
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  .touch-visible {
+    opacity: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .touch-visible {
+      opacity: 0;
+    }
+
+    .group:hover .touch-visible,
+    .group:focus-within .touch-visible {
+      opacity: 1;
+    }
   }
 }
 

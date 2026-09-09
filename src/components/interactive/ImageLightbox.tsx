@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { cn } from '../../lib/cn'
 import { trapFocus } from '../../lib/focusTrap'
-import { webpSrc } from '../../lib/media'
+import { projectPictureSizes, projectSrcSet } from '../../lib/media'
 
 type ImageLightboxProps = {
   open: boolean
@@ -40,7 +40,7 @@ export function ImageLightbox({ open, onClose, src, alt, title }: ImageLightboxP
     <div
       ref={dialogRef}
       className={cn(
-        'fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500',
+        'fixed inset-0 z-[100] flex items-center justify-center safe-top safe-bottom safe-x transition-opacity duration-500',
         open ? 'visible opacity-100' : 'invisible opacity-0 pointer-events-none',
       )}
       role="dialog"
@@ -71,11 +71,11 @@ export function ImageLightbox({ open, onClose, src, alt, title }: ImageLightboxP
         </div>
 
         <picture>
-          <source srcSet={webpSrc(src)} type="image/webp" />
+          <source srcSet={projectSrcSet(src)} sizes={projectPictureSizes(1400)} type="image/webp" />
           <img
             src={src}
             alt={alt}
-            className="w-full h-auto max-h-[85svh] object-contain mx-auto block"
+            className="w-full h-auto max-h-[min(78dvh,85svh)] object-contain mx-auto block"
             tabIndex={open ? 0 : -1}
           />
         </picture>

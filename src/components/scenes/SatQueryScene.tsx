@@ -80,9 +80,14 @@ export function SatQueryScene({ project, index }: Props) {
           className="bg-[var(--satquery-bg)] text-[var(--satquery-purple)] section-pad"
           aria-label={project.name}
         >
-          <SatQueryCopy project={project} index={index} />
-          <div className="editorial-container mt-10">
-            <SatQueryMapDemo onExpand={() => setLightboxOpen(true)} />
+          <div className="editorial-container space-y-4">
+            <p className="label-brand text-[var(--satquery-purple-faint)]">
+              12.9716° N · 77.5946° E · Sentinel-2
+            </p>
+            <SatQueryMapDemo mobile onExpand={() => setLightboxOpen(true)} />
+          </div>
+          <div className="editorial-container mt-10 mobile-copy-rhythm">
+            <SatQueryCopy project={project} index={index} />
           </div>
         </section>
         {lightbox}
@@ -137,7 +142,7 @@ export function SatQueryScene({ project, index }: Props) {
 
 function SatQueryCopy({ project, index }: { project: CoreProject; index: number }) {
   return (
-    <div className="space-y-7">
+    <div className="space-y-6 md:space-y-7">
       <BrandLine
         primary={`0${index + 1}`}
         secondary={project.tagline}

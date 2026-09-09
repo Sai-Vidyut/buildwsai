@@ -6,6 +6,7 @@ import { ProjectRole } from '../editorial/ProjectRole'
 import { TextLink } from '../editorial/TextLink'
 import { ImageLightbox } from '../interactive/ImageLightbox'
 import { DocNADiffHighlight } from './visuals/DocNADiffHighlight'
+import { ResponsivePicture } from '../editorial/ResponsivePicture'
 import { webpSrc } from '../../lib/media'
 import { gsap } from '../../lib/gsap'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
@@ -130,19 +131,22 @@ export function DocNAScene({ project, index }: Props) {
           className="bg-[var(--docna-bg)] text-[var(--docna-text)] section-pad border-t border-[var(--docna-line)]"
           aria-label={project.name}
         >
-          <DocNACopy project={project} index={index} />
-          <div className="editorial-container mt-10 space-y-6">
-            <DocNAImage
-              src={images.docnaWorkspace}
-              alt="DocNA workspace showing document library"
-              onExpand={() => setLightboxSrc(images.docnaWorkspace)}
-            />
+          <div className="editorial-container space-y-4">
+            <p className="label-brand text-[var(--docna-muted)]">Workspace → Review → Export</p>
             <DocNAImage
               src={images.docnaReview}
               alt="DocNA review with mutation highlight"
               onExpand={() => setLightboxSrc(images.docnaReview)}
               showDiff
             />
+            <DocNAImage
+              src={images.docnaWorkspace}
+              alt="DocNA workspace showing document library"
+              onExpand={() => setLightboxSrc(images.docnaWorkspace)}
+            />
+          </div>
+          <div className="editorial-container mt-10 mobile-copy-rhythm">
+            <DocNACopy project={project} index={index} />
           </div>
         </section>
         {lightbox}
@@ -211,24 +215,19 @@ function DocNAImage({
       className="relative w-full mx-auto border border-[var(--docna-line)] bg-[#0a0b10] overflow-hidden group"
       style={{ maxWidth: docnaImages.width, aspectRatio: `${docnaImages.width} / ${docnaImages.height}` }}
     >
-      <picture>
-        <source srcSet={webpSrc(src)} type="image/webp" />
-        <img
-          src={src}
-          alt={alt}
-          width={docnaImages.width}
-          height={docnaImages.height}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-contain object-center block"
-        />
-      </picture>
+      <ResponsivePicture
+        src={src}
+        alt={alt}
+        width={docnaImages.width}
+        height={docnaImages.height}
+        className="w-full h-full object-contain object-center block"
+      />
       {showDiff && <DocNADiffHighlight />}
       {onExpand && (
         <button
           type="button"
           onClick={onExpand}
-          className="absolute bottom-4 right-4 label-brand opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--docna-bg)]/90 text-[var(--docna-accent)] px-3 py-2 min-h-11"
+          className="absolute bottom-4 right-4 label-brand touch-visible transition-opacity bg-[var(--docna-bg)]/90 text-[var(--docna-accent)] px-3 py-2 min-h-11"
           aria-label={`Expand ${alt}`}
         >
           Expand

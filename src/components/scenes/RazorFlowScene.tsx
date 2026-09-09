@@ -6,6 +6,7 @@ import { ProjectRole } from '../editorial/ProjectRole'
 import { TextLink } from '../editorial/TextLink'
 import { PitchLightbox } from '../interactive/PitchLightbox'
 import { PitchScrubPreview } from '../interactive/PitchScrubPreview'
+import { RazorFlowMobilePitch } from './RazorFlowMobilePitch'
 import { RazorFlowPipeline } from './visuals/RazorFlowPipeline'
 import { useViewportVideo } from '../../hooks/useViewportVideo'
 import { gsap } from '../../lib/gsap'
@@ -122,11 +123,13 @@ export function RazorFlowScene({ project, index }: Props) {
           className="bg-[var(--razorflow-bg)] text-[var(--razorflow-green)] section-pad border-t border-[var(--razorflow-line)]"
           aria-label={project.name}
         >
-          <RazorFlowCopy project={project} index={index} onWatch={() => setLightboxOpen(true)} mobile />
-          <div className="editorial-container mt-8">
-            <RazorFlowPipeline scrollRoot={root} className="mb-8" />
+          <div className="editorial-container space-y-6">
+            <RazorFlowMobilePitch onWatchFull={() => setLightboxOpen(true)} />
+            <RazorFlowPipeline static />
           </div>
-          <div className="editorial-container">{videoVisual}</div>
+          <div className="editorial-container mt-10 mobile-copy-rhythm">
+            <RazorFlowCopy project={project} index={index} onWatch={() => setLightboxOpen(true)} mobile />
+          </div>
         </section>
         {lightbox}
       </>
@@ -192,12 +195,11 @@ export function RazorFlowScene({ project, index }: Props) {
 function RazorFlowCopy({
   project,
   index,
-  onWatch,
   mobile = false,
 }: {
   project: CoreProject
   index: number
-  onWatch: () => void
+  onWatch?: () => void
   mobile?: boolean
 }) {
   return (
@@ -221,15 +223,6 @@ function RazorFlowCopy({
       <p className="text-sm text-[var(--razorflow-green-faint)]">{project.keyIdea}</p>
       {project.status && (
         <p className="label-brand text-[var(--razorflow-green-faint)]">{project.status}</p>
-      )}
-      {mobile && (
-        <button
-          type="button"
-          onClick={onWatch}
-          className="label-brand text-[var(--razorflow-green)] border-b border-[var(--razorflow-green)] pb-1 hover:opacity-50 transition-opacity min-h-11"
-        >
-          Watch the pitch →
-        </button>
       )}
       {mobile && <RazorFlowLinks project={project} />}
     </div>
