@@ -5,7 +5,6 @@ import { BrandLine } from '../editorial/BrandLine'
 import { ProjectRole } from '../editorial/ProjectRole'
 import { TextLink } from '../editorial/TextLink'
 import { ImageLightbox } from '../interactive/ImageLightbox'
-import { DocNADiffHighlight } from './visuals/DocNADiffHighlight'
 import { ResponsivePicture } from '../editorial/ResponsivePicture'
 import { webpSrc } from '../../lib/media'
 import { gsap } from '../../lib/gsap'
@@ -91,7 +90,7 @@ export function DocNAScene({ project, index }: Props) {
         <img
           ref={review}
           src={images.docnaReview}
-          alt="DocNA review interface with surgical mutation placement"
+          alt="DocNA review interface with document preview and response fields"
           width={docnaImages.width}
           height={docnaImages.height}
           loading="lazy"
@@ -99,7 +98,6 @@ export function DocNAScene({ project, index }: Props) {
           className="absolute inset-0 w-full h-full object-contain object-center opacity-0"
         />
       </picture>
-      <DocNADiffHighlight />
       <button
         type="button"
         onClick={() => setLightboxSrc(images.docnaReview)}
@@ -116,7 +114,7 @@ export function DocNAScene({ project, index }: Props) {
       open={lightboxSrc !== null}
       onClose={() => setLightboxSrc(null)}
       src={lightboxSrc ?? images.docnaReview}
-      alt="DocNA review interface with surgical document mutation"
+      alt="DocNA review interface with document preview and response fields"
       title="DocNA"
     />
   )
@@ -135,9 +133,8 @@ export function DocNAScene({ project, index }: Props) {
             <p className="label-brand text-[var(--docna-muted)]">Workspace → Review → Export</p>
             <DocNAImage
               src={images.docnaReview}
-              alt="DocNA review with mutation highlight"
+              alt="DocNA review interface with document preview and response fields"
               onExpand={() => setLightboxSrc(images.docnaReview)}
-              showDiff
             />
             <DocNAImage
               src={images.docnaWorkspace}
@@ -203,12 +200,10 @@ function DocNAImage({
   src,
   alt,
   onExpand,
-  showDiff = false,
 }: {
   src: string
   alt: string
   onExpand?: () => void
-  showDiff?: boolean
 }) {
   return (
     <div
@@ -222,7 +217,6 @@ function DocNAImage({
         height={docnaImages.height}
         className="w-full h-full object-contain object-center block"
       />
-      {showDiff && <DocNADiffHighlight />}
       {onExpand && (
         <button
           type="button"

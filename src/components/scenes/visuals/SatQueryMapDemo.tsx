@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type RefObject } from 'react'
 import { images } from '../../../data/assets'
 import { projectPictureSizes, projectSrcSet } from '../../../lib/media'
 import { cn } from '../../../lib/cn'
@@ -13,9 +13,15 @@ type Props = {
   className?: string
   mobile?: boolean
   onExpand?: () => void
+  headerCoordsRef?: RefObject<HTMLParagraphElement | null>
 }
 
-export function SatQueryMapDemo({ className = '', mobile = false, onExpand }: Props) {
+export function SatQueryMapDemo({
+  className = '',
+  mobile = false,
+  onExpand,
+  headerCoordsRef,
+}: Props) {
   const [active, setActive] = useState<string | null>(null)
   const [coords, setCoords] = useState('12.9716° N · 77.5946° E')
   const root = useRef<HTMLDivElement>(null)
@@ -116,6 +122,15 @@ export function SatQueryMapDemo({ className = '', mobile = false, onExpand }: Pr
           />
         ))}
       </div>
+
+      {headerCoordsRef && (
+        <p
+          ref={headerCoordsRef}
+          className="absolute top-4 left-4 z-20 max-w-[calc(100%-5.5rem)] label-brand text-[var(--satquery-purple-faint)] pointer-events-none"
+        >
+          12.9716° N · 77.5946° E · Sentinel-2
+        </p>
+      )}
 
       <p className="absolute bottom-0 inset-x-0 label-brand text-[var(--satquery-purple)] bg-[var(--satquery-bg)]/90 px-4 py-3 border-t border-[var(--satquery-purple)]/15">
         {mobile && !active ? 'Tap a region to inspect evidence · ' : ''}

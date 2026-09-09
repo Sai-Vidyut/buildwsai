@@ -81,9 +81,6 @@ export function SatQueryScene({ project, index }: Props) {
           aria-label={project.name}
         >
           <div className="editorial-container space-y-4">
-            <p className="label-brand text-[var(--satquery-purple-faint)]">
-              12.9716° N · 77.5946° E · Sentinel-2
-            </p>
             <SatQueryMapDemo mobile onExpand={() => setLightboxOpen(true)} />
           </div>
           <div className="editorial-container mt-10 mobile-copy-rhythm">
@@ -107,16 +104,9 @@ export function SatQueryScene({ project, index }: Props) {
       >
         <div ref={pin} className="relative h-[100svh] overflow-hidden">
           <div className="absolute inset-0 bg-[var(--satquery-bg)]">
-            <p
-              ref={coords}
-              className="label-brand text-[var(--satquery-purple-faint)] absolute top-[clamp(5rem,12vh,7rem)] left-[clamp(1.25rem,5vw,4rem)] z-20"
-            >
-              12.9716° N · 77.5946° E · Sentinel-2
-            </p>
-
             <div className="absolute inset-0 z-10 flex items-center justify-center px-[clamp(1.25rem,5vw,4rem)]">
               <div ref={visual} className="w-full max-w-[1200px] will-transform origin-center">
-                <SatQueryMapDemo onExpand={() => setLightboxOpen(true)} />
+                <SatQueryMapDemo headerCoordsRef={coords} onExpand={() => setLightboxOpen(true)} />
               </div>
             </div>
 
