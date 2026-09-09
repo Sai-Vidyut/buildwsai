@@ -5,6 +5,9 @@ type Props = {
   className?: string
 }
 
+const cornerClass =
+  'absolute h-3 w-3 border-[var(--docna-accent)]/45 transition-opacity duration-500'
+
 /** Highlights the mutation target region on the DocNA review still. */
 export function DocNADiffHighlight({ active = true, className = '' }: Props) {
   return (
@@ -14,21 +17,20 @@ export function DocNADiffHighlight({ active = true, className = '' }: Props) {
       aria-hidden
     >
       <div
-        className={cn(
-          'absolute inset-0 border-2 border-[var(--docna-accent)] transition-opacity duration-500',
-          active ? 'opacity-100' : 'opacity-0',
-        )}
+        className={cn(cornerClass, 'left-0 top-0 border-t border-l', active ? 'opacity-100' : 'opacity-0')}
       />
       <div
-        className={cn(
-          'absolute inset-0 bg-[var(--docna-accent)]/10',
-          active && 'animate-pulse',
-        )}
-        style={{ animationDuration: '2.4s' }}
+        className={cn(cornerClass, 'right-0 top-0 border-t border-r', active ? 'opacity-100' : 'opacity-0')}
+      />
+      <div
+        className={cn(cornerClass, 'bottom-0 left-0 border-b border-l', active ? 'opacity-100' : 'opacity-0')}
+      />
+      <div
+        className={cn(cornerClass, 'bottom-0 right-0 border-b border-r', active ? 'opacity-100' : 'opacity-0')}
       />
       <span
         className={cn(
-          'absolute -top-6 left-0 label-brand text-[var(--docna-accent)] transition-opacity',
+          'absolute -top-5 left-0 label-brand text-[var(--docna-accent)]/75 transition-opacity',
           active ? 'opacity-100' : 'opacity-0',
         )}
       >

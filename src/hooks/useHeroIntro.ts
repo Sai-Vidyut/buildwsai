@@ -7,13 +7,21 @@ export function useHeroIntro() {
   const reduced = usePrefersReducedMotion()
 
   useEffect(() => {
-    const mobile = window.matchMedia('(max-width: 767px)').matches
-    if (reduced || mobile || !root.current) return
+    if (reduced || !root.current) return
 
+    const mobile = window.matchMedia('(max-width: 767px)').matches
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-      tl.from('.hero-line', { y: '110%', duration: 1.1, stagger: 0.12 })
-      tl.from('.hero-fade', { opacity: 0, y: 24, duration: 0.8, stagger: 0.08 }, '-=0.5')
+      tl.from('.hero-line', {
+        y: '110%',
+        duration: mobile ? 0.9 : 1.1,
+        stagger: mobile ? 0.1 : 0.12,
+      })
+      tl.from(
+        '.hero-fade',
+        { opacity: 0, y: mobile ? 18 : 24, duration: mobile ? 0.65 : 0.8, stagger: 0.08 },
+        '-=0.5',
+      )
     }, root)
 
     return () => ctx.revert()

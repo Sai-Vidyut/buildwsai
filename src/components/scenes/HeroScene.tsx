@@ -2,7 +2,6 @@ import { resumeMeta } from '../../data/resume'
 import { BrandLine } from '../editorial/BrandLine'
 import { TextLink } from '../editorial/TextLink'
 import { useHeroIntro } from '../../hooks/useHeroIntro'
-import { HeroMobileVisual } from './HeroMobileVisual'
 
 export function HeroScene() {
   const root = useHeroIntro()
@@ -15,9 +14,7 @@ export function HeroScene() {
       className="bg-[var(--color-white)] min-h-[100dvh] flex flex-col"
     >
       <div className="editorial-container flex-1 flex flex-col pt-[calc(4.25rem+env(safe-area-inset-top,0px))] md:pt-36 pb-10 md:pb-14">
-        <HeroMobileVisual />
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 md:mb-20 mt-8 md:mt-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 md:mb-20">
           <BrandLine
             primary="BUILDWSAI"
             secondary="Sai Vidyut C"
