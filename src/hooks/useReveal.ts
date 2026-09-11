@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from '../lib/gsap'
+import { useIsMobile } from './useIsMobile'
 import { usePrefersReducedMotion } from './usePrefersReducedMotion'
 
 type RevealOptions = {
@@ -11,6 +12,7 @@ type RevealOptions = {
 
 export function useReveal<T extends HTMLElement>(options: RevealOptions = {}) {
   const ref = useRef<T>(null)
+  const mobile = useIsMobile()
   const reduced = usePrefersReducedMotion()
   const { y = 48, delay = 0, stagger = 0, children } = options
 
@@ -19,7 +21,7 @@ export function useReveal<T extends HTMLElement>(options: RevealOptions = {}) {
 
     const el = ref.current
 
-    if (reduced) return
+    if (reduced || mobile) return
 
     const targets = children ? el.querySelectorAll(children) : [el]
 
@@ -45,7 +47,7 @@ export function useReveal<T extends HTMLElement>(options: RevealOptions = {}) {
     }, el)
 
     return () => ctx.revert()
-  }, [reduced, y, delay, stagger, children])
+  }, [mobile, reduced, y, delay, stagger, children])
 
   return ref
 }
