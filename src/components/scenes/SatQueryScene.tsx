@@ -9,6 +9,8 @@ import { SatQueryMapDemo } from './visuals/SatQueryMapDemo'
 import { gsap } from '../../lib/gsap'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { MobileReveal } from '../motion/MobileReveal'
+import { MobileStagger, MobileStaggerItem } from '../motion/MobileStagger'
 
 type Props = {
   project: CoreProject
@@ -80,11 +82,17 @@ export function SatQueryScene({ project, index }: Props) {
           className="bg-[var(--satquery-bg)] text-[var(--satquery-purple)] section-pad"
           aria-label={project.name}
         >
-          <div className="editorial-container space-y-4">
-            <SatQueryMapDemo mobile onExpand={() => setLightboxOpen(true)} />
+          <div className="editorial-container">
+            <MobileStagger className="space-y-4" stagger={0.1}>
+              <MobileStaggerItem>
+                <SatQueryMapDemo mobile onExpand={() => setLightboxOpen(true)} />
+              </MobileStaggerItem>
+            </MobileStagger>
           </div>
           <div className="editorial-container mt-10 mobile-copy-rhythm">
-            <SatQueryCopy project={project} index={index} />
+            <MobileReveal delay={0.1}>
+              <SatQueryCopy project={project} index={index} />
+            </MobileReveal>
           </div>
         </section>
         {lightbox}

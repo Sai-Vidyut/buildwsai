@@ -10,6 +10,8 @@ import { webpSrc } from '../../lib/media'
 import { gsap } from '../../lib/gsap'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { MobileReveal } from '../motion/MobileReveal'
+import { MobileStagger, MobileStaggerItem } from '../motion/MobileStagger'
 
 type Props = {
   project: CoreProject
@@ -129,21 +131,31 @@ export function DocNAScene({ project, index }: Props) {
           className="bg-[var(--docna-bg)] text-[var(--docna-text)] section-pad border-t border-[var(--docna-line)]"
           aria-label={project.name}
         >
-          <div className="editorial-container space-y-4">
-            <p className="label-brand text-[var(--docna-muted)]">Workspace → Review → Export</p>
-            <DocNAImage
-              src={images.docnaReview}
-              alt="DocNA review interface with document preview and response fields"
-              onExpand={() => setLightboxSrc(images.docnaReview)}
-            />
-            <DocNAImage
-              src={images.docnaWorkspace}
-              alt="DocNA workspace showing document library"
-              onExpand={() => setLightboxSrc(images.docnaWorkspace)}
-            />
+          <div className="editorial-container">
+            <MobileStagger className="space-y-4" stagger={0.1}>
+              <MobileStaggerItem>
+                <p className="label-brand text-[var(--docna-muted)]">Workspace → Review → Export</p>
+              </MobileStaggerItem>
+              <MobileStaggerItem>
+                <DocNAImage
+                  src={images.docnaReview}
+                  alt="DocNA review interface with document preview and response fields"
+                  onExpand={() => setLightboxSrc(images.docnaReview)}
+                />
+              </MobileStaggerItem>
+              <MobileStaggerItem>
+                <DocNAImage
+                  src={images.docnaWorkspace}
+                  alt="DocNA workspace showing document library"
+                  onExpand={() => setLightboxSrc(images.docnaWorkspace)}
+                />
+              </MobileStaggerItem>
+            </MobileStagger>
           </div>
           <div className="editorial-container mt-10 mobile-copy-rhythm">
-            <DocNACopy project={project} index={index} />
+            <MobileReveal delay={0.1}>
+              <DocNACopy project={project} index={index} />
+            </MobileReveal>
           </div>
         </section>
         {lightbox}

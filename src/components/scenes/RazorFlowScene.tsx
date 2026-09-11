@@ -13,6 +13,8 @@ import { gsap } from '../../lib/gsap'
 import { cn } from '../../lib/cn'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { MobileReveal } from '../motion/MobileReveal'
+import { MobileStagger, MobileStaggerItem } from '../motion/MobileStagger'
 
 type Props = {
   project: CoreProject
@@ -123,12 +125,20 @@ export function RazorFlowScene({ project, index }: Props) {
           className="bg-[var(--razorflow-bg)] text-[var(--razorflow-green)] section-pad border-t border-[var(--razorflow-line)]"
           aria-label={project.name}
         >
-          <div className="editorial-container space-y-6">
-            <RazorFlowMobilePitch onWatchFull={() => setLightboxOpen(true)} />
-            <RazorFlowPipeline static />
+          <div className="editorial-container">
+            <MobileStagger className="space-y-6" stagger={0.12}>
+              <MobileStaggerItem>
+                <RazorFlowMobilePitch onWatchFull={() => setLightboxOpen(true)} />
+              </MobileStaggerItem>
+              <MobileStaggerItem>
+                <RazorFlowPipeline static />
+              </MobileStaggerItem>
+            </MobileStagger>
           </div>
           <div className="editorial-container mt-10 mobile-copy-rhythm">
-            <RazorFlowCopy project={project} index={index} onWatch={() => setLightboxOpen(true)} mobile />
+            <MobileReveal delay={0.1}>
+              <RazorFlowCopy project={project} index={index} onWatch={() => setLightboxOpen(true)} mobile />
+            </MobileReveal>
           </div>
         </section>
         {lightbox}
