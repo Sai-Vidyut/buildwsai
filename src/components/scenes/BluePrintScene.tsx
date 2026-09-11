@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CoreProject } from '../../data/projects'
 import { images } from '../../data/assets'
 import { BrandLine } from '../editorial/BrandLine'
 import { ProjectRole } from '../editorial/ProjectRole'
 import { TextLink } from '../editorial/TextLink'
+import { ImageLightbox } from '../interactive/ImageLightbox'
 import { BluePrintGraph } from './visuals/BluePrintGraph'
 import { BluePrintSchemaProof } from './visuals/BluePrintSchemaProof'
 import { ResponsivePicture } from '../editorial/ResponsivePicture'
@@ -11,6 +12,8 @@ import { webpSrc } from '../../lib/media'
 import { gsap } from '../../lib/gsap'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { MobileReveal } from '../motion/MobileReveal'
+import { MobileStagger, MobileStaggerItem } from '../motion/MobileStagger'
 
 type Props = {
   project: CoreProject
@@ -31,6 +34,7 @@ export function BluePrintScene({ project, index }: Props) {
   const copy = useRef<HTMLDivElement>(null)
   const label = useRef<HTMLParagraphElement>(null)
   const graphProgress = useRef({ value: 0 })
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const reduced = usePrefersReducedMotion()
   const mobile = useIsMobile()
 
@@ -106,33 +110,72 @@ export function BluePrintScene({ project, index }: Props) {
     </div>
   )
 
+  const lightbox = project.image ? (
+    <ImageLightbox
+      open={lightboxOpen}
+      onClose={() => setLightboxOpen(false)}
+      src={project.image}
+      alt={`${project.name} full architecture diagram`}
+      title={project.name}
+    />
+  ) : null
+
   if (mobile || reduced) {
     return (
-      <section
-        ref={mobileSection}
-        data-project={project.id}
-        data-nav-tone="dark"
-        id={`project-${project.id}`}
-        className="bg-[var(--blueprint-bg)] text-[var(--blueprint-text)] section-pad border-t border-[var(--blueprint-line)]"
-        aria-label={project.name}
-      >
-        <div className="editorial-container space-y-6">
-          <p className="label-brand text-[var(--blueprint-muted)]">Structure → Logic → Output</p>
-          <div
-            className="relative w-full mx-auto border border-[var(--blueprint-line)] bg-[var(--blueprint-surface)] overflow-hidden"
-            style={{ maxWidth: visualWidth, aspectRatio: `${visualWidth} / ${visualHeight}` }}
-          >
-            <BluePrintGraph static mobile />
+      <>
+        <section
+          ref={mobileSection}
+          data-project={project.id}
+          data-nav-tone="dark"
+          id={`project-${project.id}`}
+          className="bg-[var(--blueprint-bg)] text-[var(--blueprint-text)] section-pad border-t border-[var(--blueprint-line)]"
+          aria-label={project.name}
+        >
+          <div className="editorial-container">
+            <MobileStagger className="space-y-6" stagger={0.1}>
+              <MobileStaggerItem>
+                <p className="label-brand text-[var(--blueprint-muted)]">Structure → Logic → Output</p>
+              </MobileStaggerItem>
+              <MobileStaggerItem>
+                <div
+                  className="relative w-full mx-auto border border-[var(--blueprint-line)] bg-[var(--blueprint-surface)] overflow-hidden group mobile-visual-frame"
+                  style={{ maxWidth: visualWidth, aspectRatio: `${visualWidth} / ${visualHeight}` }}
+                >
+                  <BluePrintGraph static mobile />
+                  {project.image && (
+                    <button
+                      type="button"
+                      onClick={() => setLightboxOpen(true)}
+                      className="absolute bottom-4 right-4 label-brand touch-visible transition-opacity bg-[var(--blueprint-bg)]/90 text-[var(--blueprint-accent)] px-3 py-2 min-h-11"
+                      aria-label="Expand BluePrint architecture diagram"
+                    >
+                      Expand
+                    </button>
+                  )}
+                </div>
+              </MobileStaggerItem>
+              <MobileStaggerItem>
+                <BluePrintSchemaProof />
+              </MobileStaggerItem>
+              {project.image && (
+                <MobileStaggerItem>
+                  <BluePrintDiagram
+                    src={project.image}
+                    alt={`${project.name} full architecture diagram`}
+                    onExpand={() => setLightboxOpen(true)}
+                  />
+                </MobileStaggerItem>
+              )}
+            </MobileStagger>
           </div>
-          <BluePrintSchemaProof />
-          {project.image && (
-            <BluePrintDiagram src={project.image} alt={`${project.name} full architecture diagram`} />
-          )}
-        </div>
-        <div className="editorial-container mt-10 mobile-copy-rhythm">
-          <BluePrintCopy project={project} index={index} />
-        </div>
-      </section>
+          <div className="editorial-container mt-10 mobile-copy-rhythm">
+            <MobileReveal delay={0.1}>
+              <BluePrintCopy project={project} index={index} />
+            </MobileReveal>
+          </div>
+        </section>
+        {lightbox}
+      </>
     )
   }
 
@@ -178,10 +221,18 @@ export function BluePrintScene({ project, index }: Props) {
   )
 }
 
-function BluePrintDiagram({ src, alt }: { src: string; alt: string }) {
+function BluePrintDiagram({
+  src,
+  alt,
+  onExpand,
+}: {
+  src: string
+  alt: string
+  onExpand?: () => void
+}) {
   return (
     <div
-      className="w-full mx-auto border border-[var(--blueprint-line)] bg-[var(--blueprint-surface)] overflow-hidden"
+      className="relative w-full mx-auto border border-[var(--blueprint-line)] bg-[var(--blueprint-surface)] overflow-hidden group mobile-visual-frame"
       style={{ maxWidth: visualWidth, aspectRatio: `${visualWidth} / ${visualHeight}` }}
     >
       <ResponsivePicture
@@ -191,6 +242,16 @@ function BluePrintDiagram({ src, alt }: { src: string; alt: string }) {
         height={visualHeight}
         className="w-full h-full object-contain object-center block"
       />
+      {onExpand && (
+        <button
+          type="button"
+          onClick={onExpand}
+          className="absolute bottom-4 right-4 label-brand touch-visible transition-opacity bg-[var(--blueprint-bg)]/90 text-[var(--blueprint-accent)] px-3 py-2 min-h-11"
+          aria-label={`Expand ${alt}`}
+        >
+          Expand
+        </button>
+      )}
     </div>
   )
 }
