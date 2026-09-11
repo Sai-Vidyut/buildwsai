@@ -48,7 +48,7 @@ export function SatQueryMapDemo({
     <div
       ref={root}
       className={cn(
-        'relative w-full overflow-hidden border border-[var(--satquery-purple)]/20 bg-[#f0f0f0] group',
+        'relative w-full overflow-hidden border border-[var(--satquery-purple)]/20 bg-[#f0f0f0] group mobile-visual-frame',
         className,
       )}
       style={{ aspectRatio: '1200 / 683' }}
