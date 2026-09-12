@@ -1,4 +1,13 @@
-export type ProjectThemeId = 'hero' | 'satquery' | 'razorflow' | 'docna' | 'blueprint' | 'experience' | 'resume' | 'contact'
+export type ProjectThemeId =
+  | 'hero'
+  | 'satquery'
+  | 'razorflow'
+  | 'docna'
+  | 'blueprint'
+  | 'slyvr'
+  | 'experience'
+  | 'resume'
+  | 'contact'
 
 export const projectThemes: Record<
   ProjectThemeId,
@@ -24,6 +33,11 @@ export const projectThemes: Record<
     accent: 'var(--blueprint-accent)',
     muted: 'var(--blueprint-muted)',
     label: 'BluePrint',
+  },
+  slyvr: {
+    accent: 'var(--slyvr-accent)',
+    muted: 'var(--slyvr-muted)',
+    label: 'Slyvr',
   },
   experience: { accent: 'var(--color-black)', muted: 'var(--color-muted)', label: 'Experience' },
   resume: { accent: 'var(--color-white)', muted: 'rgba(250,250,250,0.4)', label: 'Resume' },

@@ -6,7 +6,7 @@ export type ProjectLink = {
   external?: boolean
 }
 
-export type ProjectLayout = 'observation' | 'commerce' | 'document' | 'systems'
+export type ProjectLayout = 'observation' | 'commerce' | 'document' | 'systems' | 'media'
 
 export type CoreProject = {
   id: string
@@ -101,6 +101,24 @@ export const coreProjects: CoreProject[] = [
     layout: 'systems',
     image: images.blueprint,
     outcome: 'Structured blueprint — diagrams compiled, not hallucinated.',
+  },
+  {
+    id: 'slyvr',
+    name: 'Slyvr',
+    tagline: 'Searchable media',
+    summary:
+      'Private media library with ingest, indexing, and clip-level search — find a moment instead of scrubbing a drive.',
+    keyIdea:
+      'Library owns the files. Search returns clips you can open. Demo mode runs fully in the browser.',
+    stack: ['React', 'Vite', 'FastAPI', 'SQLite', 'Object storage'],
+    links: [
+      { label: 'Explore Slyvr →', href: '/slyvr/' },
+      { label: 'Repository', href: 'https://github.com/Sai-Vidyut/slyvr' },
+    ],
+    status: 'Live under /slyvr/ on this site.',
+    role: 'Solo · Product & full-stack',
+    layout: 'media',
+    outcome: 'Your media. Finally searchable.',
   },
 ]
 

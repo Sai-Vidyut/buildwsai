@@ -39,6 +39,15 @@
   --blueprint-graph-edge: rgba(94, 200, 232, 0.55);
   --blueprint-graph-node: rgba(94, 200, 232, 0.1);
   --blueprint-graph-label: #d4f1fa;
+
+  --slyvr-bg: #12131a;
+  --slyvr-surface: #1a1b24;
+  --slyvr-text: #ebe9e3;
+  --slyvr-muted: rgba(235, 233, 227, 0.48);
+  --slyvr-accent: #ebe9e3;
+  --slyvr-accent-dim: #a8a59c;
+  --slyvr-line: rgba(235, 233, 227, 0.12);
+  --slyvr-match: #c9b896;
 }
 
 @layer base {
