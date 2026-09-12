@@ -18,17 +18,83 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout portfolio
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      - run: npm ci
-      - run: npm run build
+      - name: Install portfolio dependencies
+        run: npm ci
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Build portfolio
+        run: npm run build
+
+      - name: Checkout Slyvr (public, temporary CI directory)
+        uses: actions/checkout@v4
+        with:
+          repository: Sai-Vidyut/slyvr
+          ref: main
+          path: .slyvr-src
+
+      - name: Setup Node for Slyvr
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: .slyvr-src/frontend/package-lock.json
+
+      - name: Install and build Slyvr frontend
+        working-directory: .slyvr-src/frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Nest Slyvr production build into dist/slyvr
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist/404.html
+          test -f .slyvr-src/frontend/dist/index.html
+
+          rm -rf dist/slyvr
+          mkdir -p dist/slyvr
+          cp -R .slyvr-src/frontend/dist/. dist/slyvr/
+
+          # Hard fail if secrets/env ever appear in the published shell
+          if find dist/slyvr -type f \( -name '.env' -o -name '.env.*' -o -name '*.sqlite' -o -name '*.db' \) | grep -q .; then
+            echo "Refusing to publish env/database files under dist/slyvr" >&2
+            find dist/slyvr -type f \( -name '.env' -o -name '.env.*' -o -name '*.sqlite' -o -name '*.db' \) >&2
+            exit 1
+          fi
+
+          test -f dist/slyvr/index.html
+          grep -E '(/slyvr/|base href="/slyvr/)' dist/slyvr/index.html >/dev/null
+          test -d dist/slyvr/assets
+
+          # Ensure portfolio root assets were not overwritten by a flat Slyvr copy
+          test -f dist/index.html
+          test -f dist/CNAME
+          if ls dist/assets/Dashboard-* >/dev/null 2>&1; then
+            echo "Slyvr Dashboard chunk leaked into portfolio dist/assets" >&2
+            exit 1
+          fi
+          if ls dist/assets/geist-* >/dev/null 2>&1; then
+            echo "Slyvr font assets leaked into portfolio dist/assets" >&2
+            exit 1
+          fi
+          test -d dist/slyvr/assets
+          ls dist/slyvr/assets/index-*.js >/dev/null
+          ls dist/assets/index-*.js >/dev/null
+
+          echo "Combined dist layout:"
+          find dist -maxdepth 2 -type f -o -type d | sort | head -80
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
