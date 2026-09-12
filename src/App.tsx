@@ -7,6 +7,7 @@ import { HeroScene } from './components/scenes/HeroScene'
 import { PhilosophyScene } from './components/scenes/PhilosophyScene'
 import { usePrefetchProjects } from './hooks/usePrefetchProjects'
 import { LabScene } from './components/scenes/LabScene'
+import { SlyvrScene } from './components/scenes/SlyvrScene'
 import { ResumeDossier } from './components/scenes/ResumeDossier'
 import { BackToTop } from './components/interactive/BackToTop'
 import { ProjectRail } from './components/interactive/ProjectRail'
@@ -58,6 +59,7 @@ export default function App() {
         {coreProjects.map((project, i) => (
           <ProjectEditorial key={project.id} project={project} index={i} />
         ))}
+        <SlyvrScene />
         <ExperienceScene />
         <ResumeDossier />
         <LabScene />

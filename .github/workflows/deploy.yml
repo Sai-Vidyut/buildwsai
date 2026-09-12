@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  repository_dispatch:
+    types: [slyvr-updated]
+  # Secret-free backup: pick up Slyvr/main changes even when no dispatch token is configured.
+  # Skips the heavy build when the Slyvr tip SHA was already nested (see "gate" job).
+  schedule:
+    - cron: "*/15 * * * *"
 
 permissions:
   contents: read
@@ -15,7 +21,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.decide.outputs.should_deploy }}
+      slyvr_tip_sha: ${{ steps.tip.outputs.sha }}
+      requested_sha: ${{ steps.tip.outputs.requested_sha }}
+    steps:
+      - name: Resolve Slyvr tip / requested SHA
+        id: tip
+        run: |
+          set -euo pipefail
+          TIP="$(curl -fsSL https://api.github.com/repos/Sai-Vidyut/slyvr/commits/main | jq -r .sha)"
+          if [ -z "$TIP" ] || [ "$TIP" = "null" ]; then
+            echo "Failed to resolve Slyvr main tip SHA" >&2
+            exit 1
+          fi
+          echo "sha=$TIP" >> "$GITHUB_OUTPUT"
+
+          REQUESTED="${{ github.event.client_payload.sha }}"
+          if [ -n "$REQUESTED" ]; then
+            echo "requested_sha=$REQUESTED" >> "$GITHUB_OUTPUT"
+          else
+            echo "requested_sha=" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Slyvr main tip: $TIP"
+          echo "Requested payload SHA: ${REQUESTED:-"(none — will checkout main)"}"
+
+      - name: Cache marker for already-nested Slyvr SHA
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .slyvr-nested-marker
+          key: slyvr-nested-${{ steps.tip.outputs.sha }}
+
+      - name: Decide whether to deploy
+        id: decide
+        run: |
+          set -euo pipefail
+          EVENT="${{ github.event_name }}"
+          CACHE_HIT="${{ steps.cache.outputs.cache-hit }}"
+
+          # Always deploy for portfolio pushes, manual runs, and Slyvr dispatch events.
+          if [ "$EVENT" != "schedule" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Deploying (event=$EVENT)"
+            exit 0
+          fi
+
+          if [ "$CACHE_HIT" = "true" ]; then
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping scheduled deploy — Slyvr ${{ steps.tip.outputs.sha }} already nested."
+          else
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Scheduled deploy — new Slyvr tip ${{ steps.tip.outputs.sha }}"
+          fi
+
   build:
+    needs: gate
+    if: needs.gate.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout portfolio
@@ -37,8 +101,33 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Sai-Vidyut/slyvr
-          ref: main
+          # Prefer the dispatch payload SHA when present; otherwise latest main.
+          ref: ${{ needs.gate.outputs.requested_sha != '' && needs.gate.outputs.requested_sha || 'main' }}
           path: .slyvr-src
+
+      - name: Verify nested Slyvr commit
+        id: slyvr_verify
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git -C .slyvr-src rev-parse HEAD)"
+          TIP="${{ needs.gate.outputs.slyvr_tip_sha }}"
+          REQUESTED="${{ needs.gate.outputs.requested_sha }}"
+
+          echo "nested_sha=$ACTUAL" >> "$GITHUB_OUTPUT"
+          echo "Nested Slyvr commit: $(git -C .slyvr-src log -1 --oneline)"
+          echo "Nested SHA:     $ACTUAL"
+          echo "Slyvr main tip: $TIP"
+          echo "Requested SHA:  ${REQUESTED:-"(none)"}"
+
+          if [ -n "$REQUESTED" ] && [ "$ACTUAL" != "$REQUESTED" ]; then
+            echo "ERROR: repository_dispatch requested $REQUESTED but checkout resolved $ACTUAL" >&2
+            exit 1
+          fi
+
+          if [ -z "$REQUESTED" ] && [ "$ACTUAL" != "$TIP" ]; then
+            echo "ERROR: checked out Slyvr $ACTUAL but Slyvr main tip is $TIP" >&2
+            exit 1
+          fi
 
       - name: Setup Node for Slyvr
         uses: actions/setup-node@v4
@@ -64,6 +153,11 @@ jobs:
           mkdir -p dist/slyvr
           cp -R .slyvr-src/frontend/dist/. dist/slyvr/
 
+          # Record the exact Slyvr commit published under /slyvr/
+          NESTED_SHA="$(git -C .slyvr-src rev-parse HEAD)"
+          printf '%s\n' "$NESTED_SHA" > dist/slyvr/.slyvr-commit
+          git -C .slyvr-src log -1 --format='%H%n%an <%ae>%n%s%n%ci' > dist/slyvr/.slyvr-commit.txt
+
           # Hard fail if secrets/env ever appear in the published shell
           if find dist/slyvr -type f \( -name '.env' -o -name '.env.*' -o -name '*.sqlite' -o -name '*.db' \) | grep -q .; then
             echo "Refusing to publish env/database files under dist/slyvr" >&2
@@ -74,6 +168,7 @@ jobs:
           test -f dist/slyvr/index.html
           grep -E '(/slyvr/|base href="/slyvr/)' dist/slyvr/index.html >/dev/null
           test -d dist/slyvr/assets
+          test -f dist/slyvr/.slyvr-commit
 
           # Ensure portfolio root assets were not overwritten by a flat Slyvr copy
           test -f dist/index.html
@@ -92,6 +187,20 @@ jobs:
 
           echo "Combined dist layout:"
           find dist -maxdepth 2 -type f -o -type d | sort | head -80
+          echo "Published Slyvr commit file:"
+          cat dist/slyvr/.slyvr-commit.txt
+
+      - name: Mark Slyvr SHA as nested (for schedule skip)
+        run: |
+          set -euo pipefail
+          mkdir -p .slyvr-nested-marker
+          printf '%s\n' "${{ steps.slyvr_verify.outputs.nested_sha }}" > .slyvr-nested-marker/sha
+
+      - name: Persist nested-SHA cache marker
+        uses: actions/cache/save@v4
+        with:
+          path: .slyvr-nested-marker
+          key: slyvr-nested-${{ steps.slyvr_verify.outputs.nested_sha }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -99,7 +208,8 @@ jobs:
           path: dist
 
   deploy:
-    needs: build
+    needs: [gate, build]
+    if: needs.gate.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
