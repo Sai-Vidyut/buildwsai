@@ -136,8 +136,15 @@ jobs:
           cache: npm
           cache-dependency-path: .slyvr-src/frontend/package-lock.json
 
+      # Vite inlines import.meta.env.VITE_* at build time. Names match Slyvr
+      # frontend/.env.example (VITE_API_URL, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY).
+      # Configure these as repository Actions secrets on Sai-Vidyut/buildwsai.
       - name: Install and build Slyvr frontend
         working-directory: .slyvr-src/frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: |
           npm ci
           npm run build
@@ -149,9 +156,52 @@ jobs:
           test -f dist/404.html
           test -f .slyvr-src/frontend/dist/index.html
 
+          # Portfolio 404 must use the Safari-safe sessionStorage redirect (not in-place document rewrite).
+          if grep -E 'document\.(write|open)\(' dist/404.html; then
+            echo "dist/404.html still rewrites the document in-place — refusing to publish" >&2
+            exit 1
+          fi
+          grep -q 'slyvr-spa-path' dist/404.html
+          grep -q "location.replace('/slyvr/'" dist/404.html
+
           rm -rf dist/slyvr
           mkdir -p dist/slyvr
           cp -R .slyvr-src/frontend/dist/. dist/slyvr/
+
+          # Inject path-restore into the nested shell so /slyvr/login survives the
+          # root 404 → /slyvr/ redirect without modifying Slyvr source.
+          # Runs synchronously in <head> before the module bundle so React Router
+          # sees the original deep link via history.replaceState.
+          python3 <<'PY'
+          from pathlib import Path
+
+          marker = "slyvr-spa-path"
+          snippet = (
+              "<script>"
+              "(function(){try{"
+              f'var k="{marker}";'
+              "var p=sessionStorage.getItem(k);"
+              "if(!p)return;"
+              "sessionStorage.removeItem(k);"
+              'if(p.indexOf("/slyvr")!==0)return;'
+              "var cur=location.pathname+location.search+location.hash;"
+              'if(p!==cur)history.replaceState(null,"",p);'
+              "}catch(e){}})();"
+              "</script>"
+          )
+
+          for name in ("index.html", "404.html"):
+              path = Path("dist/slyvr") / name
+              if not path.is_file():
+                  continue
+              text = path.read_text(encoding="utf-8")
+              if marker in text:
+                  continue
+              if "<head>" not in text:
+                  raise SystemExit(f"{path}: missing <head>; cannot inject SPA restore")
+              path.write_text(text.replace("<head>", "<head>\n    " + snippet, 1), encoding="utf-8")
+              print(f"Injected SPA path restore into {path}")
+          PY
 
           # Record the exact Slyvr commit published under /slyvr/
           NESTED_SHA="$(git -C .slyvr-src rev-parse HEAD)"
@@ -167,6 +217,7 @@ jobs:
 
           test -f dist/slyvr/index.html
           grep -E '(/slyvr/|base href="/slyvr/)' dist/slyvr/index.html >/dev/null
+          grep -q 'slyvr-spa-path' dist/slyvr/index.html
           test -d dist/slyvr/assets
           test -f dist/slyvr/.slyvr-commit
 
@@ -189,6 +240,8 @@ jobs:
           find dist -maxdepth 2 -type f -o -type d | sort | head -80
           echo "Published Slyvr commit file:"
           cat dist/slyvr/.slyvr-commit.txt
+          echo "Nested index head (path restore + asset URLs):"
+          head -n 20 dist/slyvr/index.html
 
       - name: Mark Slyvr SHA as nested (for schedule skip)
         run: |

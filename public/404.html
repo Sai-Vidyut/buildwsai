@@ -7,27 +7,24 @@
     <script>
       (function () {
         var path = location.pathname || '/'
-        // Nested Slyvr SPA: GitHub Pages serves this root 404 for missing paths.
-        // Keep the original /slyvr/... URL and boot Slyvr's shell so React Router can resolve it.
+        var search = location.search || ''
+        var hash = location.hash || ''
+
+        // Nested Slyvr SPA: GitHub Pages serves this root 404 for missing paths
+        // such as /slyvr/login. Do not rewrite the document in-place (module
+        // scripts often fail to boot that way in Safari). Store the deep link,
+        // then load the real /slyvr/ index (HTTP 200). Nested index.html restores
+        // the path via history.replaceState before React boots.
         if (path === '/slyvr' || path.indexOf('/slyvr/') === 0) {
-          fetch('/slyvr/index.html', { credentials: 'same-origin' })
-            .then(function (response) {
-              if (!response.ok) throw new Error('Slyvr shell unavailable')
-              return response.text()
-            })
-            .then(function (html) {
-              document.open()
-              document.write(html)
-              document.close()
-            })
-            .catch(function () {
-              location.replace('/slyvr/')
-            })
+          try {
+            sessionStorage.setItem('slyvr-spa-path', path + search + hash)
+          } catch (e) {}
+          location.replace('/slyvr/' + search + hash)
           return
         }
 
         // Portfolio uses hash routes; unknown top-level paths fall back to home.
-        location.replace('/' + location.search + location.hash)
+        location.replace('/' + search + hash)
       })()
     </script>
   </head>
