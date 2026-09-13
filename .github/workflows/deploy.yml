@@ -145,9 +145,20 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # Private B2 buckets require server-issued read URLs (Phase 3).
+          VITE_SIGNED_MEDIA_READS: "1"
         run: |
+          set -euo pipefail
+          if [ -z "${VITE_API_URL:-}" ]; then
+            echo "VITE_API_URL secret is required (e.g. https://api.buildwsai.online)" >&2
+            exit 1
+          fi
           npm ci
           npm run build
+          if ! grep -q 'api.buildwsai.online' dist/assets/index-*.js; then
+            echo "Built bundle does not reference VITE_API_URL — refusing to publish" >&2
+            exit 1
+          fi
 
       - name: Nest Slyvr production build into dist/slyvr
         run: |
