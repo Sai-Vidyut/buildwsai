@@ -37,7 +37,7 @@ export function HeroScene() {
 
           <div className="lg:col-span-4 lg:pb-2 mobile-copy-rhythm">
             <p className="hero-fade text-[1.0625rem] md:text-lg leading-relaxed text-[var(--color-muted)]">
-              Geospatial intelligence, agentic commerce, document systems, and deterministic AI —
+              Geospatial intelligence, agent spend guardrails, document systems, and deterministic AI —
               built end-to-end.
             </p>
             <p className="hero-fade mt-6 md:mt-8 label-brand text-[var(--color-black)]">

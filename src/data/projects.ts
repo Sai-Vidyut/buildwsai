@@ -6,7 +6,7 @@ export type ProjectLink = {
   external?: boolean
 }
 
-export type ProjectLayout = 'observation' | 'commerce' | 'document' | 'systems' | 'media'
+export type ProjectLayout = 'observation' | 'guard' | 'document' | 'systems' | 'media'
 
 export type CoreProject = {
   id: string
@@ -54,20 +54,23 @@ export const coreProjects: CoreProject[] = [
     outcome: 'Evidence you can inspect on the map — not a black-box answer.',
   },
   {
-    id: 'razorflow',
-    name: 'RazorFlow',
-    tagline: 'Agentic commerce',
+    id: 'peffle',
+    name: 'Peffle',
+    tagline: 'Agent spend guard',
     summary:
-      'Conversational buyer intent → governed Razorpay transactions with policy guardrails before any sale.',
+      'Local kill switch, spend cap, and human-approval gate for agent tool calls — enforced at execution time, not in prompts.',
     keyIdea:
-      'StructuredIntent only from AI. Catalog, ranking, and policy enforcement are deterministic.',
-    stack: ['Next.js', 'TypeScript', 'PostgreSQL', 'Prisma', 'Razorpay'],
-    links: [{ label: 'Repository', href: 'https://github.com/Sai-Vidyut/RazorFlow' }],
-    status: 'Razorpay Buildathon. Runs locally.',
-    role: 'Solo · Razorpay Buildathon',
-    layout: 'commerce',
-    image: images.razorflow,
-    outcome: 'Intent in. Policy checked. Transaction out.',
+      'peffle.guard() wraps handlers. Policy and ledger stay in-process. No SaaS. No telemetry.',
+    stack: ['TypeScript', 'Node.js', 'SQLite', 'MCP'],
+    links: [
+      { label: 'npm', href: 'https://www.npmjs.com/package/peffle', external: true },
+      { label: 'Repository', href: 'https://github.com/Sai-Vidyut/Peffle' },
+    ],
+    status: 'Published on npm. Enforcement runs entirely in your process.',
+    role: 'Solo · Library & CLI',
+    layout: 'guard',
+    image: images.peffle,
+    outcome: 'Stop the agent before it spends your money.',
   },
   {
     id: 'docna',

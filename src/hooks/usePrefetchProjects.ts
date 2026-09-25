@@ -1,16 +1,12 @@
 import { useEffect } from 'react'
 import { coreProjects } from '../data/projects'
-import { images, videos } from '../data/assets'
+import { images } from '../data/assets'
 import { webpSrc } from '../lib/media'
 import { prefetchUrl } from '../lib/media'
 
 const projectAssets: Record<string, string[]> = {
   satquery: [images.satquery, webpSrc(images.satquery)],
-  razorflow: [
-    images.razorflowPoster,
-    webpSrc(images.razorflowPoster),
-    videos.razorflowDeskLoop,
-  ],
+  peffle: [images.peffle, images.peffleMascot, webpSrc(images.peffle)],
   docna: [images.docnaWorkspace, images.docnaReview, webpSrc(images.docnaWorkspace), webpSrc(images.docnaReview)],
   blueprint: [images.blueprint, webpSrc(images.blueprint)],
 }

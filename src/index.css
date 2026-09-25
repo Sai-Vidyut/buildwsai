@@ -17,11 +17,15 @@
   --satquery-purple-dim: #5b21b6;
   --satquery-purple-faint: rgba(109, 40, 217, 0.62);
 
-  --razorflow-bg: #050505;
-  --razorflow-green: #5fd4b8;
-  --razorflow-green-dim: #3d9e88;
-  --razorflow-green-faint: rgba(95, 212, 184, 0.42);
-  --razorflow-line: rgba(95, 212, 184, 0.14);
+  --peffle-bg: #141413;
+  --peffle-panel: #1f1f1e;
+  --peffle-text: #e7eef2;
+  --peffle-muted: rgba(120, 134, 127, 0.92);
+  --peffle-line: rgba(48, 48, 46, 0.85);
+  --peffle-allow: #4ade9c;
+  --peffle-pending: #e8a94a;
+  --peffle-deny: #e86a6a;
+  --peffle-info: #6fa8dc;
 
   --docna-bg: #0a0b10;
   --docna-text: #e8eaf2;

@@ -1,5 +1,5 @@
 import type { CoreProject } from '../../data/projects'
-import { RazorFlowScene } from './RazorFlowScene'
+import { PeffleScene } from './PeffleScene'
 import { SatQueryScene } from './SatQueryScene'
 import { DocNAScene } from './DocNAScene'
 import { BluePrintScene } from './BluePrintScene'
@@ -14,8 +14,8 @@ export function ProjectEditorial({ project, index }: Props) {
   switch (project.layout) {
     case 'observation':
       return <SatQueryScene project={project} index={index} />
-    case 'commerce':
-      return <RazorFlowScene project={project} index={index} />
+    case 'guard':
+      return <PeffleScene project={project} index={index} />
     case 'document':
       return <DocNAScene project={project} index={index} />
     case 'systems':

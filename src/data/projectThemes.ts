@@ -1,7 +1,7 @@
 export type ProjectThemeId =
   | 'hero'
   | 'satquery'
-  | 'razorflow'
+  | 'peffle'
   | 'docna'
   | 'blueprint'
   | 'slyvr'
@@ -19,10 +19,10 @@ export const projectThemes: Record<
     muted: 'var(--satquery-purple-faint)',
     label: 'SatQuery',
   },
-  razorflow: {
-    accent: 'var(--razorflow-green)',
-    muted: 'var(--razorflow-green-faint)',
-    label: 'RazorFlow',
+  peffle: {
+    accent: 'var(--peffle-allow)',
+    muted: 'var(--peffle-muted)',
+    label: 'Peffle',
   },
   docna: {
     accent: 'var(--docna-accent)',
