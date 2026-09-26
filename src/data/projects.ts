@@ -58,13 +58,13 @@ export const coreProjects: CoreProject[] = [
     name: 'Peffle',
     tagline: 'Agent spend guard',
     summary:
-      'Local kill switch, spend cap, and human-approval gate for agent tool calls — enforced at execution time, not in prompts.',
+      'Local kill switch, spend cap, and human-approval gate for agent tool calls — enforced when the handler runs, not in the system prompt. Policy rules, daily budgets, and a SQLite ledger live in your process; the CLI approves pending charges and MCP exposes the same guard to agent runtimes.',
     keyIdea:
       'peffle.guard() wraps handlers. Policy and ledger stay in-process. No SaaS. No telemetry.',
     stack: ['TypeScript', 'Node.js', 'SQLite', 'MCP'],
     links: [
       { label: 'npm', href: 'https://www.npmjs.com/package/peffle', external: true },
-      { label: 'Repository', href: 'https://github.com/Sai-Vidyut/Peffle' },
+      { label: 'Website', href: 'https://peffle.vercel.app', external: true },
     ],
     status: 'Published on npm. Enforcement runs entirely in your process.',
     role: 'Solo · Library & CLI',
