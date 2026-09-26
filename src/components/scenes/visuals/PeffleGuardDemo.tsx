@@ -8,7 +8,6 @@ import { mobileSpring } from '../../../lib/mobileMotion'
 type Props = {
   variant?: 'poster' | 'interactive'
   static?: boolean
-  mobile?: boolean
   className?: string
 }
 
@@ -17,7 +16,6 @@ type Phase = 'idle' | 'allow' | 'block'
 export function PeffleGuardDemo({
   variant = 'interactive',
   static: isStatic = false,
-  mobile = false,
   className = '',
 }: Props) {
   const reduced = useReducedMotion()
@@ -61,11 +59,11 @@ export function PeffleGuardDemo({
   return (
     <div
       className={cn(
-        'relative w-full h-full max-h-[min(56svh,640px)] max-w-[min(100%,calc(min(56svh,640px)*16/9))] mx-auto border border-[var(--peffle-line)] bg-[var(--peffle-bg)] overflow-hidden',
-        mobile && 'mobile-visual-frame',
+        'relative w-full mx-auto border border-[var(--peffle-line)] bg-[var(--peffle-panel)] overflow-hidden mobile-visual-frame',
         className,
       )}
       style={{
+        maxWidth: peffleImages.width,
         aspectRatio: `${peffleImages.width} / ${peffleImages.height}`,
       }}
       aria-label="Peffle spend guard demonstration"

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CoreProject } from '../../data/projects'
-import { images } from '../../data/assets'
+import { images, peffleImages } from '../../data/assets'
 import { BrandLine } from '../editorial/BrandLine'
 import { ProjectRole } from '../editorial/ProjectRole'
 import { TextLink } from '../editorial/TextLink'
 import { ImageLightbox } from '../interactive/ImageLightbox'
+import { ResponsivePicture } from '../editorial/ResponsivePicture'
 import { PeffleGuardDemo } from './visuals/PeffleGuardDemo'
 import { gsap } from '../../lib/gsap'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
@@ -35,11 +36,10 @@ export function PeffleScene({ project, index }: Props) {
         scrollTrigger: {
           trigger: root.current,
           start: 'top top',
-          end: '+=260%',
+          end: '+=240%',
           pin: pin.current,
           scrub: 0.55,
           anticipatePin: 1,
-          invalidateOnRefresh: true,
         },
       })
 
@@ -50,18 +50,44 @@ export function PeffleScene({ project, index }: Props) {
         0,
       )
 
-      tl.to(label.current, { opacity: 0, y: -16, ease: 'none' }, 0.3)
+      tl.fromTo(label.current, { opacity: 1 }, { opacity: 0, y: -16, ease: 'none' }, 0.28)
 
       tl.fromTo(
         copy.current,
         { opacity: 0, x: -48 },
         { opacity: 1, x: 0, ease: 'none' },
-        0.48,
+        0.5,
       )
     }, root)
 
     return () => ctx.revert()
   }, [mobile, reduced])
+
+  const posterFrame = (
+    <div
+      className="relative w-full mx-auto border border-[var(--peffle-line)] bg-[var(--peffle-panel)] overflow-hidden group"
+      style={{
+        maxWidth: peffleImages.width,
+        aspectRatio: `${peffleImages.width} / ${peffleImages.height}`,
+      }}
+    >
+      <ResponsivePicture
+        src={images.peffle}
+        alt="Peffle blocks an agent charge when the daily spend cap would be exceeded"
+        width={peffleImages.width}
+        height={peffleImages.height}
+        className="absolute inset-0 w-full h-full object-contain object-center"
+      />
+      <button
+        type="button"
+        onClick={() => setLightboxOpen(true)}
+        className="absolute bottom-4 right-4 label-brand opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity bg-[var(--peffle-bg)]/90 text-[var(--peffle-allow)] px-3 py-2 min-h-11"
+        aria-label="Expand Peffle demonstration"
+      >
+        Expand
+      </button>
+    </div>
+  )
 
   const lightbox = (
     <ImageLightbox
@@ -95,7 +121,7 @@ export function PeffleScene({ project, index }: Props) {
                   className="block w-full text-left min-h-11"
                   aria-label="Expand Peffle demonstration"
                 >
-                  <PeffleGuardDemo variant="interactive" static mobile />
+                  <PeffleGuardDemo variant="interactive" static />
                 </button>
               </MobileStaggerItem>
             </MobileStagger>
@@ -118,11 +144,11 @@ export function PeffleScene({ project, index }: Props) {
         data-project={project.id}
         data-nav-tone="dark"
         id={`project-${project.id}`}
-        className="relative h-[360vh] bg-[var(--peffle-bg)] border-t border-[var(--peffle-line)]"
+        className="relative h-[340vh] bg-[var(--peffle-bg)] border-t border-[var(--peffle-line)]"
         aria-label={project.name}
       >
-        <div ref={pin} className="relative h-[100svh] overflow-hidden isolate">
-          <div className="absolute inset-0 bg-[var(--peffle-bg)] overflow-hidden">
+        <div ref={pin} className="relative h-[100svh] overflow-hidden">
+          <div className="absolute inset-0 bg-[var(--peffle-bg)]">
             <p
               ref={label}
               className="label-brand text-[var(--peffle-muted)] absolute top-[clamp(5rem,12vh,7rem)] left-[clamp(1.25rem,5vw,4rem)] z-20"
@@ -130,39 +156,22 @@ export function PeffleScene({ project, index }: Props) {
               Request → Guard → Ledger
             </p>
 
-            <div className="absolute inset-0 z-10 flex items-center justify-center px-[clamp(1.25rem,5vw,4rem)] pt-[clamp(4.5rem,10vh,6rem)] pb-[clamp(1.5rem,4vh,2.5rem)]">
-              <div
-                ref={visual}
-                className="w-full max-w-[min(1100px,92vw)] max-h-full will-transform origin-center"
-              >
-                <button
-                  type="button"
-                  onClick={() => setLightboxOpen(true)}
-                  className="group relative block w-full text-left"
-                  aria-label="Expand Peffle demonstration"
-                >
-                  <PeffleGuardDemo variant="poster" />
-                  <span
-                    className="absolute bottom-4 right-4 label-brand opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity bg-[var(--peffle-bg)]/90 text-[var(--peffle-pending)] px-3 py-2 min-h-11"
-                  >
-                    Expand
-                  </span>
-                </button>
+            <div className="absolute inset-0 z-10 flex items-center justify-center px-[clamp(1.25rem,5vw,4rem)]">
+              <div ref={visual} className="w-full max-w-[min(1200px,92vw)] will-transform origin-center">
+                {posterFrame}
               </div>
             </div>
 
             <div
               ref={copy}
-              className="absolute inset-y-0 left-0 z-30 flex w-full max-w-[min(100%,34rem)] items-start opacity-0 overflow-hidden pointer-events-none"
+              className="absolute inset-y-0 left-0 z-30 flex w-full max-w-[min(100%,34rem)] items-center opacity-0"
               style={{
                 background:
-                  'linear-gradient(90deg, rgba(20,20,19,0.98) 0%, rgba(20,20,19,0.94) 72%, rgba(20,20,19,0) 100%)',
+                  'linear-gradient(90deg, rgba(20,20,19,0.98) 0%, rgba(20,20,19,0.94) 70%, rgba(20,20,19,0) 100%)',
               }}
             >
-              <div
-                className="pointer-events-auto max-h-full w-full overflow-y-auto overscroll-contain px-[clamp(1.25rem,5vw,4rem)] py-[clamp(5.5rem,12vh,7rem)] pb-10"
-              >
-                <PeffleCopy project={project} index={index} compact />
+              <div className="px-[clamp(1.25rem,5vw,4rem)] py-24">
+                <PeffleCopy project={project} index={index} />
               </div>
             </div>
           </div>
@@ -173,17 +182,9 @@ export function PeffleScene({ project, index }: Props) {
   )
 }
 
-function PeffleCopy({
-  project,
-  index,
-  compact = false,
-}: {
-  project: CoreProject
-  index: number
-  compact?: boolean
-}) {
+function PeffleCopy({ project, index }: { project: CoreProject; index: number }) {
   return (
-    <div className={compact ? 'space-y-5' : 'space-y-6 md:space-y-7'}>
+    <div className="space-y-7">
       <BrandLine
         primary={`0${index + 1}`}
         secondary={project.tagline}
@@ -195,19 +196,13 @@ function PeffleCopy({
         {project.summary}
       </p>
       {project.outcome && (
-        <div className="border-l-2 border-[var(--peffle-pending)] pl-5">
+        <div className="border-l-2 border-[var(--peffle-allow)] pl-5">
           <p className="label-brand text-[var(--peffle-muted)] mb-2">Outcome</p>
           <p className="text-sm text-[var(--peffle-text)]">{project.outcome}</p>
         </div>
       )}
-      {!compact && (
-        <>
-          <p className="text-sm text-[var(--peffle-muted)]">{project.keyIdea}</p>
-          {project.status && (
-            <p className="label-brand text-[var(--peffle-muted)]">{project.status}</p>
-          )}
-        </>
-      )}
+      <p className="text-sm text-[var(--peffle-muted)]">{project.keyIdea}</p>
+      {project.status && <p className="label-brand text-[var(--peffle-muted)]">{project.status}</p>}
       <div className="flex flex-wrap gap-8">
         {project.links.map((l) => (
           <TextLink
