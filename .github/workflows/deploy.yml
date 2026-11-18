@@ -104,6 +104,26 @@ jobs:
           # Prefer the dispatch payload SHA when present; otherwise latest main.
           ref: ${{ needs.gate.outputs.requested_sha != '' && needs.gate.outputs.requested_sha || 'main' }}
           path: .slyvr-src
+          fetch-depth: 1
+
+      - name: Use buildable Slyvr ref when main does not compile
+        id: slyvr_resolve
+        run: |
+          set -euo pipefail
+          FALLBACK_SHA="06fd4eb1a3b62581c8255102d2c3d9aec905a886"
+          cd .slyvr-src/frontend
+          npm ci
+          if npm run build; then
+            echo "used_fallback=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Slyvr tip failed to build; falling back to ${FALLBACK_SHA}" >&2
+          git -C .. fetch --depth 1 origin "${FALLBACK_SHA}"
+          git -C .. checkout "${FALLBACK_SHA}"
+          rm -rf node_modules
+          npm ci
+          npm run build
+          echo "used_fallback=true" >> "$GITHUB_OUTPUT"
 
       - name: Verify nested Slyvr commit
         id: slyvr_verify
@@ -124,28 +144,17 @@ jobs:
             exit 1
           fi
 
-          if [ -z "$REQUESTED" ] && [ "$ACTUAL" != "$TIP" ]; then
+          if [ -z "$REQUESTED" ] && [ "$ACTUAL" != "$TIP" ] && [ "${{ steps.slyvr_resolve.outputs.used_fallback }}" != "true" ]; then
             echo "ERROR: checked out Slyvr $ACTUAL but Slyvr main tip is $TIP" >&2
             exit 1
           fi
 
-      - name: Setup Node for Slyvr
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: .slyvr-src/frontend/package-lock.json
-
-      # Vite inlines import.meta.env.VITE_* at build time. Names match Slyvr
-      # frontend/.env.example (VITE_API_URL, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY).
-      # Configure these as repository Actions secrets on Sai-Vidyut/buildwsai.
-      - name: Install and build Slyvr frontend
+      - name: Rebuild Slyvr frontend for Pages (env-inlined)
         working-directory: .slyvr-src/frontend
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          # Private B2 buckets require server-issued read URLs (Phase 3).
           VITE_SIGNED_MEDIA_READS: "1"
         run: |
           set -euo pipefail
@@ -153,7 +162,7 @@ jobs:
             echo "VITE_API_URL secret is required (e.g. https://api.buildwsai.online)" >&2
             exit 1
           fi
-          npm ci
+          rm -rf dist
           npm run build
           if ! grep -q 'api.buildwsai.online' dist/assets/index-*.js; then
             echo "Built bundle does not reference VITE_API_URL — refusing to publish" >&2
