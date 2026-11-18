@@ -108,6 +108,11 @@ jobs:
 
       - name: Use buildable Slyvr ref when main does not compile
         id: slyvr_resolve
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SIGNED_MEDIA_READS: "1"
         run: |
           set -euo pipefail
           FALLBACK_SHA="06fd4eb1a3b62581c8255102d2c3d9aec905a886"
@@ -164,7 +169,7 @@ jobs:
           fi
           rm -rf dist
           npm run build
-          if ! grep -q 'api.buildwsai.online' dist/assets/index-*.js; then
+          if ! grep -rq 'api.buildwsai.online' dist/assets/*.js; then
             echo "Built bundle does not reference VITE_API_URL — refusing to publish" >&2
             exit 1
           fi
