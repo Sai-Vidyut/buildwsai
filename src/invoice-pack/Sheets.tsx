@@ -45,29 +45,55 @@ function DraftMark() {
   )
 }
 
+export function Masked({ width = 5 }: { width?: number }) {
+  return (
+    <span className="ip-masked" style={{ width: `${width}ch` }}>
+      <span className="ip-sr">Shown after payment</span>
+    </span>
+  )
+}
+
+function LockMark() {
+  return (
+    <p className="ip-lock-mark">
+      <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+        <rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      </svg>
+      <span>Locked preview · amounts, GSTINs and payment details appear in the final export</span>
+    </p>
+  )
+}
+
+// `locked` renders a partial sheet: the hidden values are never put in the DOM.
 export function InvoiceSheet({
   invoice,
   demo,
   draft,
+  locked,
   testId,
 }: {
   invoice: Invoice
   demo?: boolean
   draft?: boolean
+  locked?: boolean
   testId?: string
 }) {
   const payBits = [invoice.accountName, invoice.bankName, invoice.accountNumber, invoice.ifsc].filter(Boolean)
+  const money = (amount: number) => (locked ? <Masked width={9} /> : inr(amount))
+  const gstin = (value: string) => (locked && value ? <Masked width={15} /> : value || '—')
+  const classes = ['ip-sheet', draft ? 'ip-sheet--draft' : '', locked ? 'ip-sheet--locked' : ''].filter(Boolean).join(' ')
   return (
-    <article className={draft ? 'ip-sheet ip-sheet--draft' : 'ip-sheet'} data-testid={testId ?? (demo ? 'demo-sheet' : 'pack-sheet')}>
+    <article className={classes} data-testid={testId ?? (demo ? 'demo-sheet' : 'pack-sheet')}>
       {demo ? <p className="ip-demo-flag">DEMO</p> : null}
-      {draft ? <DraftMark /> : null}
+      {locked ? <LockMark /> : draft ? <DraftMark /> : null}
       <div className="ip-sheet-top">
         <div>
           <p className="ip-kicker">{invoice.title}</p>
           <h3 className="ip-who">{invoice.supplierName}</h3>
           {invoice.supplierAddress ? <p>{invoice.supplierAddress}</p> : null}
           {invoice.supplierStateLabel ? <p>{invoice.supplierStateLabel}</p> : null}
-          <p>GSTIN {invoice.supplierGstin || '—'}</p>
+          <p>GSTIN {gstin(invoice.supplierGstin)}</p>
         </div>
         <div className="ip-meta">
           <MetaLine label="Number" value={invoice.invoiceNumber} />
@@ -83,7 +109,7 @@ export function InvoiceSheet({
         <p className="ip-who">{invoice.clientName}</p>
         {invoice.clientAddress ? <p>{invoice.clientAddress}</p> : null}
         {invoice.clientStateLabel ? <p>{invoice.clientStateLabel}</p> : null}
-        <p>GSTIN {invoice.clientGstin || '—'}</p>
+        <p>GSTIN {gstin(invoice.clientGstin)}</p>
       </div>
       <table className="ip-lines">
         <thead>
@@ -96,7 +122,7 @@ export function InvoiceSheet({
           {invoice.lines.map((line, index) => (
             <tr key={line.description + ':' + String(index)}>
               <td>{line.description}</td>
-              <td className="ip-num">{inr(line.amount)}</td>
+              <td className="ip-num">{money(line.amount)}</td>
             </tr>
           ))}
         </tbody>
@@ -105,33 +131,33 @@ export function InvoiceSheet({
         <tbody>
           <tr>
             <th>Taxable value</th>
-            <td className="ip-num">{inr(invoice.taxable)}</td>
+            <td className="ip-num">{money(invoice.taxable)}</td>
           </tr>
           {invoice.taxLines.map((tax) => (
             <tr key={tax.name}>
               <th>
                 {tax.name} {tax.rate}%
               </th>
-              <td className="ip-num">{inr(tax.amount)}</td>
+              <td className="ip-num">{money(tax.amount)}</td>
             </tr>
           ))}
           {invoice.already > 0 ? (
             <tr>
               <th>Already received</th>
-              <td className="ip-num">{inr(invoice.already)}</td>
+              <td className="ip-num">{money(invoice.already)}</td>
             </tr>
           ) : null}
           <tr className="ip-due">
             <th>Balance due</th>
-            <td className="ip-num">{inr(invoice.balance)}</td>
+            <td className="ip-num">{money(invoice.balance)}</td>
           </tr>
         </tbody>
       </table>
       {invoice.upi || payBits.length ? (
         <div className="ip-block">
           <p className="ip-kicker">Pay the supplier</p>
-          {invoice.upi ? <p className="ip-upi">{invoice.upi}</p> : null}
-          {payBits.length ? <p>{payBits.join(' · ')}</p> : null}
+          {invoice.upi ? <p className="ip-upi">{locked ? <Masked width={16} /> : invoice.upi}</p> : null}
+          {payBits.length ? <p>{locked ? <Masked width={24} /> : payBits.join(' · ')}</p> : null}
           {demo ? (
             <p className="ip-fine">Example Studio’s UPI on this draft. It is not the Invoice Pack checkout.</p>
           ) : null}
@@ -141,7 +167,7 @@ export function InvoiceSheet({
         <div className="ip-sign-rule" />
         <p>{invoice.supplierName}</p>
         <p className="ip-kicker">Authorised signatory</p>
-        {invoice.remarks ? <p>{invoice.remarks}</p> : null}
+        {invoice.remarks && !locked ? <p>{invoice.remarks}</p> : null}
         <p className="ip-fine">
           A draft for you to check. Not filed on the GST portal, and not tax advice.
           {demo ? ' DEMO figures. Example Studio and Sample Client Pvt Ltd are not real.' : ''}

@@ -68,7 +68,7 @@ describe('protected exports', () => {
       assert.ok(res.status === 402 || res.status === 403)
       assert.deepEqual(Object.keys(res.json), ['error'])
       const text = JSON.stringify(res.json)
-      for (const fragment of [input.clientName, input.invoiceNumber, '<html', 'Balance due']) assert.ok(!text.includes(fragment), fragment)
+      for (const fragment of [String(input.clientName), String(input.invoiceNumber), '<html', 'Balance due']) assert.ok(!text.includes(fragment), fragment)
     }
   })
 

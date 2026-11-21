@@ -215,6 +215,7 @@ async function view(db: D1Database, row: ClientInvoiceRow, provider: EmailProvid
     contact: { clientEmail: row.client_email, clientPhone: row.client_phone, replyTo: row.reply_to },
     contactPurged: Boolean(row.contact_purged_at),
     invoiceLink: row.invoice_link,
+    paymentInstructions: row.payment_instructions,
     remindersEnabled: row.reminders_enabled === 1,
     paymentStatus: row.payment_status,
     paidSource: row.paid_source,

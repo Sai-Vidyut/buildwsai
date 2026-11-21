@@ -6,7 +6,8 @@ import { EASE_OUT } from './motion-tokens'
 import { PaperPreview } from './PaperPreview'
 import { StateSelect } from './StateSelect'
 import { ExportPanel } from './ExportPanel'
-import { onlinePaymentsEnabled } from './payments-api'
+import { FollowUpsPanel } from './FollowUpsPanel'
+import { onlinePaymentsEnabled, type ExportResult } from './payments-api'
 import { Errors, InvoiceSheet, Reminders, Warnings } from './Sheets'
 
 const PROTECTED_EXPORTS = onlinePaymentsEnabled()
@@ -77,6 +78,7 @@ export function InvoiceBuilder() {
   const [step, setStep] = useState<StepId>('seller')
   const [direction, setDirection] = useState(1)
   const [result, setResult] = useState<ReturnType<typeof buildPack> | null>(null)
+  const [exported, setExported] = useState<ExportResult | null>(null)
   const reduce = useReducedMotion()
   const sectionRef = useRef<HTMLElement>(null)
   const panelHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -100,6 +102,7 @@ export function InvoiceBuilder() {
   function generate() {
     const next = buildPack(form)
     setResult(next)
+    setExported(null)
     if (next.ok) userNavigated.current = true
   }
 
@@ -128,7 +131,9 @@ export function InvoiceBuilder() {
               <h2 id="result-heading">Your invoice pack is ready to review.</h2>
               <p className="ip-lede">
                 {PROTECTED_EXPORTS
-                  ? 'Check the draft and reminders. The preview is watermarked. Pay once to export the final invoice.'
+                  ? exported
+                    ? 'This is your final invoice. Print, save as PDF or download it below, and set up payment follow-ups.'
+                    : 'Check the details. Amounts, GSTINs and payment details are hidden until you pay once to export the final invoice.'
                   : 'Check the draft and reminders. Nothing is uploaded. When you are satisfied, print or copy what you will send, then continue to payment.'}
               </p>
             </div>
@@ -150,12 +155,21 @@ export function InvoiceBuilder() {
           <Warnings warnings={result.warnings} />
           <div className="ip-result-grid">
             <div className="ip-doc-preview">
-              <InvoiceSheet invoice={invoice} draft={PROTECTED_EXPORTS} testId="pack-sheet" />
+              {exported ? (
+                // Shows the server-rendered invoice; an empty sandbox runs no scripts and shares nothing with the page.
+                <iframe className="ip-final-frame" title={`Final invoice ${invoice.invoiceNumber}`} sandbox="" srcDoc={exported.html} data-testid="final-invoice" />
+              ) : (
+                <InvoiceSheet invoice={invoice} locked={PROTECTED_EXPORTS} testId="pack-sheet" />
+              )}
             </div>
-            <section className="ip-reminders-block" aria-labelledby="pack-reminders-heading">
-              <h3 id="pack-reminders-heading">Three payment reminders</h3>
-              <Reminders reminders={result.reminders} />
-            </section>
+            {PROTECTED_EXPORTS ? (
+              <FollowUpsPanel invoice={invoice} getInput={() => form} />
+            ) : (
+              <section className="ip-reminders-block" aria-labelledby="pack-reminders-heading">
+                <h3 id="pack-reminders-heading">Three payment reminders</h3>
+                <Reminders reminders={result.reminders} />
+              </section>
+            )}
           </div>
           <div className="ip-actions ip-result-actions no-print">
             <button
@@ -164,6 +178,7 @@ export function InvoiceBuilder() {
               onClick={() => {
                 userNavigated.current = true
                 setResult(null)
+                setExported(null)
                 setDirection(-1)
                 setStep('seller')
               }}
@@ -184,7 +199,7 @@ export function InvoiceBuilder() {
               </>
             )}
           </div>
-          {PROTECTED_EXPORTS ? <ExportPanel kind="invoice" getInput={() => form} /> : null}
+          {PROTECTED_EXPORTS ? <ExportPanel kind="invoice" getInput={() => form} onExported={setExported} /> : null}
         </motion.div>
       </section>
     )
@@ -615,7 +630,7 @@ export function InvoiceBuilder() {
           ) : null}
         </div>
         <div className="ip-preview-paper">
-          {preview.invoice ? <PaperPreview invoice={preview.invoice} /> : null}
+          {preview.invoice ? <PaperPreview invoice={preview.invoice} locked={PROTECTED_EXPORTS} /> : null}
         </div>
         <p className="ip-preview-note">
           {preview.stale

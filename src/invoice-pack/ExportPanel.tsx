@@ -60,7 +60,15 @@ function downloadHtml(html: string, filename: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
-export function ExportPanel({ kind, getInput }: { kind: ExportKind; getInput: () => unknown }) {
+export function ExportPanel({
+  kind,
+  getInput,
+  onExported,
+}: {
+  kind: ExportKind
+  getInput: () => unknown
+  onExported?: (result: ExportResult) => void
+}) {
   const copy = COPY[kind]
   const [state, setState] = useState<State>({ name: 'checking' })
   const busy = useRef(false)
@@ -98,6 +106,7 @@ export function ExportPanel({ kind, getInput }: { kind: ExportKind; getInput: ()
     try {
       const result = await exportDocument(kind, order, getInput())
       setState({ name: 'done', order, result })
+      onExported?.(result)
       printHtml(result.html)
     } catch (error) {
       if (error instanceof PaymentsApiError && (error.code === 'not_entitled' || error.code === 'payment_required')) {
@@ -144,8 +153,10 @@ export function ExportPanel({ kind, getInput }: { kind: ExportKind; getInput: ()
                 Final {copy.noun} export is locked
               </p>
               <p className="ip-export-note">
-                The preview is a watermarked draft. Pay ₹{copy.price} once to export the final {copy.noun} without the
-                watermark, from this browser.
+                {kind === 'invoice'
+                  ? 'The preview hides amounts, GSTINs and payment details. '
+                  : 'The preview is a watermarked draft. '}
+                Pay ₹{copy.price} once to export, print and download the final {copy.noun} from this browser.
               </p>
               <button type="button" className="ip-btn" onClick={() => scrollToSection(copy.payId)} data-testid={`export-pay-${kind}`}>
                 Pay ₹{copy.price} to export
@@ -193,14 +204,24 @@ export function ExportPanel({ kind, getInput }: { kind: ExportKind; getInput: ()
                   {state.name === 'exporting' ? 'Preparing…' : `Export final ${copy.noun}`}
                 </button>
                 {state.name === 'done' ? (
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={() => downloadHtml(state.result.html, state.result.filename)}
-                    data-testid={`export-download-${kind}`}
-                  >
-                    Download file
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => printHtml(state.result.html)}
+                      data-testid={`export-print-${kind}`}
+                    >
+                      Print or save as PDF
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => downloadHtml(state.result.html, state.result.filename)}
+                      data-testid={`export-download-${kind}`}
+                    >
+                      Download file
+                    </button>
+                  </>
                 ) : null}
               </div>
               {state.name === 'done' ? (
