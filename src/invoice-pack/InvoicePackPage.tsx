@@ -108,7 +108,8 @@ export default function InvoicePackPage() {
       </header>
       <main id="main" tabIndex={-1}>
         <section id="product" className="ip-hero">
-          <div className="ip-wrap ip-hero-grid">
+          <div className="ip-hero-shell">
+            <div className="ip-hero-grid">
             <div className="ip-hero-copy">
               <p className="ip-label">For freelancers in India</p>
               <h1>Create your invoice. Get paid.</h1>
@@ -162,6 +163,7 @@ export default function InvoicePackPage() {
                 </div>
               </li>
             </ol>
+            </div>
           </div>
         </section>
 
