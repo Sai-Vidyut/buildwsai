@@ -16,19 +16,39 @@ export type OrderRow = {
   paid_at: string | null
   created_at: string
   updated_at: string
+  access_token_hash: string | null
+  document_key: string | null
+  export_count: number
+  last_export_at: string | null
 }
+
+export type NewOrder = Pick<
+  OrderRow,
+  'id' | 'product_id' | 'amount_paise' | 'currency' | 'mode' | 'razorpay_order_id' | 'status' | 'access_token_hash' | 'created_at' | 'updated_at'
+>
 
 export type PaymentSource = 'verify' | 'webhook' | 'reconcile'
 
 export type ApplyOutcome = 'paid' | 'already_paid' | 'authorized' | 'failed' | 'unchanged' | 'conflict'
 
-export async function insertOrder(db: D1Database, order: OrderRow): Promise<void> {
+export async function insertOrder(db: D1Database, order: NewOrder): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO orders (id, product_id, amount_paise, currency, mode, razorpay_order_id, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO orders (id, product_id, amount_paise, currency, mode, razorpay_order_id, status, access_token_hash, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .bind(order.id, order.product_id, order.amount_paise, order.currency, order.mode, order.razorpay_order_id, order.status, order.created_at, order.updated_at)
+    .bind(
+      order.id,
+      order.product_id,
+      order.amount_paise,
+      order.currency,
+      order.mode,
+      order.razorpay_order_id,
+      order.status,
+      order.access_token_hash,
+      order.created_at,
+      order.updated_at,
+    )
     .run()
 }
 

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
 import { hmacSha256Hex } from '../src/crypto.ts'
@@ -14,7 +14,10 @@ export const ORIGIN = 'https://buildwsai.online'
 // Implements the subset of the D1 API the worker uses, on a real SQLite database.
 export function createD1(): { d1: D1Database; sqlite: DatabaseSync } {
   const sqlite = new DatabaseSync(':memory:')
-  sqlite.exec(readFileSync(fileURLToPath(import.meta.resolve('../migrations/0001_init.sql')), 'utf8'))
+  const dir = fileURLToPath(import.meta.resolve('../migrations/'))
+  for (const file of readdirSync(dir).filter((name) => name.endsWith('.sql')).sort()) {
+    sqlite.exec(readFileSync(`${dir}/${file}`, 'utf8'))
+  }
   const prepare = (sql: string) => {
     let params: SQLInputValue[] = []
     const statement = {
@@ -133,7 +136,7 @@ export function setup(options: { limiter?: RateLimiter } = {}) {
   async function createOrder(productId: 'invoice-pack' | 'advance-receipt' = 'invoice-pack') {
     const res = await call('POST', '/api/payments/create-order', { body: { productId } })
     if (res.status !== 201) throw new Error(`create-order failed: ${res.status}`)
-    return res.json as { orderRef: string; razorpayOrderId: string; amount: number; currency: string; keyId: string }
+    return res.json as { orderRef: string; accessToken: string; razorpayOrderId: string; amount: number; currency: string; keyId: string }
   }
 
   async function sendWebhook(event: string, payment: RazorpayPayment, options: { eventId?: string; secret?: string } = {}) {

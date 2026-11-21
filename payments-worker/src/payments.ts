@@ -1,4 +1,4 @@
-import { newOrderRef, ORDER_REF_PATTERN, verifyHmac } from './crypto.ts'
+import { newAccessToken, newOrderRef, ORDER_REF_PATTERN, sha256Hex, verifyHmac } from './crypto.ts'
 import { keyMode, type Env } from './env.ts'
 import { HttpError, json, readJsonObject, rejectUnknownFields } from './http.ts'
 import { applyPayment, getOrderById, insertOrder, paymentMismatch, publicStatus, type OrderRow } from './orders.ts'
@@ -55,6 +55,7 @@ export async function createOrder(request: Request, deps: Deps): Promise<Respons
   }
 
   const now = deps.now().toISOString()
+  const accessToken = newAccessToken()
   await insertOrder(deps.env.DB, {
     id: orderRef,
     product_id: product.id,
@@ -62,10 +63,8 @@ export async function createOrder(request: Request, deps: Deps): Promise<Respons
     currency: product.currency,
     mode,
     razorpay_order_id: razorpayOrder.id,
-    razorpay_payment_id: null,
     status: 'created',
-    failure_code: null,
-    paid_at: null,
+    access_token_hash: await sha256Hex(accessToken),
     created_at: now,
     updated_at: now,
   })
@@ -73,6 +72,7 @@ export async function createOrder(request: Request, deps: Deps): Promise<Respons
   return json(
     {
       orderRef,
+      accessToken,
       razorpayOrderId: razorpayOrder.id,
       amount: product.amountPaise,
       currency: product.currency,

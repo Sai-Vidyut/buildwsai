@@ -37,3 +37,11 @@ export function newOrderRef(prefix: 'IP' | 'AR'): string {
 }
 
 export const ORDER_REF_PATTERN = /^(IP|AR)-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+
+// 256-bit bearer secret that proves this browser created the order. Only its SHA-256 is stored.
+export function newAccessToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32))
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+export const ACCESS_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/
