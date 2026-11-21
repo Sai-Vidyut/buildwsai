@@ -13,6 +13,7 @@ const links = [
   { href: '#resume', label: 'Resume' },
   { href: '#lab', label: 'Lab' },
   { href: '#contact', label: 'Contact' },
+  { href: '/invoice-pack', label: 'Invoice Pack' },
 ]
 
 export function Nav() {

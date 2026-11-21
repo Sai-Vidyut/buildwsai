@@ -67,6 +67,11 @@
     color: var(--color-black);
   }
 
+  html.invoice-pack-root,
+  html.invoice-pack-root body {
+    background: #efeae2;
+  }
+
   html.lenis,
   html.lenis body {
     height: auto;

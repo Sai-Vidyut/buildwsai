@@ -23,6 +23,22 @@
           return
         }
 
+        // Invoice Pack is the same SPA, published at /invoice-pack/ so this
+        // request can finish on a real 200. The shell restores /invoice-pack.
+        if (
+          path === '/invoice-pack' ||
+          path === '/invoice-pack.html' ||
+          (path.indexOf('/invoice-pack/') === 0 &&
+            path !== '/invoice-pack/' &&
+            path !== '/invoice-pack/index.html')
+        ) {
+          try {
+            sessionStorage.setItem('invoice-pack-spa-path', path + search + hash)
+          } catch (e) {}
+          location.replace('/invoice-pack/' + search + hash)
+          return
+        }
+
         // Portfolio uses hash routes; unknown top-level paths fall back to home.
         location.replace('/' + search + hash)
       })()

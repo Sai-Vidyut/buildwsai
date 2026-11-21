@@ -23,6 +23,8 @@ npm run preview
 3. Push to `main` — `deploy.yml` publishes `dist/`
 4. Custom domain: `buildwsai.online` (CNAME in `public/CNAME`)
 
+`/invoice-pack` is Invoice Pack on this same Pages site. The build copies the SPA shell to `dist/invoice-pack/index.html`. A direct request for `/invoice-pack` is handled by `public/404.html`, which loads that shell and restores the clean URL. Vite `base` stays `/`.
+
 ## Stack
 
 - Vite + React 19 + TypeScript

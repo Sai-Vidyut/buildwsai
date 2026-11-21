@@ -37,6 +37,22 @@
       rel="stylesheet"
     />
     <title>BuildWSai — Sai Vidyut C</title>
+    <script>
+      (function () {
+        var path = location.pathname || '/'
+        if (path === '/invoice-pack' || path.indexOf('/invoice-pack/') === 0) {
+          document.documentElement.classList.add('invoice-pack-root')
+          document.title = 'Invoice Pack — ₹499 for one client invoice and three reminders'
+          var desc = document.querySelector('meta[name="description"]')
+          if (desc) {
+            desc.setAttribute(
+              'content',
+              'Invoice Pack for freelancers in India. ₹499 for one draft invoice and three payment reminders. Advance Receipt is ₹399. Pay by UPI. A UTR is not proof of payment.',
+            )
+          }
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
