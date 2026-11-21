@@ -2214,13 +2214,17 @@ html.ip-root {
   letter-spacing: -0.02em;
 }
 
-.ip-note > p {
+.ip-note > p,
+.ip-upi > p,
+.ip-rzp > p {
   margin: 0.45rem 0 0;
   color: var(--ip-ink-2);
   font-size: 0.93rem;
 }
 
-.ip-note > .ip-fine {
+.ip-note > .ip-fine,
+.ip-upi > .ip-fine,
+.ip-rzp > .ip-fine {
   color: var(--ip-muted);
 }
 
@@ -2288,7 +2292,7 @@ html.ip-root {
   margin-top: 0;
 }
 
-.ip-note [role='status'] {
+.ip-upi [role='status'] {
   margin-top: 1rem;
   padding: 0.75rem 0.9rem;
   border-radius: var(--ip-radius);
@@ -2297,8 +2301,165 @@ html.ip-root {
   font-size: 0.88rem;
 }
 
-.ip-note > div > h3 {
+.ip-upi > div > h3 {
   margin-top: 1.5rem;
+}
+
+/* —— Payment method switch + Razorpay —— */
+
+.ip-pay-methods {
+  margin-top: 1rem;
+}
+
+.ip-rzp {
+  margin-top: 0.5rem;
+}
+
+.ip-rzp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+  min-width: min(100%, 17rem);
+}
+
+.ip-rzp-btn:disabled {
+  cursor: progress;
+  opacity: 0.78;
+}
+
+.ip-spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ip-spin 0.7s linear infinite;
+}
+
+@keyframes ip-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ip-spinner {
+    animation: none;
+    border-right-color: currentColor;
+    opacity: 0.6;
+  }
+}
+
+.ip-rzp-status {
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: var(--ip-radius);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ip-rzp-status p {
+  margin: 0;
+}
+
+.ip-rzp-status--info {
+  border-color: var(--ip-line);
+  background: rgba(25, 24, 22, 0.035);
+  color: var(--ip-ink-2);
+}
+
+.ip-rzp-status--warn {
+  border-color: #ead9b8;
+  background: #fbf5e8;
+  color: #6b4e17;
+}
+
+.ip-rzp-status--err {
+  border-color: #efcfc2;
+  background: #fbf0eb;
+  color: #8a3417;
+}
+
+.ip-rzp-link {
+  margin-top: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.ip-rzp-paid {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #cfe3d4;
+  border-radius: 14px;
+  background: #f1f7f2;
+  color: var(--ip-ink);
+}
+
+.ip-rzp-paid-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-family: var(--ip-serif);
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+}
+
+.ip-rzp-check {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--ip-ok);
+  color: #fff;
+}
+
+.ip-rzp-paid-sub {
+  margin: 0.35rem 0 0;
+  color: var(--ip-ink-2);
+  font-size: 0.92rem;
+}
+
+.ip-rzp-facts {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.9rem 0 0;
+  padding: 0.8rem 0 0;
+  border-top: 1px solid #d6e6da;
+}
+
+.ip-rzp-facts div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+.ip-rzp-facts dt {
+  color: var(--ip-muted);
+  font-size: 0.8rem;
+}
+
+.ip-rzp-facts dd {
+  margin: 0;
+  font-family: var(--ip-mono);
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.ip-rzp-paid .ip-fine {
+  margin: 0.8rem 0 0;
 }
 
 /* —— Advance —— */
@@ -2549,6 +2710,16 @@ html.ip-root {
   .ip-seg-btn,
   .ip-seg-pill {
     border-radius: 12px;
+  }
+
+  .ip-pay-methods .ip-seg-btn {
+    padding: 0 0.4rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .ip-rzp-btn {
+    width: 100%;
   }
 
   .ip-wizard-nav button {

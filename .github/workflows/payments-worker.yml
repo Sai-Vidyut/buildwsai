@@ -1,0 +1,32 @@
+name: Payments worker tests
+
+on:
+  pull_request:
+    paths:
+      - "payments-worker/**"
+      - ".github/workflows/payments-worker.yml"
+  push:
+    branches: [main]
+    paths:
+      - "payments-worker/**"
+      - ".github/workflows/payments-worker.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: payments-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: payments-worker/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test

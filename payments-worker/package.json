@@ -1,0 +1,24 @@
+{
+  "name": "invoice-pack-payments",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Cloudflare Worker + D1 backend for Razorpay payments on buildwsai.online",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply invoice-pack-payments --local",
+    "db:migrate:remote": "wrangler d1 migrations apply invoice-pack-payments --remote",
+    "test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261121.1",
+    "@types/node": "^24.10.1",
+    "typescript": "~6.0.2",
+    "wrangler": "^4.166.0"
+  }
+}

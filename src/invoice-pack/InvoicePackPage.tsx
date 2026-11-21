@@ -8,9 +8,12 @@ import { InvoiceBuilder } from './InvoiceBuilder'
 import { Reveal, RevealGroup, RevealItem } from './motion-kit'
 import { EASE_OUT } from './motion-tokens'
 import { PayBox } from './PayBox'
+import { onlinePaymentsEnabled } from './payments-api'
 import { scrollToSection } from './scroll-to'
 import { SiteHeader } from './SiteHeader'
 import './invoice-pack.css'
+
+const ONLINE_PAYMENTS = onlinePaymentsEnabled()
 
 const JOURNEY = [
   'Understand what Invoice Pack does.',
@@ -18,8 +21,15 @@ const JOURNEY = [
   'Enter your job details in the step-by-step builder.',
   'Review the draft, totals, and three reminder messages.',
   'Read any warnings that apply to your job.',
-  'Pay ₹499 by UPI when you are ready.',
-  'Save your payment reference here. Payment is checked manually — this page does not confirm it automatically.',
+  ...(ONLINE_PAYMENTS
+    ? [
+        'Pay ₹499 through Razorpay or by UPI when you are ready.',
+        'Razorpay payments are confirmed by our server. A direct UPI payment reference is checked manually.',
+      ]
+    : [
+        'Pay ₹499 by UPI when you are ready.',
+        'Save your payment reference here. Payment is checked manually — this page does not confirm it automatically.',
+      ]),
 ] as const
 
 const FEATURES = [
@@ -287,14 +297,25 @@ export default function InvoicePackPage() {
                   </p>
                   <div className="ip-pay-intro no-print">
                     <h3>How payment works</h3>
-                    <p>
-                      Pay ₹499 using UPI. Enter the payment reference from your UPI app so your order can be identified.
-                      Saving a reference here does not prove payment, does not confirm delivery, and does not mark your
-                      order paid automatically.
-                    </p>
+                    {ONLINE_PAYMENTS ? (
+                      <p>
+                        Pay ₹499 through Razorpay by UPI, card, netbanking, or wallet. The order is marked paid only
+                        after our server verifies the payment with Razorpay. You can also pay by UPI directly and enter
+                        the payment reference. That order is checked by hand, and saving a reference does not mark it
+                        paid.
+                      </p>
+                    ) : (
+                      <p>
+                        Pay ₹499 using UPI. Enter the payment reference from your UPI app so your order can be
+                        identified. Saving a reference here does not prove payment, does not confirm delivery, and does
+                        not mark your order paid automatically.
+                      </p>
+                    )}
                   </div>
                   <p className="ip-fine no-print">
-                    After you pay, payment is checked against the UPI account. This page cannot verify it on its own.
+                    {ONLINE_PAYMENTS
+                      ? 'Direct UPI payments are checked against the UPI account. This page cannot verify those on its own.'
+                      : 'After you pay, payment is checked against the UPI account. This page cannot verify it on its own.'}
                   </p>
                   <div id="pay-499">
                     <PayBox checkout={INVOICE_CHECKOUT} />
@@ -348,6 +369,13 @@ export default function InvoicePackPage() {
                     and tr. The QR code is that link.
                   </li>
                   <li>A UTR you save is stored as payment_pending in this browser only.</li>
+                  {ONLINE_PAYMENTS ? (
+                    <li>
+                      Razorpay payments are processed by Razorpay. Our server keeps the order reference, product,
+                      amount, Razorpay order and payment IDs, and payment status. It keeps no name, email, phone, card,
+                      or UPI details.
+                    </li>
+                  ) : null}
                 </ul>
               </div>
             </Reveal>

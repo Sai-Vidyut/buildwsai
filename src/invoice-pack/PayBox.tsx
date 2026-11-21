@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react'
+import { motion } from 'motion/react'
 import { makeQr } from './qr'
 import type { Checkout } from './logic'
 import { newOrderRef, upiPayUri } from './logic'
 import { loadOrders, saveOrder, type StoredOrder } from './storage'
 import { copyText } from './copy'
+import { onlinePaymentsEnabled, type ProductId } from './payments-api'
+import { RazorpayPay } from './RazorpayPay'
 
 function QrCode({ text, label }: { text: string; label: string }) {
   const grid = useMemo(() => {
@@ -34,8 +37,76 @@ function QrCode({ text, label }: { text: string; label: string }) {
   )
 }
 
+type Method = 'razorpay' | 'upi'
+
+const PRODUCT_IDS: Record<Checkout['prefix'], ProductId> = { IP: 'invoice-pack', AR: 'advance-receipt' }
+
 export function PayBox({ checkout }: { checkout: Checkout }) {
   const amount = Number(checkout.am) as 499 | 399
+  const online = onlinePaymentsEnabled()
+  const [method, setMethod] = useState<Method>(online ? 'razorpay' : 'upi')
+  const tabId = (m: Method) => `pay-${checkout.prefix}-${m}-tab`
+  const panelId = (m: Method) => `pay-${checkout.prefix}-${m}-panel`
+  const methods: Array<{ id: Method; label: string }> = [
+    { id: 'razorpay', label: 'Pay using Razorpay' },
+    { id: 'upi', label: 'Pay using UPI' },
+  ]
+
+  return (
+    <div className="ip-note" data-testid={amount === 499 ? 'pay-499' : 'pay-399'}>
+      <h3>Pay ₹{checkout.am}</h3>
+      {online ? (
+        <>
+          <div className="ip-seg ip-pay-methods" role="tablist" aria-label={`Payment method for ₹${checkout.am}`}>
+            {methods.map((item) => {
+              const selected = method === item.id
+              return (
+                <button
+                  key={item.id}
+                  id={tabId(item.id)}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  aria-controls={panelId(item.id)}
+                  tabIndex={selected ? 0 : -1}
+                  className={selected ? 'ip-plain ip-seg-btn is-active' : 'ip-plain ip-seg-btn'}
+                  data-testid={`method-${item.id}-${checkout.am}`}
+                  onClick={() => setMethod(item.id)}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+                    event.preventDefault()
+                    const next: Method = item.id === 'razorpay' ? 'upi' : 'razorpay'
+                    setMethod(next)
+                    document.getElementById(tabId(next))?.focus()
+                  }}
+                >
+                  {selected ? (
+                    <motion.span
+                      className="ip-seg-pill"
+                      layoutId={`ip-pay-pill-${checkout.prefix}`}
+                      transition={{ type: 'spring', stiffness: 460, damping: 36 }}
+                    />
+                  ) : null}
+                  <span className="ip-seg-label">{item.label}</span>
+                </button>
+              )
+            })}
+          </div>
+          <div id={panelId('razorpay')} role="tabpanel" aria-labelledby={tabId('razorpay')} hidden={method !== 'razorpay'}>
+            <RazorpayPay productId={PRODUCT_IDS[checkout.prefix]} amountInr={amount} onUseUpi={() => setMethod('upi')} />
+          </div>
+          <div id={panelId('upi')} role="tabpanel" aria-labelledby={tabId('upi')} hidden={method !== 'upi'}>
+            <UpiPay checkout={checkout} amount={amount} />
+          </div>
+        </>
+      ) : (
+        <UpiPay checkout={checkout} amount={amount} />
+      )}
+    </div>
+  )
+}
+
+function UpiPay({ checkout, amount }: { checkout: Checkout; amount: 499 | 399 }) {
   const [orderRef] = useState(() => newOrderRef(checkout.prefix))
   const uri = upiPayUri(checkout, orderRef)
   const [utr, setUtr] = useState('')
@@ -46,8 +117,7 @@ export function PayBox({ checkout }: { checkout: Checkout }) {
   const fieldId = `utr-${checkout.prefix}`
 
   return (
-    <div className="ip-note" data-testid={amount === 499 ? 'pay-499' : 'pay-399'}>
-      <h3>Pay ₹{checkout.am}</h3>
+    <div className="ip-upi">
       <p>
         Payee name: {checkout.pn}. UPI ID: <strong>{checkout.pa}</strong>. Amount: ₹{checkout.am}.
       </p>

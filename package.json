@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "check:pack": "node --experimental-strip-types src/invoice-pack/selfcheck.ts",
+    "test:payments": "npm --prefix payments-worker test",
     "preview": "vite preview"
   },
   "dependencies": {

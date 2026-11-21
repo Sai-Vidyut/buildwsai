@@ -95,6 +95,9 @@ jobs:
         run: npm ci
 
       - name: Build portfolio
+        env:
+          # Public URL of the payments Worker (repository variable, not a secret). Empty hides Razorpay checkout.
+          VITE_PAYMENTS_API_URL: ${{ vars.PAYMENTS_API_URL }}
         run: npm run build
 
       - name: Checkout Slyvr (public, temporary CI directory)
