@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { ADVANCE_CHECKOUT, DEMO_RECEIPT, buildReceipt, type ReceiptInput } from './logic'
+import { Reveal } from './motion-kit'
+import { EASE_OUT } from './motion-tokens'
 import { Errors, ReceiptSheet, Warnings } from './Sheets'
 import { PayBox } from './PayBox'
 
@@ -30,19 +33,17 @@ export function AdvanceOffer() {
 
   return (
     <section id="advance" className="ip-section ip-advance" aria-labelledby="advance-heading">
-      <p className="ip-label">Separate offer</p>
-      <h2 id="advance-heading">Advance Receipt — ₹399</h2>
-      <p className="ip-lede ip-lede-narrow">
-        For work where you have already received an advance, create a receipt showing the amount received and the
-        remaining balance. One short message to send with it. No GST calculation. Not part of the ₹499 invoice pack.
-      </p>
+      <Reveal className="ip-section-head">
+        <p className="ip-label">Separate offer</p>
+        <h2 id="advance-heading">Advance Receipt — ₹399</h2>
+        <p className="ip-lede">
+          For work where you have already received an advance, create a receipt showing the amount received and the
+          remaining balance. One short message to send with it. No GST calculation. Not part of the ₹499 invoice pack.
+        </p>
+      </Reveal>
 
-      {receipt ? (
-        <div className="ip-doc-preview">
-          <ReceiptSheet receipt={receipt} message={demo.message} demo testId="advance-demo" />
-        </div>
-      ) : null}
-
+      <div className="ip-advance-grid">
+      <Reveal className="ip-advance-form-col">
       <form
         className="ip-receipt-form no-print"
         autoComplete="off"
@@ -145,23 +146,49 @@ export function AdvanceOffer() {
         </div>
         {result && !result.ok ? <Errors errors={result.errors} /> : null}
       </form>
-      {result?.ok && result.receipt ? (
-        <div className="ip-doc-preview">
-          <Warnings warnings={result.warnings} />
-          <ReceiptSheet
-            receipt={result.receipt}
-            message={result.message}
-            demo={result.receipt.seller === 'Example Decor'}
-          />
-          <div className="ip-actions no-print">
-            <button type="button" onClick={() => window.print()}>
-              Print or save as PDF
-            </button>
-          </div>
-        </div>
-      ) : null}
+      </Reveal>
+      <Reveal className="ip-advance-preview-col" delay={0.1}>
+        <AnimatePresence mode="wait" initial={false}>
+          {result?.ok && result.receipt ? (
+            <motion.div
+              key="result"
+              className="ip-doc-preview"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4, ease: EASE_OUT }}
+            >
+              <p className="ip-preview-label">Your receipt</p>
+              <Warnings warnings={result.warnings} />
+              <ReceiptSheet
+                receipt={result.receipt}
+                message={result.message}
+                demo={result.receipt.seller === 'Example Decor'}
+              />
+              <div className="ip-actions no-print">
+                <button type="button" onClick={() => window.print()}>
+                  Print or save as PDF
+                </button>
+              </div>
+            </motion.div>
+          ) : receipt ? (
+            <motion.div
+              key="demo"
+              className="ip-doc-preview"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4, ease: EASE_OUT }}
+            >
+              <p className="ip-preview-label">Example</p>
+              <ReceiptSheet receipt={receipt} message={demo.message} demo testId="advance-demo" />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </Reveal>
+      </div>
 
-      <div className="no-print" id="pay-399">
+      <div className="no-print ip-advance-pay" id="pay-399">
         <PayBox checkout={ADVANCE_CHECKOUT} />
       </div>
     </section>
