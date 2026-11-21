@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { CONTACT_EMAIL, INVOICE_CHECKOUT, INVOICE_DESCRIPTION, INVOICE_TITLE, buildPack, demoInput } from './logic'
 import { AdvanceOffer } from './AdvanceOffer'
 import { ExampleInvoice } from './ExampleInvoice'
@@ -16,6 +16,34 @@ const JOURNEY = [
   'Pay ₹499 by UPI when you are ready.',
   'Save your payment reference here. Payment is checked manually — this page does not confirm it automatically.',
 ] as const
+
+const TOP_COMPACT_SCROLL = 28
+
+function useTopBarCompact(threshold = TOP_COMPACT_SCROLL) {
+  const [compact, setCompact] = useState(false)
+
+  useEffect(() => {
+    let frame = 0
+    const sync = () => {
+      setCompact(window.scrollY > threshold)
+    }
+    const onScroll = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(() => {
+        frame = 0
+        sync()
+      })
+    }
+    sync()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [threshold])
+
+  return compact
+}
 
 function useInvoiceMeta() {
   useLayoutEffect(() => {
@@ -49,6 +77,7 @@ function useInvoiceMeta() {
 
 export default function InvoicePackPage() {
   useInvoiceMeta()
+  const topCompact = useTopBarCompact()
   const hero = useMemo(() => buildPack(demoInput({ gst: true, foreign: false, sameState: false })), [])
 
   useEffect(() => {
@@ -58,11 +87,11 @@ export default function InvoicePackPage() {
   }, [])
 
   return (
-    <div className="invoice-pack">
+    <div className={`invoice-pack${topCompact ? ' invoice-pack--top-compact' : ''}`}>
       <a className="ip-skip" href="#main">
         Skip to content
       </a>
-      <header className="ip-top">
+      <header className={`ip-top${topCompact ? ' ip-top--compact' : ''}`}>
         <div className="ip-wrap ip-top-inner">
           <a className="ip-brand" href="#product">
             Invoice Pack
