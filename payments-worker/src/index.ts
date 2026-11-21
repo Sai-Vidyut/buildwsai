@@ -1,5 +1,6 @@
 import { isConfigured, type Env, type RateLimiter } from './env.ts'
 import { clientIp, corsHeaders, errorResponse, HttpError, json, parseAllowedOrigins } from './http.ts'
+import { exportDocument } from './exports.ts'
 import { createOrder, getOrderStatus, verifyPayment, type Deps } from './payments.ts'
 import { RazorpayClient, type FetchLike } from './razorpay.ts'
 import { handleWebhook } from './webhook.ts'
@@ -59,6 +60,12 @@ export function createHandler(fetchImpl: FetchLike, now: () => Date = () => new 
         if (request.method !== 'POST') throw new HttpError(405, 'method_not_allowed', 'Method not allowed.')
         await enforceLimit(env.VERIFY_LIMITER, `verify:${clientIp(request)}`)
         return await verifyPayment(request, deps)
+      }
+
+      if (path === '/api/payments/exports/invoice' || path === '/api/payments/exports/receipt') {
+        if (request.method !== 'POST') throw new HttpError(405, 'method_not_allowed', 'Method not allowed.')
+        await enforceLimit(env.VERIFY_LIMITER, `export:${clientIp(request)}`)
+        return await exportDocument(path.endsWith('/invoice') ? 'invoice' : 'receipt', request, deps)
       }
 
       const statusMatch = STATUS_ROUTE.exec(path)

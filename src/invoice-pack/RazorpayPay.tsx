@@ -3,9 +3,11 @@ import { AnimatePresence, motion } from 'motion/react'
 import { CONTACT_EMAIL } from './logic'
 import { EASE_OUT } from './motion-tokens'
 import {
+  announcePaid,
   createOrder,
   forgetOrder,
   getOrderStatus,
+  onlinePaymentsEnabled,
   PaymentsApiError,
   recentOrders,
   rememberOrder,
@@ -60,14 +62,16 @@ export function RazorpayPay({
   const inFlight = useRef(false)
 
   const settleStatus = useCallback((status: OrderStatus) => {
-    if (status.status === 'paid') setPhase({ name: 'paid', order: status })
-    else if (status.status === 'failed') setPhase({ name: 'failed', orderRef: status.orderRef, message: 'The payment did not go through.' })
+    if (status.status === 'paid') {
+      setPhase({ name: 'paid', order: status })
+      announcePaid(status.productId)
+    } else if (status.status === 'failed') setPhase({ name: 'failed', orderRef: status.orderRef, message: 'The payment did not go through.' })
     else setPhase({ name: 'processing', orderRef: status.orderRef, slow: false })
   }, [])
 
   // Restore a confirmation after a reload. The server decides whether the order is paid.
   useEffect(() => {
-    const last = recentOrders(productId)[0]
+    const last = recentOrders(productId)[0]?.ref
     if (!last) return
     let active = true
     getOrderStatus(last)
@@ -118,7 +122,7 @@ export function RazorpayPay({
         }),
       ])
       orderRef.current = order
-      rememberOrder(productId, order.orderRef)
+      rememberOrder(productId, { ref: order.orderRef, token: order.accessToken })
       setPhase({ name: 'open' })
 
       const outcome = await openCheckout({
@@ -221,6 +225,14 @@ export function RazorpayPay({
           ) : null}
         </dl>
         <p className="ip-fine">
+          {onlinePaymentsEnabled() ? (
+            <>
+              <a href={productId === 'invoice-pack' ? '#create' : '#advance'} className="ip-rzp-export-link">
+                {productId === 'invoice-pack' ? 'Export your final invoice' : 'Export your final receipt'}
+              </a>{' '}
+              from this browser.{' '}
+            </>
+          ) : null}
           Keep the order reference. No email is sent from this page. For anything about this order, write to{' '}
           <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderRef}`)}`}>{CONTACT_EMAIL}</a>.
         </p>

@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - "payments-worker/**"
+      - "src/invoice-pack/logic.ts"
       - ".github/workflows/payments-worker.yml"
   push:
     branches: [main]
     paths:
       - "payments-worker/**"
+      - "src/invoice-pack/logic.ts"
       - ".github/workflows/payments-worker.yml"
 
 permissions:

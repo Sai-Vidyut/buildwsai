@@ -5,7 +5,11 @@ import { CountUp, Reveal } from './motion-kit'
 import { EASE_OUT } from './motion-tokens'
 import { PaperPreview } from './PaperPreview'
 import { StateSelect } from './StateSelect'
+import { ExportPanel } from './ExportPanel'
+import { onlinePaymentsEnabled } from './payments-api'
 import { Errors, InvoiceSheet, Reminders, Warnings } from './Sheets'
+
+const PROTECTED_EXPORTS = onlinePaymentsEnabled()
 
 const STEPS = [
   { id: 'seller', title: 'Your details' },
@@ -123,8 +127,9 @@ export function InvoiceBuilder() {
               <p className="ip-label">Your pack</p>
               <h2 id="result-heading">Your invoice pack is ready to review.</h2>
               <p className="ip-lede">
-                Check the draft and reminders. Nothing is uploaded. When you are satisfied, print or copy what you will
-                send, then continue to payment.
+                {PROTECTED_EXPORTS
+                  ? 'Check the draft and reminders. The preview is watermarked. Pay once to export the final invoice.'
+                  : 'Check the draft and reminders. Nothing is uploaded. When you are satisfied, print or copy what you will send, then continue to payment.'}
               </p>
             </div>
             <div className="ip-result-summary no-print">
@@ -145,7 +150,7 @@ export function InvoiceBuilder() {
           <Warnings warnings={result.warnings} />
           <div className="ip-result-grid">
             <div className="ip-doc-preview">
-              <InvoiceSheet invoice={invoice} testId="pack-sheet" />
+              <InvoiceSheet invoice={invoice} draft={PROTECTED_EXPORTS} testId="pack-sheet" />
             </div>
             <section className="ip-reminders-block" aria-labelledby="pack-reminders-heading">
               <h3 id="pack-reminders-heading">Three payment reminders</h3>
@@ -165,16 +170,21 @@ export function InvoiceBuilder() {
             >
               Edit details
             </button>
-            <button type="button" className="secondary" onClick={() => window.print()}>
-              Print or save as PDF
-            </button>
-            <a className="ip-btn" href="#pricing">
-              Continue to payment
-              <span className="ip-btn-arrow" aria-hidden="true">
-                →
-              </span>
-            </a>
+            {PROTECTED_EXPORTS ? null : (
+              <>
+                <button type="button" className="secondary" onClick={() => window.print()}>
+                  Print or save as PDF
+                </button>
+                <a className="ip-btn" href="#pricing">
+                  Continue to payment
+                  <span className="ip-btn-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              </>
+            )}
           </div>
+          {PROTECTED_EXPORTS ? <ExportPanel kind="invoice" getInput={() => form} /> : null}
         </motion.div>
       </section>
     )

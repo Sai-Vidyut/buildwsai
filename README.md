@@ -29,7 +29,8 @@ npm run preview
 
 Invoice Pack (₹499) and Advance Receipt (₹399) can be paid through Razorpay Checkout or by direct UPI. Razorpay payments are created, verified, and recorded by a Cloudflare Worker with a D1 database in [`payments-worker/`](payments-worker/). The static site stays on GitHub Pages.
 
-- The build reads `VITE_PAYMENTS_API_URL` (GitHub repository variable `PAYMENTS_API_URL`). When it is empty, only the direct UPI option is shown.
+- The build reads `VITE_PAYMENTS_API_URL` (GitHub repository variable `PAYMENTS_API_URL`). When it is empty, only the direct UPI option is shown and documents print freely as before.
+- When it is set, the page shows a watermarked draft and the final invoice or receipt is exported by the Worker only for a paid order.
 - Setup, architecture, costs, and the test-to-live switch: [`docs/payments/razorpay-setup.md`](docs/payments/razorpay-setup.md).
 - Backend tests: `cd payments-worker && npm ci && npm test`.
 
