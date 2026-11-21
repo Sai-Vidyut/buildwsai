@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
 import { hmacSha256Hex } from '../src/crypto.ts'
+import type { EmailProvider } from '../src/email.ts'
 import type { Env, RateLimiter } from '../src/env.ts'
 import { createHandler } from '../src/index.ts'
 import type { RazorpayPayment } from '../src/razorpay.ts'
@@ -39,7 +40,20 @@ export function createD1(): { d1: D1Database; sqlite: DatabaseSync } {
     }
     return statement
   }
-  return { d1: { prepare } as unknown as D1Database, sqlite }
+  // D1 runs a batch as one transaction.
+  const batch = async (statements: { run(): Promise<unknown> }[]) => {
+    sqlite.exec('BEGIN')
+    try {
+      const results = []
+      for (const statement of statements) results.push(await statement.run())
+      sqlite.exec('COMMIT')
+      return results
+    } catch (error) {
+      sqlite.exec('ROLLBACK')
+      throw error
+    }
+  }
+  return { d1: { prepare, batch } as unknown as D1Database, sqlite }
 }
 
 type FakeOrder = { id: string; amount: number; currency: string; receipt: string; notes: Record<string, string> }
@@ -104,7 +118,7 @@ export function checkoutSignature(orderId: string, paymentId: string, secret = K
   return hmacSha256Hex(secret, `${orderId}|${paymentId}`)
 }
 
-export function setup(options: { limiter?: RateLimiter } = {}) {
+export function setup(options: { limiter?: RateLimiter; emailProvider?: EmailProvider | null; now?: () => Date } = {}) {
   const { d1, sqlite } = createD1()
   const razorpay = new FakeRazorpay()
   const env: Env = {
@@ -116,7 +130,7 @@ export function setup(options: { limiter?: RateLimiter } = {}) {
     ORDER_LIMITER: options.limiter,
     VERIFY_LIMITER: options.limiter,
   }
-  const handle = createHandler(razorpay.fetch)
+  const handle = createHandler(razorpay.fetch, options.now, { emailProvider: () => options.emailProvider ?? null })
   const responses: string[] = []
 
   async function call(method: string, path: string, init: { body?: unknown; rawBody?: string; headers?: Record<string, string> } = {}) {
@@ -155,8 +169,23 @@ export function setup(options: { limiter?: RateLimiter } = {}) {
     })
   }
 
+  async function paidOrder(productId: 'invoice-pack' | 'advance-receipt' = 'invoice-pack') {
+    const order = await createOrder(productId)
+    const payment = razorpay.addPayment(order.razorpayOrderId)
+    const res = await call('POST', '/api/payments/verify', {
+      body: {
+        orderRef: order.orderRef,
+        razorpay_order_id: order.razorpayOrderId,
+        razorpay_payment_id: payment.id,
+        razorpay_signature: await checkoutSignature(order.razorpayOrderId, payment.id),
+      },
+    })
+    if (res.json?.status !== 'paid') throw new Error('payment did not verify')
+    return order
+  }
+
   const orderRow = (ref: string) => sqlite.prepare('SELECT * FROM orders WHERE id = ?').get(ref) as Record<string, unknown> | undefined
   const count = (table: string) => Number((sqlite.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n)
 
-  return { env, sqlite, razorpay, call, createOrder, sendWebhook, orderRow, count, responses }
+  return { env, sqlite, razorpay, call, createOrder, paidOrder, sendWebhook, orderRow, count, responses }
 }

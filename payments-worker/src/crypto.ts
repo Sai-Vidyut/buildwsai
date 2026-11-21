@@ -38,6 +38,17 @@ export function newOrderRef(prefix: 'IP' | 'AR'): string {
 
 export const ORDER_REF_PATTERN = /^(IP|AR)-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
 
+export function newFollowupId(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(20))
+  return `FU-${Array.from(bytes, (b) => REF_ALPHABET[b & 31]).join('')}`
+}
+
+export const FOLLOWUP_ID_PATTERN = /^FU-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+
+export function newClaimId(): string {
+  return toHex(crypto.getRandomValues(new Uint8Array(16)).buffer as ArrayBuffer)
+}
+
 // 256-bit bearer secret that proves this browser created the order. Only its SHA-256 is stored.
 export function newAccessToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32))

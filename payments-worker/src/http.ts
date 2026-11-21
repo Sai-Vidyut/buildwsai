@@ -1,10 +1,12 @@
 export class HttpError extends Error {
   readonly status: number
   readonly code: string
-  constructor(status: number, code: string, message: string) {
+  readonly details: string[]
+  constructor(status: number, code: string, message: string, details: string[] = []) {
     super(message)
     this.status = status
     this.code = code
+    this.details = details
   }
 }
 
@@ -41,7 +43,8 @@ export function json(body: unknown, status = 200, extra: Record<string, string> 
 }
 
 export function errorResponse(error: HttpError, extra: Record<string, string> = {}): Response {
-  return json({ error: { code: error.code, message: error.message } }, error.status, extra)
+  const details = error.details.length ? { details: error.details } : {}
+  return json({ error: { code: error.code, message: error.message, ...details } }, error.status, extra)
 }
 
 const MAX_JSON_BYTES = 4 * 1024

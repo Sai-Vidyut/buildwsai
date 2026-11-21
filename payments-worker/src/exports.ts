@@ -2,7 +2,7 @@ import { buildPack, buildReceipt, type LineInput, type PackInput, type ReceiptIn
 import { ACCESS_TOKEN_PATTERN, ORDER_REF_PATTERN, sha256Hex, timingSafeEqualHex } from './crypto.ts'
 import { keyMode } from './env.ts'
 import { HttpError, json, readJsonObject, rejectUnknownFields } from './http.ts'
-import { getOrderById } from './orders.ts'
+import { getOrderById, type OrderRow } from './orders.ts'
 import type { Deps } from './payments.ts'
 import type { ProductId } from './products.ts'
 import { renderInvoice, renderReceipt } from './render.ts'
@@ -77,6 +77,10 @@ function normalize(value: string): string {
   return value.replace(/\s+/g, ' ').trim().toLowerCase()
 }
 
+export function invoiceDocumentKey(invoiceNumber: string): Promise<string> {
+  return sha256Hex(`invoice:${normalize(invoiceNumber)}`)
+}
+
 function safeFilePart(value: string): string {
   return value.replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'document'
 }
@@ -84,14 +88,12 @@ function safeFilePart(value: string): string {
 const notEntitled = () =>
   new HttpError(403, 'not_entitled', 'This browser does not hold a paid order for this document. Pay first, or use the browser you paid in.')
 
-export async function exportDocument(kind: ExportKind, request: Request, deps: Deps): Promise<Response> {
-  const body = await readJsonObject(request, MAX_EXPORT_BODY)
-  rejectUnknownFields(body, ['orderRef', 'accessToken', 'input'])
-  const { orderRef, accessToken } = body
+// The single server-side entitlement check: the order exists, the browser holds its secret,
+// it was paid with the current key mode, and it is for this product.
+export async function authorizePaidOrder(orderRef: unknown, accessToken: unknown, kind: ExportKind, deps: Deps): Promise<OrderRow> {
   if (typeof orderRef !== 'string' || !ORDER_REF_PATTERN.test(orderRef) || typeof accessToken !== 'string' || !ACCESS_TOKEN_PATTERN.test(accessToken)) {
     throw notEntitled()
   }
-
   const order = await getOrderById(deps.env.DB, orderRef)
   const presented = await sha256Hex(accessToken)
   if (!order || !order.access_token_hash || !timingSafeEqualHex(presented, order.access_token_hash)) throw notEntitled()
@@ -103,6 +105,16 @@ export async function exportDocument(kind: ExportKind, request: Request, deps: D
   if (order.status !== 'paid') {
     throw new HttpError(402, 'payment_required', 'This order is not confirmed as paid yet. Try again once the payment is confirmed.')
   }
+  return order
+}
+
+export const documentMismatch = () =>
+  new HttpError(409, 'document_mismatch', 'This order is already used for a different invoice number. Each order covers one invoice.')
+
+export async function exportDocument(kind: ExportKind, request: Request, deps: Deps): Promise<Response> {
+  const body = await readJsonObject(request, MAX_EXPORT_BODY)
+  rejectUnknownFields(body, ['orderRef', 'accessToken', 'input'])
+  const order = await authorizePaidOrder(body.orderRef, body.accessToken, kind, deps)
 
   let html: string
   let filename: string
@@ -137,13 +149,8 @@ export async function exportDocument(kind: ExportKind, request: Request, deps: D
   if (claimed.meta.changes === 0) {
     const fresh = await getOrderById(deps.env.DB, order.id)
     if (fresh?.document_key && fresh.document_key !== documentKey) {
-      throw new HttpError(
-        409,
-        'document_mismatch',
-        kind === 'invoice'
-          ? 'This order is already used for a different invoice number. Each order covers one invoice.'
-          : 'This order is already used for a receipt to a different client. Each order covers one receipt.',
-      )
+      if (kind === 'invoice') throw documentMismatch()
+      throw new HttpError(409, 'document_mismatch', 'This order is already used for a receipt to a different client. Each order covers one receipt.')
     }
     throw new HttpError(429, 'export_limit', `This order has reached its limit of ${EXPORT_LIMIT} exports.`)
   }
