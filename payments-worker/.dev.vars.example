@@ -4,3 +4,6 @@ RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxx
 RAZORPAY_KEY_SECRET=replace-with-test-key-secret
 RAZORPAY_WEBHOOK_SECRET=replace-with-webhook-secret
 ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+# Optional: client reminder email through Resend. Leave unset to keep reminders as drafts.
+# RESEND_API_KEY=
+# EMAIL_FROM=reminders@your-verified-domain.example

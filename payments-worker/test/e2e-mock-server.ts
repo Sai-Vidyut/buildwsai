@@ -1,13 +1,21 @@
 // Local-only server for browser testing: the real Worker handler, a fake Razorpay API, and SQLite as D1.
 // Not deployed. Run with: node --experimental-strip-types test/e2e-mock-server.ts
+// MOCK_EMAIL=1 adds a fake email provider that records messages instead of sending them.
 import { createServer } from 'node:http'
+import type { EmailMessage, EmailProvider } from '../src/email.ts'
+import { runDueReminders } from '../src/followups.ts'
 import { createHandler } from '../src/index.ts'
 import { checkoutSignature, createD1, FakeRazorpay, KEY_ID, KEY_SECRET, WEBHOOK_SECRET } from './helpers.ts'
 
 const PORT = Number(process.env.PORT ?? 8788)
 const { d1 } = createD1()
 const razorpay = new FakeRazorpay()
-const handle = createHandler(razorpay.fetch)
+const outbox: EmailMessage[] = []
+const email: EmailProvider | null =
+  process.env.MOCK_EMAIL === '1'
+    ? { name: 'mock', send: async (message) => (outbox.push(message), { ok: true, id: `mock_${outbox.length}` }) }
+    : null
+const handle = createHandler(razorpay.fetch, () => new Date(), { emailProvider: () => email })
 const env = {
   DB: d1,
   RAZORPAY_KEY_ID: KEY_ID,
@@ -33,6 +41,11 @@ createServer(async (req, res) => {
     const payment = razorpay.payments.get(url.searchParams.get('payment_id') ?? '')
     if (payment) payment.status = 'captured'
     res.writeHead(200, cors).end('ok')
+    return
+  }
+  if (url.pathname === '/__test/cron') {
+    const result = await runDueReminders(env, email, new Date(url.searchParams.get('now') ?? Date.now()))
+    res.writeHead(200, { 'Content-Type': 'application/json', ...cors }).end(JSON.stringify({ result, outbox }))
     return
   }
 

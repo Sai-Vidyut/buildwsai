@@ -1,6 +1,8 @@
+import { emailProviderFor, type EmailProvider } from './email.ts'
 import { isConfigured, type Env, type RateLimiter } from './env.ts'
 import { clientIp, corsHeaders, errorResponse, HttpError, json, parseAllowedOrigins } from './http.ts'
 import { exportDocument } from './exports.ts'
+import { createFollowup, manageFollowup, runDueReminders } from './followups.ts'
 import { createOrder, getOrderStatus, verifyPayment, type Deps } from './payments.ts'
 import { RazorpayClient, type FetchLike } from './razorpay.ts'
 import { handleWebhook } from './webhook.ts'
@@ -13,7 +15,11 @@ async function enforceLimit(limiter: RateLimiter | undefined, key: string): Prom
   if (!success) throw new HttpError(429, 'rate_limited', 'Too many requests. Please wait a minute and try again.')
 }
 
-export function createHandler(fetchImpl: FetchLike, now: () => Date = () => new Date()) {
+export type HandlerOptions = { emailProvider?: (env: Env) => EmailProvider | null }
+
+export function createHandler(fetchImpl: FetchLike, now: () => Date = () => new Date(), options: HandlerOptions = {}) {
+  const providerFor = options.emailProvider ?? ((env: Env) => emailProviderFor(env, fetchImpl))
+
   return async function handle(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
     const path = url.pathname
@@ -30,7 +36,7 @@ export function createHandler(fetchImpl: FetchLike, now: () => Date = () => new 
       }
 
       if (path === '/api/payments/health' && request.method === 'GET') {
-        return json({ ok: true, configured: isConfigured(env) }, 200, cors)
+        return json({ ok: true, configured: isConfigured(env), emailDelivery: providerFor(env) !== null }, 200, cors)
       }
 
       if (!isConfigured(env)) {
@@ -68,6 +74,13 @@ export function createHandler(fetchImpl: FetchLike, now: () => Date = () => new 
         return await exportDocument(path.endsWith('/invoice') ? 'invoice' : 'receipt', request, deps)
       }
 
+      if (path === '/api/payments/followups' || path === '/api/payments/followups/manage') {
+        if (request.method !== 'POST') throw new HttpError(405, 'method_not_allowed', 'Method not allowed.')
+        await enforceLimit(env.VERIFY_LIMITER, `followup:${clientIp(request)}`)
+        const provider = providerFor(env)
+        return path.endsWith('/manage') ? await manageFollowup(request, deps, provider) : await createFollowup(request, deps, provider)
+      }
+
       const statusMatch = STATUS_ROUTE.exec(path)
       if (statusMatch) {
         if (request.method !== 'GET') throw new HttpError(405, 'method_not_allowed', 'Method not allowed.')
@@ -84,8 +97,17 @@ export function createHandler(fetchImpl: FetchLike, now: () => Date = () => new 
   }
 }
 
-const handle = createHandler((input, init) => fetch(input, init))
+const fetchImpl: FetchLike = (input, init) => fetch(input, init)
+const handle = createHandler(fetchImpl)
 
 export default {
   fetch: (request: Request, env: Env) => handle(request, env),
+  scheduled: (_controller, env, ctx) => {
+    if (!env.DB) return
+    ctx.waitUntil(
+      runDueReminders(env, emailProviderFor(env, fetchImpl), new Date())
+        .then((result) => console.log('reminders.run', JSON.stringify(result)))
+        .catch((error) => console.error('reminders.run_failed', error instanceof Error ? error.name : 'unknown')),
+    )
+  },
 } satisfies ExportedHandler<Env>

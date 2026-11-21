@@ -12,6 +12,13 @@ workers_dev = true
 [vars]
 # Comma-separated list of browser origins allowed to call the API.
 ALLOWED_ORIGINS = "https://buildwsai.online,https://www.buildwsai.online"
+# Optional automatic reminder email. Set EMAIL_FROM to a sender on a domain verified with Resend,
+# and `wrangler secret put RESEND_API_KEY`. Without both, reminders become drafts the freelancer sends.
+# EMAIL_FROM = "reminders@buildwsai.online"
+
+# Sends due client payment reminders. Runs every 15 minutes, UTC.
+[triggers]
+crons = ["*/15 * * * *"]
 
 [[d1_databases]]
 binding = "DB"

@@ -2558,6 +2558,306 @@ html.ip-root {
   padding-left: 1.1rem;
 }
 
+/* —— Locked preview + final invoice —— */
+
+.ip-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ip-masked {
+  display: inline-block;
+  max-width: 100%;
+  height: 0.8em;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, var(--ip-paper-2) 0 6px, var(--ip-line) 6px 9px);
+  filter: blur(1.5px);
+  vertical-align: middle;
+}
+
+.ip-lock-mark,
+.ip-paper-lock {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--ip-accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.ip-lock-mark {
+  margin: calc(-1 * clamp(0.6rem, 1.5vw, 1rem)) 0 0.9rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(180, 83, 42, 0.3);
+  border-radius: 8px;
+  background: rgba(180, 83, 42, 0.05);
+}
+
+.ip-paper-lock {
+  justify-content: center;
+  margin: 0.9rem 0 0;
+  text-transform: uppercase;
+}
+
+.ip-final-frame {
+  display: block;
+  width: 100%;
+  height: min(1120px, 85vh);
+  border: 1px solid var(--ip-line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+/* —— Payment follow-ups —— */
+
+.ip-fu .ip-rzp-status {
+  margin: 0 0 1rem;
+}
+
+.ip-fu .ip-rzp-status ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.ip-fu-timeline {
+  display: grid;
+  gap: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.ip-fu-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.1rem 0.75rem;
+  padding: 0.55rem 0 0.55rem 1.5rem;
+  border-left: 1px solid var(--ip-line-strong);
+  margin-left: 0.4rem;
+}
+
+.ip-fu-dot {
+  position: absolute;
+  top: 0.85rem;
+  left: -0.4rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--ip-accent);
+  border-radius: 50%;
+  background: var(--ip-white);
+}
+
+.ip-fu-step--ok .ip-fu-dot {
+  border-color: var(--ip-ok);
+  background: var(--ip-ok);
+}
+
+.ip-fu-step--err .ip-fu-dot {
+  border-color: var(--ip-err);
+}
+
+.ip-fu-step--muted .ip-fu-dot {
+  border-color: var(--ip-faint);
+}
+
+.ip-fu-step--muted .ip-fu-step-k,
+.ip-fu-step--muted .ip-fu-step-v {
+  color: var(--ip-faint);
+}
+
+.ip-fu-step-k {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.ip-fu-step-v {
+  grid-column: 1;
+  color: var(--ip-muted);
+  font-family: var(--ip-mono);
+  font-size: 0.76rem;
+}
+
+.ip-fu-step-s {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--ip-ink-2);
+  font-size: 0.8rem;
+}
+
+.ip-fu-form,
+.ip-fu-manage {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.ip-fu-form > .ip-check,
+.ip-fu-switch {
+  min-height: 44px;
+}
+
+.ip-fu-templates,
+.ip-fu-reminders {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ip-fu-editor {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.ip-fu-preview {
+  padding: 0.8rem 0.9rem;
+  border: 1px dashed var(--ip-line-strong);
+  border-radius: 10px;
+  background: var(--ip-paper);
+}
+
+.ip-fu-preview-subject {
+  margin: 0 0 0.45rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.ip-fu-reminder-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ip-fu-badge {
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--ip-line-strong);
+  border-radius: 999px;
+  color: var(--ip-ink-2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ip-fu-badge--ok {
+  border-color: rgba(61, 138, 86, 0.4);
+  color: var(--ip-ok);
+}
+
+.ip-fu-badge--err {
+  border-color: rgba(154, 37, 18, 0.4);
+  color: var(--ip-err);
+}
+
+.ip-fu-badge--muted {
+  color: var(--ip-faint);
+}
+
+.ip-fu-meta {
+  margin: 0 0 0.6rem;
+  color: var(--ip-muted);
+  font-size: 0.8rem;
+}
+
+.ip-fu-error {
+  margin: 0 0 0.6rem;
+  color: var(--ip-err);
+  font-size: 0.85rem;
+}
+
+.ip-fu-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ip-line);
+  border-radius: 14px;
+  background: var(--ip-white);
+}
+
+.ip-fu-summary p {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+}
+
+.ip-fu-summary span {
+  color: var(--ip-muted);
+  font-size: 0.75rem;
+}
+
+.ip-fu-summary strong {
+  overflow-wrap: anywhere;
+}
+
+.ip-fu-paid {
+  color: var(--ip-ok);
+}
+
+.ip-fu-controls {
+  align-items: center;
+}
+
+.ip-fu-inline {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ip-line);
+  border-radius: 14px;
+  background: var(--ip-white);
+}
+
+.ip-fu-inline p {
+  margin: 0;
+}
+
+.ip-fu-confirm {
+  border-color: rgba(180, 83, 42, 0.35);
+}
+
+.ip-fu-history summary {
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.ip-fu-history ol {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.ip-fu-history li {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: 0.75rem;
+}
+
+.ip-fu-history time {
+  color: var(--ip-muted);
+  font-family: var(--ip-mono);
+  font-size: 0.74rem;
+}
+
+@media (max-width: 560px) {
+  .ip-fu-history li {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+}
+
 /* —— Advance —— */
 
 .ip-advance-grid {
