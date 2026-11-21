@@ -31,8 +31,20 @@
   box-sizing: border-box;
 }
 
-.invoice-pack a {
+.invoice-pack a:not(.ip-btn):not(.ip-arrow) {
   color: inherit;
+}
+
+.invoice-pack a.ip-btn {
+  color: #fff;
+}
+
+.invoice-pack a.ip-btn.secondary {
+  color: var(--ip-ink);
+}
+
+.invoice-pack a.ip-arrow {
+  color: #fff;
 }
 
 .invoice-pack h1,
