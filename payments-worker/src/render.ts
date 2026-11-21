@@ -58,6 +58,10 @@ function metaLine(label: string, value: string): string {
   return `<p><span>${esc(label)}</span> ${esc(value || '—')}</p>`
 }
 
+export function finalTitle(title: string): string {
+  return title.replace(/\s*\(\s*draft\s*\)\s*$/i, '').trim() || title
+}
+
 export function renderInvoice(invoice: Invoice, orderRef: string): string {
   const payBits = [invoice.accountName, invoice.bankName, invoice.accountNumber, invoice.ifsc].filter(Boolean)
   const lines = invoice.lines
@@ -69,7 +73,7 @@ export function renderInvoice(invoice: Invoice, orderRef: string): string {
   const body = `<article class="sheet">
 <div class="top">
   <div>
-    <p class="kicker">${esc(invoice.title)}</p>
+    <p class="kicker">${esc(finalTitle(invoice.title))}</p>
     <h1 class="who">${esc(invoice.supplierName)}</h1>
     ${invoice.supplierAddress ? `<p>${esc(invoice.supplierAddress)}</p>` : ''}
     ${invoice.supplierStateLabel ? `<p>${esc(invoice.supplierStateLabel)}</p>` : ''}

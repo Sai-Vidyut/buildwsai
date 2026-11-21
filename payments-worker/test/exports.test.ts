@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { DEMO_RECEIPT, examplePack } from '../../src/invoice-pack/logic.ts'
+import { DEMO_RECEIPT, buildPack, buildReceipt, examplePack } from '../../src/invoice-pack/logic.ts'
+import { finalTitle, renderReceipt } from '../src/render.ts'
 import { checkoutSignature, setup } from './helpers.ts'
 
 type T = ReturnType<typeof setup>
@@ -181,5 +182,57 @@ describe('protected exports', () => {
     assert.equal(sameClient.status, 200)
     const otherClient = await t.call('POST', '/api/payments/exports/receipt', { body: body({ ...DEMO_RECEIPT, client: 'Someone Else' }) })
     assert.equal(otherClient.status, 409)
+  })
+})
+
+describe('paid export titles', () => {
+  const kicker = (html: string) => html.match(/<p class="kicker">([^<]*)<\/p>/)?.[1]
+
+  it('drops only a trailing draft suffix', () => {
+    assert.equal(finalTitle('Invoice (draft)'), 'Invoice')
+    assert.equal(finalTitle('Tax invoice (draft)'), 'Tax invoice')
+    assert.equal(finalTitle('Tax invoice (DRAFT) '), 'Tax invoice')
+    assert.equal(finalTitle('Invoice'), 'Invoice')
+    assert.equal(finalTitle('Tax invoice'), 'Tax invoice')
+    assert.equal(finalTitle('Draft invoice'), 'Draft invoice')
+    assert.equal(finalTitle('(draft)'), '(draft)')
+  })
+
+  it('renders "Tax invoice" for a GST-registered export and keeps the disclaimers', async () => {
+    const t = setup()
+    const pack = buildPack(examplePack())
+    assert.equal(pack.invoice?.title, 'Tax invoice (draft)')
+    const res = await exportInvoice(t, await paidOrder(t))
+    assert.equal(res.status, 200)
+    assert.equal(kicker(res.json.html), 'Tax invoice')
+    assert.ok(!/\(draft\)/i.test(res.json.html))
+    assert.ok(res.json.html.includes('Not filed on the GST portal, and not tax advice.'))
+    assert.equal(pack.invoice?.title, 'Tax invoice (draft)')
+  })
+
+  it('renders "Invoice" for an unregistered export', async () => {
+    const t = setup()
+    const input = { ...examplePack(), gstRegistered: false }
+    assert.equal(buildPack(input).invoice?.title, 'Invoice (draft)')
+    const res = await exportInvoice(t, await paidOrder(t), input)
+    assert.equal(res.status, 200)
+    assert.equal(kicker(res.json.html), 'Invoice')
+    assert.ok(res.json.html.includes('Not filed on the GST portal, and not tax advice.'))
+  })
+
+  it('leaves the advance receipt wording unchanged', async () => {
+    const t = setup()
+    const order = await paidOrder(t, 'advance-receipt')
+    const res = await t.call('POST', '/api/payments/exports/receipt', {
+      body: { orderRef: order.orderRef, accessToken: order.accessToken, input: DEMO_RECEIPT },
+    })
+    assert.equal(res.status, 200)
+    const built = buildReceipt(DEMO_RECEIPT)
+    assert.ok(built.receipt)
+    assert.equal(res.json.html, renderReceipt(built.receipt, built.message, order.orderRef))
+    assert.equal(kicker(res.json.html), 'Advance receipt')
+    assert.ok(
+      res.json.html.includes('A receipt for the advance stated above. Not a contract, not a tax invoice, and not legal or tax advice.'),
+    )
   })
 })
