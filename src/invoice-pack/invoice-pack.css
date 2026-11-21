@@ -10,6 +10,18 @@
   --ip-serif: Newsreader, Georgia, "Times New Roman", serif;
   --ip-sans: Inter, "Segoe UI", sans-serif;
   --ip-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --ip-space-1: 0.25rem;
+  --ip-space-2: 0.5rem;
+  --ip-space-3: 0.75rem;
+  --ip-space-4: 1rem;
+  --ip-space-5: 1.35rem;
+  --ip-space-6: 2rem;
+  --ip-space-7: 2.75rem;
+  --ip-space-8: 4rem;
+  --ip-radius-sm: 6px;
+  --ip-radius-md: 8px;
+  --ip-radius-lg: 10px;
+  --ip-ease: 0.16s ease;
   min-height: 100dvh;
   background: var(--ip-paper);
   color: var(--ip-ink);
@@ -76,8 +88,13 @@
 }
 
 .ip-wrap {
-  width: min(1120px, calc(100% - 2.5rem));
+  width: min(68rem, calc(100% - clamp(1.25rem, 4vw, 3.25rem)));
   margin: 0 auto;
+}
+
+.ip-wrap:not(.ip-journey) {
+  padding-top: var(--ip-space-7);
+  padding-bottom: var(--ip-space-8);
 }
 
 .ip-top {
@@ -92,9 +109,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem 1.5rem;
+  gap: var(--ip-space-4) var(--ip-space-6);
   min-height: 4.25rem;
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: calc(var(--ip-space-2) + env(safe-area-inset-top, 0px));
+  padding-bottom: var(--ip-space-2);
 }
 
 .ip-brand {
@@ -119,17 +137,25 @@
   color: #2c2a28;
   text-decoration: none;
   min-height: 44px;
+  padding: 0 var(--ip-space-1);
   display: inline-flex;
   align-items: center;
+  border-radius: var(--ip-radius-sm);
+  transition: color var(--ip-ease), opacity var(--ip-ease);
 }
 
 .ip-top nav a:hover {
   color: var(--ip-ink);
 }
 
+.ip-top nav a:focus-visible {
+  outline: 2px solid var(--ip-ink);
+  outline-offset: 2px;
+}
+
 .ip-label,
 .ip-kicker {
-  margin: 0 0 0.85rem;
+  margin: 0 0 var(--ip-space-3);
   font-family: var(--ip-mono);
   font-size: 0.68rem;
   font-weight: 500;
@@ -148,12 +174,33 @@
 
 .invoice-pack h2 {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 2.7rem);
-  line-height: 1.08;
+  font-size: clamp(1.85rem, 2.6vw, 2.45rem);
+  line-height: 1.1;
+  max-width: 22ch;
+}
+
+.ip-section > h2,
+.ip-band h2 {
+  max-width: none;
+}
+
+.ip-section > .ip-label + h2,
+.ip-band > .ip-wrap > .ip-label + .ip-journey-list {
+  margin-top: 0;
+}
+
+.ip-section > h2 + .ip-lede,
+.ip-section > h2 + .ip-quiet-list,
+.ip-section > h2 + .ip-prose {
+  margin-top: var(--ip-space-4);
+}
+
+.ip-lede + .ip-pay-intro {
+  margin-top: var(--ip-space-6);
 }
 
 .invoice-pack h3 {
-  margin: 0 0 0.7rem;
+  margin: 0 0 var(--ip-space-3);
   font-family: var(--ip-sans);
   font-size: 1.02rem;
   font-weight: 600;
@@ -162,7 +209,7 @@
 }
 
 .ip-hero {
-  padding: 2.7rem 0 0.4rem;
+  padding: var(--ip-space-7) 0 var(--ip-space-5);
 }
 
 .ip-hero-grid {
@@ -173,15 +220,16 @@
 }
 
 .ip-lede {
-  max-width: 28rem;
-  margin: 1.15rem 0 0;
+  max-width: 32rem;
+  margin: var(--ip-space-4) 0 0;
   color: #3f3c39;
   font-size: 1.02rem;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .ip-lede-narrow {
-  max-width: 36rem;
+  max-width: 38rem;
+  line-height: 1.55;
 }
 
 .ip-hint {
@@ -235,20 +283,29 @@
 }
 
 .ip-scenario-btn {
-  min-height: 40px;
-  padding: 0.45rem 0.75rem;
+  min-height: 44px;
+  padding: 0.5rem 0.85rem;
   border: 1px solid var(--ip-line-strong);
-  border-radius: 6px;
+  border-radius: var(--ip-radius-sm);
   background: var(--ip-white);
   color: var(--ip-ink);
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   cursor: pointer;
+  transition:
+    background-color var(--ip-ease),
+    border-color var(--ip-ease),
+    color var(--ip-ease);
 }
 
 .ip-scenario-btn.active {
   background: var(--ip-ink);
   color: #fff;
   border-color: var(--ip-ink);
+}
+
+.ip-scenario-btn:focus-visible {
+  outline: 2px solid var(--ip-ink);
+  outline-offset: 2px;
 }
 
 .ip-example-meta {
@@ -260,11 +317,24 @@
 }
 
 .ip-wizard {
-  margin-top: 1.25rem;
-  padding: 1.15rem 1.1rem 1.25rem;
+  margin-top: var(--ip-space-5);
+  padding: var(--ip-space-5) var(--ip-space-5) var(--ip-space-6);
   border: 1px solid var(--ip-line-strong);
-  border-radius: 12px;
+  border-radius: var(--ip-radius-lg);
   background: var(--ip-white);
+}
+
+.ip-wizard-panel .ip-field:first-child,
+.ip-wizard-panel .ip-check:first-child {
+  margin-top: 0;
+}
+
+.ip-wizard-panel > h3 {
+  margin-top: var(--ip-space-5);
+}
+
+.ip-wizard-panel > h3:first-child {
+  margin-top: 0;
 }
 
 .ip-wizard-steps {
@@ -327,12 +397,13 @@
 }
 
 .ip-pay-intro h3 {
-  margin: 0 0 0.4rem;
+  margin: 0 0 var(--ip-space-2);
 }
 
 .ip-pay-intro p {
   margin: 0;
   max-width: 40rem;
+  line-height: 1.55;
 }
 
 .ip-advance {
@@ -382,7 +453,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
-  margin-top: 1.45rem;
+  margin-top: var(--ip-space-5);
 }
 
 .invoice-pack button,
@@ -391,9 +462,9 @@
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: 0.65rem 1.05rem;
+  padding: 0.65rem 1.1rem;
   border: 1px solid var(--ip-ink);
-  border-radius: 7px;
+  border-radius: var(--ip-radius-sm);
   background: var(--ip-ink);
   color: #fff;
   font-size: 0.92rem;
@@ -401,6 +472,11 @@
   letter-spacing: -0.01em;
   text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color var(--ip-ease),
+    border-color var(--ip-ease),
+    color var(--ip-ease),
+    opacity var(--ip-ease);
 }
 
 .invoice-pack button.secondary,
@@ -645,8 +721,8 @@
 }
 
 .ip-band {
-  margin-top: 1.6rem;
-  padding: 1.65rem 0;
+  margin-top: var(--ip-space-6);
+  padding: var(--ip-space-6) 0;
   border-top: 1px solid var(--ip-line);
   border-bottom: 1px solid var(--ip-line);
 }
@@ -692,8 +768,12 @@
 }
 
 .ip-section {
-  margin-top: 3.35rem;
+  margin-top: var(--ip-space-8);
   scroll-margin-top: 5.5rem;
+}
+
+.ip-wrap > .ip-section:first-child {
+  margin-top: 0;
 }
 
 .ip-hero,
@@ -760,25 +840,47 @@
 
 .ip-field label,
 .ip-check {
-  color: #6d6862;
-  font-size: 0.78rem;
-  font-weight: 500;
+  color: #4f4b46;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .invoice-pack input,
 .invoice-pack select,
 .invoice-pack textarea {
   width: 100%;
-  padding: 0.68rem 0.72rem;
+  min-height: 44px;
+  padding: 0.68rem 0.75rem;
   border: 1px solid #e3dfd8;
-  border-radius: 6px;
+  border-radius: var(--ip-radius-sm);
   background: #fff;
   color: var(--ip-ink);
   font-size: 0.95rem;
+  line-height: 1.4;
+  transition:
+    border-color var(--ip-ease),
+    box-shadow var(--ip-ease);
 }
 
 .invoice-pack textarea {
-  min-height: 4.5rem;
+  min-height: 5.25rem;
+}
+
+.invoice-pack input:hover,
+.invoice-pack select:hover,
+.invoice-pack textarea:hover {
+  border-color: #d0cac2;
+}
+
+.invoice-pack input:focus,
+.invoice-pack select:focus,
+.invoice-pack textarea:focus {
+  border-color: #b8b1a8;
+  box-shadow: 0 0 0 1px #b8b1a8;
+}
+
+.invoice-pack textarea {
   resize: vertical;
 }
 
@@ -948,7 +1050,12 @@
 
 .ip-quiet-list li + li,
 .invoice-pack li + li {
-  margin-top: 0.45rem;
+  margin-top: 0.5rem;
+}
+
+.ip-quiet-list li {
+  line-height: 1.55;
+  max-width: 40rem;
 }
 
 .ip-prose {
@@ -1002,17 +1109,37 @@
 }
 
 .ip-note {
-  margin-top: 1.75rem;
-  padding: 1.2rem 1.15rem 1.3rem;
-  border-radius: 8px;
+  margin-top: var(--ip-space-6);
+  padding: var(--ip-space-5);
+  border-radius: var(--ip-radius-md);
+}
+
+.ip-pay-intro {
+  margin-top: var(--ip-space-5);
+  padding-top: var(--ip-space-4);
+  border-top: 1px solid var(--ip-line);
+}
+
+.ip-pay-intro + .ip-fine {
+  margin-top: var(--ip-space-3);
+}
+
+.ip-pay-intro + .ip-fine + #pay-499,
+.ip-pay-intro + #pay-499 {
+  margin-top: var(--ip-space-4);
+}
+
+#pay-499,
+#pay-399 {
+  margin-top: var(--ip-space-4);
 }
 
 .ip-sheet {
   position: relative;
-  margin-top: 0.9rem;
-  padding: 1.35rem 1.15rem 1.2rem;
+  margin-top: var(--ip-space-4);
+  padding: var(--ip-space-5) var(--ip-space-5) var(--ip-space-4);
   border-radius: 2px;
-  box-shadow: 0 12px 28px rgba(48, 38, 24, 0.04);
+  box-shadow: 0 1px 0 rgba(28, 27, 25, 0.04);
 }
 
 .ip-sheet-top,
@@ -1178,14 +1305,74 @@
   margin-top: 0;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .invoice-pack button:not(:disabled):not(.secondary):hover,
+  a.ip-btn:not(.secondary):hover {
+    background: #2a2826;
+    border-color: #2a2826;
+  }
+
+  .invoice-pack button.secondary:not(:disabled):hover,
+  a.ip-btn.secondary:hover {
+    background: #f3f1ec;
+    border-color: #cfc9c0;
+  }
+
+  .ip-scenario-btn:hover:not(.active) {
+    border-color: var(--ip-ink);
+    background: #faf9f6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invoice-pack *,
+  .invoice-pack *::before,
+  .invoice-pack *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .ip-hero-grid {
+    gap: clamp(1.5rem, 2.4vw, 2.75rem);
+  }
+
+  .ip-prose,
+  .ip-lede,
+  .ip-quiet-list li {
+    text-wrap: pretty;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  .ip-hero-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "copy copy"
+      "visual reminders";
+  }
+
+  .ip-hero-copy {
+    grid-area: copy;
+  }
+
+  .ip-hero-visual {
+    grid-area: visual;
+  }
+
+  .ip-hero-reminders {
+    grid-area: reminders;
+    align-self: start;
+  }
+}
+
 @media (min-width: 760px) {
   .ip-split,
   .ip-row {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .ip-wrap {
-    width: min(1120px, calc(100% - 5rem));
   }
 
   .ip-sheet {
@@ -1232,11 +1419,18 @@
   }
 }
 
-@media (max-width: 720px) {
-  .ip-wrap {
-    width: min(1120px, calc(100% - 1.5rem));
+@media (max-width: 768px) {
+  .ip-section {
+    margin-top: var(--ip-space-7);
   }
 
+  .ip-wrap:not(.ip-journey) {
+    padding-top: var(--ip-space-6);
+    padding-bottom: var(--ip-space-7);
+  }
+}
+
+@media (max-width: 720px) {
   .ip-top-inner {
     align-items: flex-start;
     flex-direction: column;
@@ -1282,6 +1476,36 @@
 
   .ip-hero-visual {
     padding-inline: 0;
+  }
+
+  .ip-wizard-steps {
+    gap: 0.35rem 0.55rem;
+  }
+
+  .ip-wizard-nav .ip-btn,
+  .ip-hero-actions .ip-btn {
+    flex: 1 1 auto;
+    min-width: min(100%, 11rem);
+  }
+}
+
+@media (max-width: 360px) {
+  .ip-wrap {
+    width: calc(100% - 1.25rem);
+  }
+
+  .ip-top nav a {
+    font-size: 0.88rem;
+  }
+
+  .ip-scenario {
+    gap: 0.4rem;
+  }
+
+  .ip-scenario-btn {
+    flex: 1 1 calc(50% - 0.25rem);
+    justify-content: center;
+    text-align: center;
   }
 }
 
