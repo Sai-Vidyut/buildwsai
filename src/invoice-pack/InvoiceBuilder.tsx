@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { STATES, buildPack, emptyPack, inr, todayKolkata, type PackInput } from './logic'
+import { buildPack, emptyPack, inr, todayKolkata, type PackInput } from './logic'
+import { StateSelect } from './StateSelect'
 import { Errors, InvoiceSheet, Reminders, Warnings } from './Sheets'
 
 const STEPS = [
@@ -155,18 +156,11 @@ export function InvoiceBuilder() {
               />
             </Field>
             <Field id="supplierState" label="Your state">
-              <select
+              <StateSelect
                 id="supplierState"
                 value={form.supplierState ?? ''}
-                onChange={(event) => patch({ supplierState: event.target.value })}
-              >
-                <option value="">Select a state</option>
-                {STATES.map(([code, name]) => (
-                  <option key={code} value={code}>
-                    {name} ({code})
-                  </option>
-                ))}
-              </select>
+                onChange={(supplierState) => patch({ supplierState })}
+              />
             </Field>
             <Field id="supplierAddress" label="Your address" hint="Printed on the invoice. Keep it short.">
               <textarea
@@ -242,18 +236,11 @@ export function InvoiceBuilder() {
                 label="Client state"
                 hint="Same state as you: CGST and SGST. Different state: IGST."
               >
-                <select
+                <StateSelect
                   id="clientState"
                   value={form.clientState ?? ''}
-                  onChange={(event) => patch({ clientState: event.target.value })}
-                >
-                  <option value="">Select a state</option>
-                  {STATES.map(([code, name]) => (
-                    <option key={code} value={code}>
-                      {name} ({code})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(clientState) => patch({ clientState })}
+                />
               </Field>
             ) : null}
             <Field id="clientGstin" label="Client GSTIN (optional)">

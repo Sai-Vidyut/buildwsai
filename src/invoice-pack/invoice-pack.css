@@ -449,6 +449,225 @@
 
 .ip-wizard-panel {
   margin-top: 1rem;
+  overflow: visible;
+}
+
+/* Searchable state selector */
+.ip-state-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.ip-state-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ip-space-3);
+  width: 100%;
+  min-height: 44px;
+  padding: 0.68rem 0.75rem;
+  border: 1px solid #e3dfd8;
+  border-radius: var(--ip-radius-sm);
+  background: #fff;
+  color: var(--ip-ink);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--ip-ease),
+    box-shadow var(--ip-ease);
+}
+
+.ip-state-trigger:hover {
+  border-color: #d0cac2;
+}
+
+.ip-state-trigger:focus-visible {
+  outline: 2px solid var(--ip-ink);
+  outline-offset: 2px;
+}
+
+.ip-state-trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ip-state-trigger-value,
+.ip-state-trigger-placeholder {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ip-state-trigger-placeholder {
+  color: #8a857e;
+}
+
+.ip-state-trigger-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  color: #8a857e;
+}
+
+.ip-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ip-state-chevron {
+  display: inline-flex;
+  transition: transform var(--ip-ease);
+}
+
+.ip-state-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.ip-state-popover {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  max-height: min(16.5rem, 50vh);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ip-line-strong);
+  border-radius: var(--ip-radius-sm);
+  background: var(--ip-white);
+  box-shadow: 0 8px 20px rgba(28, 27, 25, 0.06);
+}
+
+.ip-state-backdrop {
+  position: fixed;
+  z-index: 28;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(28, 27, 25, 0.28);
+  cursor: pointer;
+}
+
+.ip-state-sheet {
+  position: fixed;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: min(72dvh, 32rem);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border: 1px solid var(--ip-line-strong);
+  border-bottom: 0;
+  border-radius: var(--ip-radius-lg) var(--ip-radius-lg) 0 0;
+  background: var(--ip-white);
+  box-shadow: 0 -8px 28px rgba(28, 27, 25, 0.08);
+}
+
+.ip-state-search-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  padding: var(--ip-space-3);
+  border-bottom: 1px solid var(--ip-line);
+}
+
+.ip-state-search-wrap .ip-state-icon-search {
+  position: absolute;
+  left: calc(var(--ip-space-3) + 0.55rem);
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9a958e;
+  pointer-events: none;
+}
+
+.ip-state-search {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.75rem 0.6rem 2.2rem;
+  border: 1px solid #e3dfd8;
+  border-radius: var(--ip-radius-sm);
+  background: #fff;
+  font-size: 0.95rem;
+}
+
+.ip-state-search:focus {
+  border-color: #b8b1a8;
+  box-shadow: 0 0 0 1px #b8b1a8;
+  outline: none;
+}
+
+.ip-state-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--ip-space-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ip-state-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--ip-space-3);
+  align-items: center;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--ip-radius-sm);
+  cursor: pointer;
+  color: var(--ip-ink);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.ip-state-option-name {
+  overflow-wrap: anywhere;
+}
+
+.ip-state-option-code {
+  font-family: var(--ip-mono);
+  font-size: 0.78rem;
+  color: var(--ip-muted);
+  letter-spacing: 0.04em;
+}
+
+.ip-state-option.is-active {
+  background: #f3f1ec;
+}
+
+.ip-state-option.is-selected {
+  background: #ebe8e2;
+  font-weight: 600;
+}
+
+.ip-state-option.is-selected.is-active {
+  background: #e4e0d8;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ip-state-option:hover {
+    background: #f3f1ec;
+  }
+
+  .ip-state-option.is-selected:hover {
+    background: #e4e0d8;
+  }
+}
+
+.ip-state-empty {
+  margin: 0;
+  padding: var(--ip-space-5) var(--ip-space-4);
+  color: var(--ip-muted);
+  font-size: 0.92rem;
+  text-align: center;
 }
 
 .ip-wizard-nav {

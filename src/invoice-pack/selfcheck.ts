@@ -1,3 +1,4 @@
+import { stateMatchesQuery } from './state-search.ts'
 import { makeQr } from './qr.ts'
 import {
   ADVANCE_CHECKOUT,
@@ -129,5 +130,20 @@ assert(!('taxLines' in (receipt.receipt as object)), 'receipt has no tax lines')
 const grid = makeQr(uri)
 assert(grid.count >= 21, 'QR draws the UPI URI')
 assert(typeof grid.dark(0, 0) === 'boolean', 'QR modules are booleans')
+
+assert(stateMatchesQuery(['29', 'Karnataka'], 'ka'), 'state search by abbreviation')
+assert(stateMatchesQuery(['27', 'Maharashtra'], 'mh'), 'state search MH')
+assert(stateMatchesQuery(['07', 'Delhi'], '07'), 'state search by GST code')
+assert(!stateMatchesQuery(['29', 'Karnataka'], 'xyznone'), 'state search empty miss')
+
+const sameStatePack = buildPack({
+  ...demoInput({ gst: true, foreign: false, sameState: true }),
+  supplierState: '29',
+  clientState: '29',
+})
+assert(
+  sameStatePack.ok && sameStatePack.invoice?.taxLines.some((t) => t.name === 'CGST'),
+  'state codes drive CGST when supplier and client match',
+)
 
 console.log('invoice pack checks ok')
