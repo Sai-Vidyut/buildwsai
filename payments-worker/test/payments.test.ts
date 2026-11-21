@@ -312,7 +312,7 @@ describe('http hardening', () => {
   it('reports health without leaking configuration', async () => {
     const t = setup()
     const res = await t.call('GET', '/api/payments/health')
-    assert.deepEqual(res.json, { ok: true, configured: true })
+    assert.deepEqual(res.json, { ok: true, configured: true, emailDelivery: false })
     const missing = await t.call('GET', '/api/payments/nope')
     assert.equal(missing.status, 404)
   })

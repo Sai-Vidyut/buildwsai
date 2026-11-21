@@ -10,6 +10,9 @@ export type Env = {
   ALLOWED_ORIGINS?: string
   ORDER_LIMITER?: RateLimiter
   VERIFY_LIMITER?: RateLimiter
+  // Optional email delivery for client reminders. Without both, reminders become drafts the freelancer sends.
+  RESEND_API_KEY?: string
+  EMAIL_FROM?: string
 }
 
 export function keyMode(keyId: string): 'test' | 'live' | null {

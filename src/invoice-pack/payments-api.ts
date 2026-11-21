@@ -183,3 +183,125 @@ export function exportDocument(kind: ExportKind, order: HeldOrder, input: unknow
     body: JSON.stringify({ orderRef: order.ref, accessToken: order.token, input }),
   })
 }
+
+export function getHealth(): Promise<{ ok: boolean; configured: boolean; emailDelivery?: boolean }> {
+  return request('/api/payments/health')
+}
+
+export type ReminderStatus = 'scheduled' | 'sending' | 'sent' | 'failed' | 'cancelled' | 'paused'
+
+export type FollowupReminder = {
+  stage: 1 | 2 | 3
+  status: ReminderStatus
+  subject: string
+  body: string
+  rendered: { subject: string; body: string }
+  dueAt: string
+  nextAttemptAt: string
+  sentAt: string | null
+  sentVia: 'provider' | 'manual' | null
+  attempts: number
+  errorReason: string | null
+}
+
+export type Followup = {
+  id: string
+  businessName: string
+  clientName: string
+  invoiceNumber: string
+  amount: number
+  currency: string
+  invoiceDate: string
+  dueDate: string
+  timezone: string
+  contact: { clientEmail: string | null; clientPhone: string | null; replyTo: string | null }
+  contactPurged: boolean
+  invoiceLink: string | null
+  paymentInstructions: string | null
+  remindersEnabled: boolean
+  paymentStatus: 'unpaid' | 'paid'
+  paidSource: 'freelancer_confirmed' | null
+  paidAt: string | null
+  secondDelayDays: number
+  thirdDelayDays: number
+  delivery: 'email' | 'manual'
+  reminders: FollowupReminder[]
+  history: { stage: number | null; event: string; detail: string | null; at: string }[]
+}
+
+export type FollowupSetup = {
+  contact: { clientEmail: string; clientPhone: string; replyTo: string }
+  schedule: { enabled: boolean; secondDelayDays: number; thirdDelayDays: number }
+  templates: { subject: string; body: string }[]
+  invoiceLink: string
+}
+
+export function createFollowup(order: HeldOrder, input: unknown, setup: FollowupSetup): Promise<{ followup: Followup; manageToken: string }> {
+  return request('/api/payments/followups', {
+    method: 'POST',
+    body: JSON.stringify({
+      orderRef: order.ref,
+      accessToken: order.token,
+      input,
+      contact: setup.contact,
+      schedule: setup.schedule,
+      templates: setup.templates,
+      invoiceLink: setup.invoiceLink || undefined,
+      consent: true,
+    }),
+  })
+}
+
+export type FollowupAction =
+  | { action: 'view' | 'pause' | 'resume' | 'mark_paid' }
+  | { action: 'reschedule'; secondDelayDays: number; thirdDelayDays: number }
+  | { action: 'update_template'; stage: 1 | 2 | 3; subject: string; body: string }
+  | { action: 'update_contact'; contact: { clientEmail: string; clientPhone: string; replyTo: string }; invoiceLink?: string }
+  | { action: 'mark_sent' | 'retry'; stage: 1 | 2 | 3 }
+
+export function manageFollowup(held: HeldFollowup, action: FollowupAction): Promise<{ followup: Followup }> {
+  return request('/api/payments/followups/manage', {
+    method: 'POST',
+    body: JSON.stringify({ id: held.id, token: held.token, ...action }),
+  })
+}
+
+const FOLLOWUP_ID = /^FU-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+const FOLLOWUPS_KEY = 'invoice-followups'
+
+export type HeldFollowup = { id: string; token: string; orderRef: string }
+
+// The management secret lives only in this browser; the server keeps its hash.
+export function heldFollowups(): HeldFollowup[] {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(FOLLOWUPS_KEY) || '[]')
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(
+      (item): item is HeldFollowup =>
+        !!item &&
+        typeof item === 'object' &&
+        FOLLOWUP_ID.test(String(item.id)) &&
+        ACCESS_TOKEN.test(String(item.token)) &&
+        ORDER_REF.test(String(item.orderRef)),
+    )
+  } catch {
+    return []
+  }
+}
+
+export function rememberFollowup(held: HeldFollowup): void {
+  try {
+    const next = [held, ...heldFollowups().filter((item) => item.id !== held.id && item.orderRef !== held.orderRef)].slice(0, 20)
+    localStorage.setItem(FOLLOWUPS_KEY, JSON.stringify(next))
+  } catch {
+    // Storage may be blocked; reminders still run on the server.
+  }
+}
+
+export function forgetFollowup(id: string): void {
+  try {
+    localStorage.setItem(FOLLOWUPS_KEY, JSON.stringify(heldFollowups().filter((item) => item.id !== id)))
+  } catch {
+    // Nothing to clean up when storage is blocked.
+  }
+}

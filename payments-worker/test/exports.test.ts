@@ -60,6 +60,18 @@ describe('protected exports', () => {
     assert.equal(t.orderRow(order.orderRef)?.export_count, 0)
   })
 
+  it('returns no document content when an export is refused', async () => {
+    const t = setup()
+    const order = await t.createOrder('invoice-pack')
+    const input = examplePack()
+    for (const res of [await exportInvoice(t, order), await exportInvoice(t, { ...order, accessToken: 'x'.repeat(43) })]) {
+      assert.ok(res.status === 402 || res.status === 403)
+      assert.deepEqual(Object.keys(res.json), ['error'])
+      const text = JSON.stringify(res.json)
+      for (const fragment of [String(input.clientName), String(input.invoiceNumber), '<html', 'Balance due']) assert.ok(!text.includes(fragment), fragment)
+    }
+  })
+
   it('requires the secret: an order reference alone or a wrong secret is not enough', async () => {
     const t = setup()
     const order = await paidOrder(t)
