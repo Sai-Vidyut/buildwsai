@@ -29,35 +29,13 @@ export function AdvanceOffer() {
   const receipt = demo.receipt
 
   return (
-    <section id="advance" className="ip-section" aria-labelledby="advance-heading">
-      <p className="ip-kicker">Second offer</p>
+    <section id="advance" className="ip-section ip-advance" aria-labelledby="advance-heading">
+      <p className="ip-label">Separate offer</p>
       <h2 id="advance-heading">Advance Receipt — ₹399</h2>
-      <p>
-        One dated job. One receipt for an advance you have already received. One short message to send with
-        it. ₹399, once. This offer is available. It does not bill a finished freelance job, and it does not
-        calculate GST.
+      <p className="ip-lede ip-lede-narrow">
+        For work where you have already received an advance, create a receipt showing the amount received and the
+        remaining balance. One short message to send with it. No GST calculation. Not part of the ₹499 invoice pack.
       </p>
-      <div className="ip-split">
-        <section>
-          <h3>What you get</h3>
-          <ul>
-            <li>Your name and city or area, the client, and what the job is.</li>
-            <li>The job date, the date you received the advance, the total, the advance, and the balance.</li>
-            <li>Included and not included, in the words you type.</li>
-            <li>Your UPI id on the receipt, if you enter it, and one message to copy.</li>
-            <li>A print view. The browser can save it as a PDF.</li>
-          </ul>
-        </section>
-        <section>
-          <h3>What you do not get</h3>
-          <ul>
-            <li>A contract, a legal notice, or legal advice.</li>
-            <li>A tax invoice, a GST filing, or tax advice.</li>
-            <li>Anyone contacting the client.</li>
-            <li>Confirmation that ₹399 has reached the account.</li>
-          </ul>
-        </section>
-      </div>
 
       {receipt ? (
         <article className="ip-sheet" data-testid="advance-demo">

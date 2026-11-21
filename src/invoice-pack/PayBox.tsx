@@ -52,8 +52,11 @@ export function PayBox({ checkout }: { checkout: Checkout }) {
         Payee name: {checkout.pn}. UPI ID: <strong>{checkout.pa}</strong>. Amount: ₹{checkout.am}.
       </p>
       <p>
-        Pay ₹{checkout.am}, then submit the UTR or reference from your UPI app. A UTR is not proof of payment.
-        This page saves the order as payment pending. There is no control here that marks an order paid.
+        Pay ₹{checkout.am} using UPI, then enter the payment reference from your UPI app so your order can be
+        identified.
+      </p>
+      <p className="ip-fine">
+        Saving a reference here does not verify payment or confirm delivery. This page cannot mark an order paid.
       </p>
       <QrCode text={uri} label={`UPI QR for ₹${checkout.am}`} />
       <p>

@@ -1,0 +1,687 @@
+- generic [ref=f29e4]:
+  - link "Skip to content" [ref=f29e5] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=f29e6]:
+    - generic [ref=f29e7]:
+      - link "Invoice Pack" [ref=f29e8] [cursor=pointer]:
+        - /url: "#product"
+      - navigation "Invoice Pack" [ref=f29e9]:
+        - link "Demo" [ref=f29e10] [cursor=pointer]:
+          - /url: "#demo"
+        - link "Pricing" [ref=f29e11] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "Advance Receipt" [ref=f29e12] [cursor=pointer]:
+          - /url: "#advance"
+        - link "How It Works" [ref=f29e13] [cursor=pointer]:
+          - /url: "#built"
+        - link "About" [ref=f29e14] [cursor=pointer]:
+          - /url: "#about"
+  - main [ref=f29e15]:
+    - generic [ref=f29e17]:
+      - generic [ref=f29e18]:
+        - paragraph [ref=f29e19]: For independent freelancers
+        - heading "Get paid for the work you’ve already finished." [level=1] [ref=f29e20]
+        - paragraph [ref=f29e21]: A professional invoice and three thoughtful payment reminders. Ready to send to your client.
+        - paragraph [ref=f29e22]:
+          - generic [ref=f29e23]: ₹499
+          - generic [ref=f29e24]: / one time
+        - generic [ref=f29e25]:
+          - link "Try the Demo →" [ref=f29e26] [cursor=pointer]:
+            - /url: "#demo"
+          - link "What’s Included" [ref=f29e27] [cursor=pointer]:
+            - /url: "#included"
+      - article "Demo invoice" [ref=f29e32]:
+        - generic [ref=f29e33]:
+          - generic [ref=f29e34]:
+            - paragraph [ref=f29e35]: Example Studio
+            - paragraph [ref=f29e36]: 12 Residency Road, Bengaluru
+          - generic [ref=f29e37]:
+            - paragraph [ref=f29e38]: Demo
+            - paragraph [ref=f29e39]: Invoice
+            - paragraph [ref=f29e40]: EX-1
+        - generic [ref=f29e41]:
+          - generic [ref=f29e42]:
+            - paragraph [ref=f29e43]: Bill to
+            - paragraph [ref=f29e44]: Sample Client Pvt Ltd
+          - generic [ref=f29e45]:
+            - paragraph [ref=f29e46]: Date 19 Nov 2026
+            - paragraph [ref=f29e47]: Due 04 Dec 2026
+        - table [ref=f29e48]:
+          - rowgroup [ref=f29e49]:
+            - row [ref=f29e50]:
+              - columnheader "Description" [ref=f29e51]
+              - columnheader "Qty" [ref=f29e52]
+              - columnheader "Amount" [ref=f29e53]
+          - rowgroup [ref=f29e54]:
+            - row [ref=f29e55]:
+              - cell "Homepage and four inner pages" [ref=f29e56]
+              - cell "1" [ref=f29e57]
+              - cell "₹40,000" [ref=f29e58]
+            - row [ref=f29e59]:
+              - cell "Developer handoff notes" [ref=f29e60]
+              - cell "1" [ref=f29e61]
+              - cell "₹8,000" [ref=f29e62]
+        - generic [ref=f29e63]:
+          - paragraph [ref=f29e64]:
+            - generic [ref=f29e65]: Subtotal
+            - strong [ref=f29e66]: ₹48,000
+          - paragraph [ref=f29e67]:
+            - generic [ref=f29e68]: IGST (18%)
+            - strong [ref=f29e69]: ₹8,640
+          - paragraph [ref=f29e70]:
+            - generic [ref=f29e71]: Total
+            - strong [ref=f29e72]: ₹56,640
+      - list [ref=f29e73]:
+        - listitem [ref=f29e74]:
+          - generic [ref=f29e75]: "01"
+          - generic [ref=f29e76]:
+            - strong [ref=f29e77]: With the invoice
+            - paragraph [ref=f29e78]: Initial message with the draft and payment details.
+        - listitem [ref=f29e79]:
+          - generic [ref=f29e80]: "02"
+          - generic [ref=f29e81]:
+            - strong [ref=f29e82]: 7 days later
+            - paragraph [ref=f29e83]: A polite follow-up if payment is pending.
+        - listitem [ref=f29e84]:
+          - generic [ref=f29e85]: "03"
+          - generic [ref=f29e86]:
+            - strong [ref=f29e87]: 14 days later
+            - paragraph [ref=f29e88]: A final reminder with clear next steps.
+    - region "The process" [ref=f29e89]:
+      - generic [ref=f29e90]:
+        - paragraph [ref=f29e91]: The process
+        - article [ref=f29e92]:
+          - paragraph [ref=f29e93]: "01"
+          - heading "Enter your job" [level=3] [ref=f29e94]
+          - paragraph [ref=f29e95]: Add your client, items, amount and GST details.
+        - generic [aria-hidden] [ref=f29e96]: →
+        - article [ref=f29e97]:
+          - paragraph [ref=f29e98]: "02"
+          - heading "Generate your pack" [level=3] [ref=f29e99]
+          - paragraph [ref=f29e100]: A draft invoice plus three payment reminders.
+        - generic [aria-hidden] [ref=f29e101]: →
+        - article [ref=f29e102]:
+          - paragraph [ref=f29e103]: "03"
+          - heading "Send and collect" [level=3] [ref=f29e104]
+          - paragraph [ref=f29e105]: Share them with your client and close the payment.
+    - generic [ref=f29e106]:
+      - region "Invoice Demo" [ref=f29e107]:
+        - generic [ref=f29e108]:
+          - generic [ref=f29e109]:
+            - paragraph [ref=f29e110]: Try it yourself
+            - heading "Invoice Demo" [level=2] [ref=f29e111]
+            - paragraph [ref=f29e112]: Generate a sample invoice and see the three reminder messages in action.
+            - paragraph [ref=f29e113]: Example Studio, Sample Client Pvt Ltd, and EX-1 are fictional. The draft stays in this browser.
+            - link "Open the Interactive Demo →" [ref=f29e114] [cursor=pointer]:
+              - /url: "#demo-workspace"
+          - generic [ref=f29e115]:
+            - generic [ref=f29e116]:
+              - heading "Invoice Details" [level=3] [ref=f29e117]
+              - generic [ref=f29e118]:
+                - generic [ref=f29e119]: Client name
+                - textbox "Client name" [ref=f29e120]: Sample Client Pvt Ltd
+              - generic [ref=f29e121]:
+                - generic [ref=f29e122]:
+                  - generic [ref=f29e123]: Service / item
+                  - textbox "Service / item" [ref=f29e124]: Homepage and four inner pages
+                - generic [ref=f29e125]:
+                  - generic [ref=f29e126]: Amount
+                  - textbox "Amount" [ref=f29e127]: "40000"
+              - generic [ref=f29e128]:
+                - generic [ref=f29e129]:
+                  - generic [ref=f29e130]: Line 2
+                  - textbox "Line 2" [ref=f29e131]: Developer handoff notes
+                - generic [ref=f29e132]:
+                  - generic [ref=f29e133]: Amount
+                  - textbox "Amount" [ref=f29e134]: "8000"
+              - generic [ref=f29e135]:
+                - generic [ref=f29e136]: GST (18%)
+                - checkbox "I am GST-registered and this draft should show GST" [checked] [ref=f29e137] [cursor=pointer]
+              - generic [ref=f29e138]:
+                - generic [ref=f29e139]: Client outside India
+                - checkbox "Client outside India" [checked] [active] [ref=f29e140] [cursor=pointer]
+              - generic [ref=f29e141]:
+                - generic [ref=f29e142]: Same state, CGST and SGST
+                - checkbox "Same state, CGST and SGST" [checked] [disabled] [ref=f29e143]
+            - article "Demo invoice" [ref=f29e146]:
+              - generic [ref=f29e147]:
+                - generic [ref=f29e148]:
+                  - paragraph [ref=f29e149]: Example Studio
+                  - paragraph [ref=f29e150]: 12 Residency Road, Bengaluru
+                - generic [ref=f29e151]:
+                  - paragraph [ref=f29e152]: Demo
+                  - paragraph [ref=f29e153]: Invoice
+                  - paragraph [ref=f29e154]: EX-1
+              - generic [ref=f29e155]:
+                - generic [ref=f29e156]:
+                  - paragraph [ref=f29e157]: Bill to
+                  - paragraph [ref=f29e158]: Sample Client Pvt Ltd
+                - generic [ref=f29e159]:
+                  - paragraph [ref=f29e160]: Date 19 Nov 2026
+                  - paragraph [ref=f29e161]: Due 04 Dec 2026
+              - table [ref=f29e162]:
+                - rowgroup [ref=f29e163]:
+                  - row [ref=f29e164]:
+                    - columnheader "Description" [ref=f29e165]
+                    - columnheader "Qty" [ref=f29e166]
+                    - columnheader "Amount" [ref=f29e167]
+                - rowgroup [ref=f29e168]:
+                  - row [ref=f29e169]:
+                    - cell "Homepage and four inner pages" [ref=f29e170]
+                    - cell "1" [ref=f29e171]
+                    - cell "₹40,000" [ref=f29e172]
+                  - row [ref=f29e173]:
+                    - cell "Developer handoff notes" [ref=f29e174]
+                    - cell "1" [ref=f29e175]
+                    - cell "₹8,000" [ref=f29e176]
+              - generic [ref=f29e177]:
+                - paragraph [ref=f29e178]:
+                  - generic [ref=f29e179]: Subtotal
+                  - strong [ref=f29e180]: ₹48,000
+                - paragraph [ref=f29e181]:
+                  - generic [ref=f29e182]: GST
+                  - strong [ref=f29e183]: —
+                - paragraph [ref=f29e184]:
+                  - generic [ref=f29e185]: Total
+                  - strong [ref=f29e186]: ₹48,000
+        - generic [ref=f29e187]:
+          - generic [ref=f29e188]:
+            - paragraph [ref=f29e2712]: You marked yourself GST-registered, but GSTIN is blank. A tax invoice needs it.
+            - paragraph [ref=f29e2724]: Client is marked outside India. This draft charges no GST. Confirm export treatment with a chartered accountant before you send it.
+            - paragraph [ref=f29e190]: This is a draft for you to check. It is not filed on the GST portal, it has no IRN or QR code, and it is not tax or legal advice.
+          - generic [ref=f29e191]:
+            - heading "The draft and three reminders" [level=3] [ref=f29e192]
+            - button "Print or save as PDF" [ref=f29e194] [cursor=pointer]
+          - article [ref=f29e195]:
+            - paragraph [ref=f29e196]: DEMO
+            - generic [ref=f29e197]:
+              - generic [ref=f29e198]:
+                - paragraph [ref=f29e199]: Invoice (draft)
+                - heading "Example Studio" [level=3] [ref=f29e200]
+                - paragraph [ref=f29e201]: 12 Residency Road, Bengaluru
+                - paragraph [ref=f29e202]: Karnataka (29)
+                - paragraph [ref=f29e203]: GSTIN —
+              - generic [ref=f29e204]:
+                - paragraph [ref=f29e205]:
+                  - generic [ref=f29e206]: Number
+                  - text: EX-1
+                - paragraph [ref=f29e207]:
+                  - generic [ref=f29e208]: Date
+                  - text: 19 November 2026
+                - paragraph [ref=f29e209]:
+                  - generic [ref=f29e210]: Due
+                  - text: 4 December 2026
+                - paragraph [ref=f29e211]:
+                  - generic [ref=f29e212]: SAC
+                  - text: "9983"
+                - paragraph [ref=f29e213]:
+                  - generic [ref=f29e214]: Place of supply
+                  - text: Outside India (as entered)
+                - paragraph [ref=f29e215]:
+                  - generic [ref=f29e216]: Reverse charge
+                  - text: "No"
+            - generic [ref=f29e217]:
+              - paragraph [ref=f29e218]: Bill to
+              - paragraph [ref=f29e219]: Sample Client Pvt Ltd
+              - paragraph [ref=f29e220]: 1 Sample Street, Mumbai
+              - paragraph [ref=f29e221]: Outside India
+              - paragraph [ref=f29e222]: GSTIN —
+            - table [ref=f29e223]:
+              - rowgroup [ref=f29e224]:
+                - row [ref=f29e225]:
+                  - columnheader "Description" [ref=f29e226]
+                  - columnheader "Amount" [ref=f29e227]
+              - rowgroup [ref=f29e228]:
+                - row [ref=f29e229]:
+                  - cell "Homepage and four inner pages" [ref=f29e230]
+                  - cell "₹40,000.00" [ref=f29e231]
+                - row [ref=f29e232]:
+                  - cell "Developer handoff notes" [ref=f29e233]
+                  - cell "₹8,000.00" [ref=f29e234]
+            - table [ref=f29e235]:
+              - rowgroup [ref=f29e236]:
+                - row [ref=f29e237]:
+                  - rowheader "Taxable value" [ref=f29e238]
+                  - cell "₹48,000.00" [ref=f29e239]
+                - row [ref=f29e2725]:
+                  - rowheader "Balance due" [ref=f29e241]
+                  - cell "₹48,000.00" [ref=f29e2726]
+            - generic [ref=f29e243]:
+              - paragraph [ref=f29e244]: Pay the supplier
+              - paragraph [ref=f29e245]: yourname@upi
+              - paragraph [ref=f29e246]: Example Studio’s UPI on this draft. It is not the Invoice Pack checkout.
+            - generic [ref=f29e247]:
+              - paragraph [ref=f29e249]: Example Studio
+              - paragraph [ref=f29e250]: Authorised signatory
+              - paragraph [ref=f29e251]: A draft for you to check. Not filed on the GST portal, and not tax advice. DEMO figures. Example Studio and Sample Client Pvt Ltd are not real.
+          - generic [ref=f29e252]:
+            - generic [ref=f29e253]:
+              - heading "Send with the invoice" [level=3] [ref=f29e254]
+              - generic [ref=f29e255]: "Hello, Invoice EX-1 from Example Studio is ready. The balance due is ₹48,000.00, due on 4 December 2026. UPI: yourname@upi If any line is wrong, tell me which one and I will send a corrected invoice. Thank you, Example Studio"
+              - button "Copy message" [ref=f29e257] [cursor=pointer]
+            - generic [ref=f29e258]:
+              - heading "About 7 days after you send it" [level=3] [ref=f29e259]
+              - generic [ref=f29e260]: Hello, Checking on invoice EX-1 for ₹48,000.00, due on 4 December 2026. If it is already in process, a payment date is enough. If a detail is blocking it, tell me which line and I will correct the invoice. Thank you, Example Studio
+              - button "Copy message" [ref=f29e262] [cursor=pointer]
+            - generic [ref=f29e263]:
+              - heading "About 14 days after you send it" [level=3] [ref=f29e264]
+              - generic [ref=f29e265]: "Hello, Invoice EX-1 for ₹48,000.00 was due on 4 December 2026 and is still open on my side. Please pay it, or write back today with the date you will pay. UPI: yourname@upi Thank you, Example Studio"
+              - button "Copy message" [ref=f29e267] [cursor=pointer]
+      - region "Simple tools for everyday freelance work." [ref=f29e268]:
+        - paragraph [ref=f29e269]: The products
+        - generic [ref=f29e270]:
+          - heading "Simple tools for everyday freelance work." [level=2] [ref=f29e271]
+          - article [ref=f29e272]:
+            - generic [ref=f29e273]:
+              - heading "Invoice Pack" [level=3] [ref=f29e274]
+              - paragraph [ref=f29e275]: ₹499 / one time
+              - paragraph [ref=f29e276]: A professional invoice and three payment reminders.
+            - link "Open the Invoice Pack checkout" [ref=f29e277] [cursor=pointer]:
+              - /url: "#pay-499"
+              - text: →
+          - article [ref=f29e278]:
+            - generic [ref=f29e279]:
+              - heading "Advance Receipt" [level=3] [ref=f29e280]
+              - paragraph [ref=f29e281]: ₹399 / one time
+              - paragraph [ref=f29e282]: A clean receipt for advance payments with balance tracking.
+            - link "Open the Advance Receipt checkout" [ref=f29e283] [cursor=pointer]:
+              - /url: "#pay-399"
+              - text: →
+        - generic [ref=f29e285]:
+          - heading "Pay ₹499" [level=3] [ref=f29e286]
+          - paragraph [ref=f29e287]:
+            - text: "Payee name: Invoice Pack. UPI ID:"
+            - strong [ref=f29e288]: saividyut2@okicici
+            - text: ". Amount: ₹499."
+          - paragraph [ref=f29e289]: Pay ₹499, then submit the UTR or reference from your UPI app. A UTR is not proof of payment. This page saves the order as payment pending. There is no control here that marks an order paid.
+          - img "UPI QR for ₹499" [ref=f29e290]
+          - paragraph [ref=f29e1346]:
+            - text: "Order reference:"
+            - strong [ref=f29e1347]: IP261121203858LTPW
+          - paragraph [ref=f29e1348]:
+            - link "UPI payment link" [ref=f29e1349] [cursor=pointer]:
+              - /url: upi://pay?pa=saividyut2@okicici&pn=Invoice%20Pack&am=499&cu=INR&tn=IP261121203858LTPW&tr=IP261121203858LTPW
+          - paragraph [ref=f29e1350]: upi://pay?pa=saividyut2@okicici&pn=Invoice%20Pack&am=499&cu=INR&tn=IP261121203858LTPW&tr=IP261121203858LTPW
+          - button "Copy payment link" [ref=f29e1352] [cursor=pointer]
+          - generic [ref=f29e1353]:
+            - generic [ref=f29e1354]:
+              - generic [ref=f29e1355]: UTR or payment reference
+              - textbox "UTR or payment reference" [ref=f29e1356]
+            - button "Save reference as pending" [ref=f29e1358] [cursor=pointer]
+      - region "One pack, once." [ref=f29e1359]:
+        - paragraph [ref=f29e1360]: What’s included
+        - heading "One pack, once." [level=2] [ref=f29e1361]
+        - generic [ref=f29e1362]:
+          - generic [ref=f29e1363]:
+            - heading "What you get" [level=3] [ref=f29e1364]
+            - list [ref=f29e1365]:
+              - listitem [ref=f29e1366]: "A draft invoice: your name, the client, line items, taxable value, and CGST plus SGST or IGST if you are GST-registered and the client is in India."
+              - listitem [ref=f29e1367]: The place of supply you entered, and a reverse-charge note if you turn that on. GST is then noted and not added to the balance.
+              - listitem [ref=f29e1368]: Your UPI id or bank details on the draft.
+              - listitem [ref=f29e1369]: "Three messages: with the invoice, about 7 days later, and about 14 days later."
+              - listitem [ref=f29e1370]: A print view. Use the browser’s print dialog and choose “Save as PDF” if you want a file.
+          - generic [ref=f29e1371]:
+            - heading "What you do not get" [level=3] [ref=f29e1372]
+            - list [ref=f29e1373]:
+              - listitem [ref=f29e1374]: Filing on the GST portal, an IRN, or an e-invoice QR code.
+              - listitem [ref=f29e1375]: Tax or legal advice. Confirm registration, SAC, rate, and export rules before you send the draft.
+              - listitem [ref=f29e1376]: Anyone chasing the client for you.
+              - listitem [ref=f29e1377]: An automatic confirmation that ₹499 was received. A UTR saved here is payment pending, not proof.
+      - region "Advance Receipt — ₹399" [ref=f29e1378]:
+        - paragraph [ref=f29e1379]: Second offer
+        - heading "Advance Receipt — ₹399" [level=2] [ref=f29e1380]
+        - paragraph [ref=f29e1381]: One dated job. One receipt for an advance you have already received. One short message to send with it. ₹399, once. This offer is available. It does not bill a finished freelance job, and it does not calculate GST.
+        - generic [ref=f29e1382]:
+          - generic [ref=f29e1383]:
+            - heading "What you get" [level=3] [ref=f29e1384]
+            - list [ref=f29e1385]:
+              - listitem [ref=f29e1386]: Your name and city or area, the client, and what the job is.
+              - listitem [ref=f29e1387]: The job date, the date you received the advance, the total, the advance, and the balance.
+              - listitem [ref=f29e1388]: Included and not included, in the words you type.
+              - listitem [ref=f29e1389]: Your UPI id on the receipt, if you enter it, and one message to copy.
+              - listitem [ref=f29e1390]: A print view. The browser can save it as a PDF.
+          - generic [ref=f29e1391]:
+            - heading "What you do not get" [level=3] [ref=f29e1392]
+            - list [ref=f29e1393]:
+              - listitem [ref=f29e1394]: A contract, a legal notice, or legal advice.
+              - listitem [ref=f29e1395]: A tax invoice, a GST filing, or tax advice.
+              - listitem [ref=f29e1396]: Anyone contacting the client.
+              - listitem [ref=f29e1397]: Confirmation that ₹399 has reached the account.
+        - article [ref=f29e1398]:
+          - paragraph [ref=f29e1399]: DEMO
+          - paragraph [ref=f29e1400]: Advance receipt
+          - heading "Example Decor" [level=3] [ref=f29e1401]
+          - paragraph [ref=f29e1402]: Pune
+          - generic [ref=f29e1403]:
+            - paragraph [ref=f29e1404]: Receipt date 20 November 2026
+            - paragraph [ref=f29e1405]: Job date 12 December 2026
+          - generic [ref=f29e1406]:
+            - paragraph [ref=f29e1407]: Received from
+            - paragraph [ref=f29e1408]: Sample Client
+          - generic [ref=f29e1409]:
+            - paragraph [ref=f29e1410]: Job
+            - paragraph [ref=f29e1411]: Stage decor for a wedding
+          - generic [ref=f29e1412]:
+            - paragraph [ref=f29e1413]: Advance received
+            - paragraph [ref=f29e1414]: ₹20,000.00
+          - table [ref=f29e1415]:
+            - rowgroup [ref=f29e1416]:
+              - row [ref=f29e1417]:
+                - rowheader "Total agreed" [ref=f29e1418]
+                - cell "₹80,000.00" [ref=f29e1419]
+              - row [ref=f29e1420]:
+                - rowheader "Advance received" [ref=f29e1421]
+                - cell "₹20,000.00" [ref=f29e1422]
+              - row [ref=f29e1423]:
+                - rowheader "Balance" [ref=f29e1424]
+                - cell "₹60,000.00" [ref=f29e1425]
+          - generic [ref=f29e1426]:
+            - paragraph [ref=f29e1427]: Included
+            - paragraph [ref=f29e1428]: Stage backdrop and entrance decor
+            - paragraph [ref=f29e1429]: Not included
+            - paragraph [ref=f29e1430]: Flowers and seating
+            - paragraph [ref=f29e1431]: example.decor@upi
+          - paragraph [ref=f29e1432]: DEMO. Example Decor and Sample Client are not real. This receipt does not calculate GST. Not a contract and not a tax invoice.
+          - heading "Message to send with the receipt" [level=3] [ref=f29e1433]
+          - generic [ref=f29e1434]: "Hello, Advance of ₹20,000.00 is received from Sample Client. Job: Stage decor for a wedding Job date: 12 December 2026 Receipt date: 20 November 2026 Total agreed: ₹80,000.00 Balance: ₹60,000.00 Included: Stage backdrop and entrance decor Not included: Flowers and seating UPI: example.decor@upi Thank you, Example Decor"
+        - generic [ref=f29e1435]:
+          - heading "Prepare your receipt" [level=3] [ref=f29e1436]
+          - button "Fill an example" [ref=f29e1438] [cursor=pointer]
+          - generic [ref=f29e1439]:
+            - generic [ref=f29e1440]:
+              - generic [ref=f29e1441]: Your name
+              - textbox "Your name" [ref=f29e1442]
+            - generic [ref=f29e1443]:
+              - generic [ref=f29e1444]: Your city or area
+              - textbox "Your city or area" [ref=f29e1445]
+          - generic [ref=f29e1446]:
+            - generic [ref=f29e1447]: Your UPI id, for the balance
+            - textbox "Your UPI id, for the balance" [ref=f29e1448]
+          - generic [ref=f29e1449]:
+            - generic [ref=f29e1450]:
+              - generic [ref=f29e1451]: Client name
+              - textbox "Client name" [ref=f29e1452]
+            - generic [ref=f29e1453]:
+              - generic [ref=f29e1454]: What the job is
+              - textbox "What the job is" [ref=f29e1455]
+          - generic [ref=f29e1456]:
+            - generic [ref=f29e1457]:
+              - generic [ref=f29e1458]: Job date
+              - textbox "Job date" [ref=f29e1459]
+            - generic [ref=f29e1460]:
+              - generic [ref=f29e1461]: Date you received the advance
+              - textbox "Date you received the advance" [ref=f29e1462]
+          - generic [ref=f29e1463]:
+            - generic [ref=f29e1464]:
+              - generic [ref=f29e1465]: Total agreed, in rupees
+              - textbox "Total agreed, in rupees" [ref=f29e1466]
+            - generic [ref=f29e1467]:
+              - generic [ref=f29e1468]: Advance received, in rupees
+              - textbox "Advance received, in rupees" [ref=f29e1469]
+          - generic [ref=f29e1470]:
+            - generic [ref=f29e1471]: Included, in your words
+            - textbox "Included, in your words" [ref=f29e1472]
+          - generic [ref=f29e1473]:
+            - generic [ref=f29e1474]: Not included, in your words
+            - textbox "Not included, in your words" [ref=f29e1475]
+          - paragraph [ref=f29e1476]: Nothing you type is uploaded. This form does not ask about GST.
+          - button "Prepare the receipt" [ref=f29e1478] [cursor=pointer]
+        - generic [ref=f29e1480]:
+          - heading "Pay ₹399" [level=3] [ref=f29e1481]
+          - paragraph [ref=f29e1482]:
+            - text: "Payee name: Advance Receipt. UPI ID:"
+            - strong [ref=f29e1483]: saividyut2@okicici
+            - text: ". Amount: ₹399."
+          - paragraph [ref=f29e1484]: Pay ₹399, then submit the UTR or reference from your UPI app. A UTR is not proof of payment. This page saves the order as payment pending. There is no control here that marks an order paid.
+          - img "UPI QR for ₹399" [ref=f29e1485]
+          - paragraph [ref=f29e2539]:
+            - text: "Order reference:"
+            - strong [ref=f29e2540]: AR261121203858HVU9
+          - paragraph [ref=f29e2541]:
+            - link "UPI payment link" [ref=f29e2542] [cursor=pointer]:
+              - /url: upi://pay?pa=saividyut2@okicici&pn=Advance%20Receipt&am=399&cu=INR&tn=AR261121203858HVU9&tr=AR261121203858HVU9
+          - paragraph [ref=f29e2543]: upi://pay?pa=saividyut2@okicici&pn=Advance%20Receipt&am=399&cu=INR&tn=AR261121203858HVU9&tr=AR261121203858HVU9
+          - button "Copy payment link" [ref=f29e2545] [cursor=pointer]
+          - generic [ref=f29e2546]:
+            - generic [ref=f29e2547]:
+              - generic [ref=f29e2548]: UTR or payment reference
+              - textbox "UTR or payment reference" [ref=f29e2549]
+            - button "Save reference as pending" [ref=f29e2551] [cursor=pointer]
+      - region "Prepare the pack" [ref=f29e2552]:
+        - paragraph [ref=f29e2553]: Your pack
+        - heading "Prepare the pack" [level=2] [ref=f29e2554]
+        - paragraph [ref=f29e2555]: Enter the job here. Nothing is uploaded. Press “Prepare the pack”. The draft and the three messages appear on this page. Read the warnings before you send anything.
+        - generic [ref=f29e2556]:
+          - button "Fill an example" [ref=f29e2558] [cursor=pointer]
+          - generic [ref=f29e2559]:
+            - generic [ref=f29e2560]:
+              - generic [ref=f29e2561]: Your name or trade name
+              - textbox "Your name or trade name" [ref=f29e2562]
+            - generic [ref=f29e2563]:
+              - generic [ref=f29e2564]: Your state
+              - combobox "Your state" [ref=f29e2565]:
+                - option "Select a state" [selected]
+                - option "Jammu and Kashmir (01)"
+                - option "Himachal Pradesh (02)"
+                - option "Punjab (03)"
+                - option "Chandigarh (04)"
+                - option "Uttarakhand (05)"
+                - option "Haryana (06)"
+                - option "Delhi (07)"
+                - option "Rajasthan (08)"
+                - option "Uttar Pradesh (09)"
+                - option "Bihar (10)"
+                - option "Sikkim (11)"
+                - option "Arunachal Pradesh (12)"
+                - option "Nagaland (13)"
+                - option "Manipur (14)"
+                - option "Mizoram (15)"
+                - option "Tripura (16)"
+                - option "Meghalaya (17)"
+                - option "Assam (18)"
+                - option "West Bengal (19)"
+                - option "Jharkhand (20)"
+                - option "Odisha (21)"
+                - option "Chhattisgarh (22)"
+                - option "Madhya Pradesh (23)"
+                - option "Gujarat (24)"
+                - option "Dadra and Nagar Haveli and Daman and Diu (26)"
+                - option "Maharashtra (27)"
+                - option "Karnataka (29)"
+                - option "Goa (30)"
+                - option "Lakshadweep (31)"
+                - option "Kerala (32)"
+                - option "Tamil Nadu (33)"
+                - option "Puducherry (34)"
+                - option "Andaman and Nicobar Islands (35)"
+                - option "Telangana (36)"
+                - option "Andhra Pradesh (37)"
+                - option "Ladakh (38)"
+          - generic [ref=f29e2566]:
+            - generic [ref=f29e2567]: Your address
+            - textbox "Your address" [ref=f29e2568]
+          - generic [ref=f29e2569]:
+            - checkbox "I am GST-registered and this draft should show GST" [ref=f29e2570]
+            - text: I am GST-registered and this draft should show GST
+          - generic [ref=f29e2571]:
+            - generic [ref=f29e2572]: Your GSTIN, if you have one
+            - textbox "Your GSTIN, if you have one" [ref=f29e2573]
+          - generic [ref=f29e2574]:
+            - generic [ref=f29e2575]:
+              - generic [ref=f29e2576]: Client name
+              - textbox "Client name" [ref=f29e2577]
+            - generic [ref=f29e2578]:
+              - generic [ref=f29e2579]: Client state
+              - combobox "Client state" [ref=f29e2580]:
+                - option "Select a state" [selected]
+                - option "Jammu and Kashmir (01)"
+                - option "Himachal Pradesh (02)"
+                - option "Punjab (03)"
+                - option "Chandigarh (04)"
+                - option "Uttarakhand (05)"
+                - option "Haryana (06)"
+                - option "Delhi (07)"
+                - option "Rajasthan (08)"
+                - option "Uttar Pradesh (09)"
+                - option "Bihar (10)"
+                - option "Sikkim (11)"
+                - option "Arunachal Pradesh (12)"
+                - option "Nagaland (13)"
+                - option "Manipur (14)"
+                - option "Mizoram (15)"
+                - option "Tripura (16)"
+                - option "Meghalaya (17)"
+                - option "Assam (18)"
+                - option "West Bengal (19)"
+                - option "Jharkhand (20)"
+                - option "Odisha (21)"
+                - option "Chhattisgarh (22)"
+                - option "Madhya Pradesh (23)"
+                - option "Gujarat (24)"
+                - option "Dadra and Nagar Haveli and Daman and Diu (26)"
+                - option "Maharashtra (27)"
+                - option "Karnataka (29)"
+                - option "Goa (30)"
+                - option "Lakshadweep (31)"
+                - option "Kerala (32)"
+                - option "Tamil Nadu (33)"
+                - option "Puducherry (34)"
+                - option "Andaman and Nicobar Islands (35)"
+                - option "Telangana (36)"
+                - option "Andhra Pradesh (37)"
+                - option "Ladakh (38)"
+          - generic [ref=f29e2581]:
+            - generic [ref=f29e2582]: Client address
+            - textbox "Client address" [ref=f29e2583]
+          - generic [ref=f29e2584]:
+            - generic [ref=f29e2585]: Client GSTIN, if you have it
+            - textbox "Client GSTIN, if you have it" [ref=f29e2586]
+          - generic [ref=f29e2587]:
+            - checkbox "Client is outside India" [ref=f29e2588]
+            - text: Client is outside India
+          - generic [ref=f29e2589]:
+            - generic [ref=f29e2590]:
+              - generic [ref=f29e2591]: Invoice number
+              - textbox "Invoice number" [ref=f29e2592]
+            - generic [ref=f29e2593]:
+              - generic [ref=f29e2594]: Invoice date
+              - textbox "Invoice date" [ref=f29e2595]: 2026-11-21
+          - generic [ref=f29e2596]:
+            - generic [ref=f29e2597]:
+              - generic [ref=f29e2598]: Days until due
+              - spinbutton "Days until due" [ref=f29e2599]: "15"
+            - generic [ref=f29e2600]:
+              - generic [ref=f29e2601]: SAC
+              - textbox "SAC" [ref=f29e2602]: "9983"
+          - generic [ref=f29e2603]:
+            - generic [ref=f29e2604]:
+              - generic [ref=f29e2605]: GST rate % (used only if you are registered and the client is in India)
+              - spinbutton "GST rate % (used only if you are registered and the client is in India)" [ref=f29e2606]: "18"
+            - generic [ref=f29e2607]:
+              - generic [ref=f29e2608]: Already received, INR
+              - spinbutton "Already received, INR" [ref=f29e2609]: "0"
+          - generic [ref=f29e2610]:
+            - checkbox "Tax is payable by the client on reverse charge" [ref=f29e2611]
+            - text: Tax is payable by the client on reverse charge
+          - heading "Lines" [level=3] [ref=f29e2612]
+          - generic [ref=f29e2613]:
+            - generic [ref=f29e2614]:
+              - generic [ref=f29e2615]: Line 1 description
+              - textbox "Line 1 description" [ref=f29e2616]
+            - generic [ref=f29e2617]:
+              - generic [ref=f29e2618]: Line 1 amount
+              - textbox "Line 1 amount" [ref=f29e2619]
+          - generic [ref=f29e2620]:
+            - generic [ref=f29e2621]:
+              - generic [ref=f29e2622]: Line 2 description
+              - textbox "Line 2 description" [ref=f29e2623]
+            - generic [ref=f29e2624]:
+              - generic [ref=f29e2625]: Line 2 amount
+              - textbox "Line 2 amount" [ref=f29e2626]
+          - generic [ref=f29e2627]:
+            - generic [ref=f29e2628]:
+              - generic [ref=f29e2629]: Line 3 description
+              - textbox "Line 3 description" [ref=f29e2630]
+            - generic [ref=f29e2631]:
+              - generic [ref=f29e2632]: Line 3 amount
+              - textbox "Line 3 amount" [ref=f29e2633]
+          - generic [ref=f29e2634]:
+            - generic [ref=f29e2635]:
+              - generic [ref=f29e2636]: Line 4 description
+              - textbox "Line 4 description" [ref=f29e2637]
+            - generic [ref=f29e2638]:
+              - generic [ref=f29e2639]: Line 4 amount
+              - textbox "Line 4 amount" [ref=f29e2640]
+          - generic [ref=f29e2641]:
+            - button "Add a line" [ref=f29e2642] [cursor=pointer]
+            - button "Remove a line" [ref=f29e2643] [cursor=pointer]
+          - heading "How they can pay you" [level=3] [ref=f29e2644]
+          - paragraph [ref=f29e2645]: These are your details, printed for your client. This page does not collect them as a payment to us.
+          - generic [ref=f29e2646]:
+            - generic [ref=f29e2647]:
+              - generic [ref=f29e2648]: Your UPI id
+              - textbox "Your UPI id" [ref=f29e2649]
+            - generic [ref=f29e2650]:
+              - generic [ref=f29e2651]: Bank name
+              - textbox "Bank name" [ref=f29e2652]
+          - generic [ref=f29e2653]:
+            - generic [ref=f29e2654]:
+              - generic [ref=f29e2655]: Account name
+              - textbox "Account name" [ref=f29e2656]
+            - generic [ref=f29e2657]:
+              - generic [ref=f29e2658]: Account number
+              - textbox "Account number" [ref=f29e2659]
+          - generic [ref=f29e2660]:
+            - generic [ref=f29e2661]: IFSC
+            - textbox "IFSC" [ref=f29e2662]
+          - generic [ref=f29e2663]:
+            - generic [ref=f29e2664]: Remarks on the invoice
+            - textbox "Remarks on the invoice" [ref=f29e2665]
+          - button "Prepare the pack" [ref=f29e2667] [cursor=pointer]
+      - region "Calculated in the browser." [ref=f29e2668]:
+        - paragraph [ref=f29e2669]: How it works
+        - heading "Calculated in the browser." [level=2] [ref=f29e2670]
+        - list [ref=f29e2671]:
+          - listitem [ref=f29e2672]: The draft is calculated on this page from what you type. The figures are not uploaded.
+          - listitem [ref=f29e2673]: "GST is added only if you say you are registered and the client is in India. Same state: CGST and SGST. Different states: IGST."
+          - listitem [ref=f29e2674]: If you are not registered, the draft does not add GST. If the client is outside India, it does not add GST, and it tells you to confirm export treatment with a chartered accountant.
+          - listitem [ref=f29e2675]: Advance Receipt does not run that calculation.
+          - listitem [ref=f29e2676]: Print uses the browser. Choose “Save as PDF” there if you want a file.
+          - listitem [ref=f29e2677]: "The UPI link is assembled here: payee saividyut2@okicici, payee name Invoice Pack or Advance Receipt, amount 499 or 399, and the same order reference in both tn and tr. The QR code is that link."
+          - listitem [ref=f29e2678]: A UTR you submit is stored in this browser as payment_pending. This page cannot mark an order paid.
+          - listitem [ref=f29e2679]: This is not an e-invoice and not tax advice. There is no IRN, and nothing is filed on the GST portal.
+      - region "What has happened so far." [ref=f29e2680]:
+        - paragraph [ref=f29e2681]: Customer discovery
+        - heading "What has happened so far." [level=2] [ref=f29e2682]
+        - generic [ref=f29e2683]:
+          - paragraph [ref=f29e2684]: Invoice Pack is an experiment for freelancers in India who need to bill one finished job. It is not a chartered accountant, not a law firm, and not a studio. This page does not claim an office, a team, a registration, customers, revenue, or reviews.
+          - paragraph [ref=f29e2685]: Collected payments are the only score. No payment has been verified. The ledger is zero.
+          - paragraph [ref=f29e2686]: Notes about Invoice Pack went out. Two people replied and were shown the draft format. One declined. One address bounced. No one has paid. The people who were written to are not listed here.
+          - paragraph [ref=f29e2687]: Advance Receipt, at ₹399, is a second offer. It was started on 20 November 2026 because another way to collect payment was asked for while those replies were still open. It does not change the ₹499 invoice pack.
+      - region "Ask to be billed when payment works" [ref=f29e2688]:
+        - heading "Ask to be billed when payment works" [level=2] [ref=f29e2689]
+        - paragraph [ref=f29e2690]: Leave your name and email if you want this pack for a live client after a payment account is connected. This stores the note in this browser only. It is not emailed. It is not a payment.
+        - generic [ref=f29e2691]:
+          - generic [ref=f29e2692]:
+            - generic [ref=f29e2693]: Your name
+            - textbox "Your name" [ref=f29e2694]
+          - generic [ref=f29e2695]:
+            - generic [ref=f29e2696]: Email
+            - textbox "Email" [ref=f29e2697]
+          - generic [ref=f29e2698]:
+            - generic [ref=f29e2699]: What the job is
+            - textbox "What the job is" [ref=f29e2700]
+          - button "Save enquiry on this browser" [ref=f29e2702] [cursor=pointer]
+      - region "Sai Vidyut" [ref=f29e2703]:
+        - paragraph [ref=f29e2704]: About
+        - heading "Sai Vidyut" [level=2] [ref=f29e2705]
+        - generic [ref=f29e2706]:
+          - paragraph [ref=f29e2707]: Invoice Pack is for a freelancer or solo consultant in India who has finished work and needs to bill the client. Sai Vidyut runs the experiment. It is not a human studio, not a chartered accountant, and not a law firm.
+          - paragraph [ref=f29e2708]:
+            - text: Contact
+            - link "saividyut2@gmail.com" [ref=f29e2709] [cursor=pointer]:
+              - /url: mailto:saividyut2@gmail.com
+            - text: . That address is published so you can write. It is not consent to be sent a pitch. To opt out of notes, email that address.
+          - paragraph [ref=f29e2710]:
+            - link "Back to the portfolio" [ref=f29e2711] [cursor=pointer]:
+              - /url: /

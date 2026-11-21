@@ -168,6 +168,174 @@
   line-height: 1.5;
 }
 
+.ip-lede-narrow {
+  max-width: 36rem;
+}
+
+.ip-hint {
+  margin: 0;
+  color: var(--ip-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.ip-field .ip-hint {
+  margin-top: -0.1rem;
+}
+
+.ip-journey-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.ip-journey-list li {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--ip-line);
+}
+
+.ip-journey-list li:last-child {
+  border-bottom: 1px solid var(--ip-line);
+}
+
+.ip-journey-list span {
+  color: #9a958e;
+  font-size: 0.82rem;
+  padding-top: 0.1rem;
+}
+
+.ip-journey-list p {
+  margin: 0;
+  color: #3f3c39;
+  max-width: 40rem;
+}
+
+.ip-scenario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.ip-scenario-btn {
+  min-height: 40px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--ip-line-strong);
+  border-radius: 6px;
+  background: var(--ip-white);
+  color: var(--ip-ink);
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.ip-scenario-btn.active {
+  background: var(--ip-ink);
+  color: #fff;
+  border-color: var(--ip-ink);
+}
+
+.ip-example-meta {
+  margin-bottom: 1.25rem;
+}
+
+.ip-example-output {
+  margin-top: 0.5rem;
+}
+
+.ip-wizard {
+  margin-top: 1.25rem;
+  padding: 1.15rem 1.1rem 1.25rem;
+  border: 1px solid var(--ip-line-strong);
+  border-radius: 12px;
+  background: var(--ip-white);
+}
+
+.ip-wizard-steps {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+}
+
+.ip-wizard-steps li {
+  font-size: 0.82rem;
+  color: var(--ip-muted);
+}
+
+.ip-wizard-steps li.current {
+  color: var(--ip-ink);
+  font-weight: 600;
+}
+
+.ip-wizard-steps li.done {
+  color: #5c5852;
+}
+
+.ip-wizard-panel {
+  margin-top: 1rem;
+}
+
+.ip-wizard-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.25rem;
+}
+
+.ip-result-summary {
+  display: grid;
+  gap: 0.35rem;
+  margin: 1.15rem 0 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--ip-line);
+  border-bottom: 1px solid var(--ip-line);
+  max-width: 20rem;
+}
+
+.ip-result-summary p {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+}
+
+.ip-result-summary strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.ip-receive-list li + li {
+  margin-top: 0.55rem;
+}
+
+.ip-pay-intro h3 {
+  margin: 0 0 0.4rem;
+}
+
+.ip-pay-intro p {
+  margin: 0;
+  max-width: 40rem;
+}
+
+.ip-advance {
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--ip-line);
+}
+
+.ip-legal {
+  padding-bottom: 4rem;
+}
+
+.ip-legal .ip-quiet-list li + li {
+  margin-top: 0.45rem;
+}
+
 .ip-price {
   display: flex;
   align-items: baseline;

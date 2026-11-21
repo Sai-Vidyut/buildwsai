@@ -1,0 +1,342 @@
+- generic [ref=f32e2]:
+  - link "Skip to content" [ref=f32e3] [cursor=pointer]:
+    - /url: "#main"
+  - navigation "Section progress" [ref=f32e4]:
+    - link "Intro" [ref=f32e5] [cursor=pointer]:
+      - /url: "#"
+    - link "01" [ref=f32e6] [cursor=pointer]:
+      - /url: "#project-satquery"
+    - link "02" [ref=f32e7] [cursor=pointer]:
+      - /url: "#project-peffle"
+    - link "03" [ref=f32e8] [cursor=pointer]:
+      - /url: "#project-docna"
+    - link "04" [ref=f32e9] [cursor=pointer]:
+      - /url: "#project-blueprint"
+    - link "05" [ref=f32e10] [cursor=pointer]:
+      - /url: "#project-slyvr"
+    - link "Exp" [ref=f32e11] [cursor=pointer]:
+      - /url: "#experience"
+    - link "CV" [ref=f32e12] [cursor=pointer]:
+      - /url: "#resume"
+    - link "End" [ref=f32e13] [cursor=pointer]:
+      - /url: "#contact"
+  - banner [ref=f32e14]:
+    - navigation "Primary" [ref=f32e15]:
+      - link "BuildWSai" [ref=f32e16] [cursor=pointer]:
+        - /url: "#"
+      - list [ref=f32e17]:
+        - listitem [ref=f32e18]:
+          - link "Work" [ref=f32e19] [cursor=pointer]:
+            - /url: "#work"
+        - listitem [ref=f32e20]:
+          - link "Experience" [ref=f32e21] [cursor=pointer]:
+            - /url: "#experience"
+        - listitem [ref=f32e22]:
+          - link "Resume" [ref=f32e23] [cursor=pointer]:
+            - /url: "#resume"
+        - listitem [ref=f32e24]:
+          - link "Lab" [ref=f32e25] [cursor=pointer]:
+            - /url: "#lab"
+        - listitem [ref=f32e26]:
+          - link "Contact" [ref=f32e27] [cursor=pointer]:
+            - /url: "#contact"
+        - listitem [ref=f32e28]:
+          - link "Invoice Pack" [ref=f32e29] [cursor=pointer]:
+            - /url: /invoice-pack
+  - button "Back to top": Top ↑
+  - main [ref=f32e30]:
+    - generic [ref=f32e32]:
+      - generic [ref=f32e33]:
+        - paragraph [ref=f32e34]: BUILDWSAI/Sai Vidyut C
+        - paragraph [ref=f32e35]: Open to internships · Summer 2026
+      - generic [ref=f32e36]:
+        - heading "Systems Engineer" [level=1] [ref=f32e38]:
+          - generic [ref=f32e39]: Systems
+          - generic [ref=f32e41]: Engineer
+        - generic [ref=f32e43]:
+          - paragraph [ref=f32e44]: Geospatial intelligence, agent spend guardrails, document systems, and deterministic AI — built end-to-end.
+          - paragraph [ref=f32e45]: The model interprets · The code decides
+          - generic [ref=f32e46]:
+            - link "Selected work" [ref=f32e47] [cursor=pointer]:
+              - /url: "#work"
+            - link "GitHub" [ref=f32e48] [cursor=pointer]:
+              - /url: https://github.com/Sai-Vidyut
+            - link "LinkedIn" [ref=f32e49] [cursor=pointer]:
+              - /url: https://www.linkedin.com/in/sai-vidyut-chandramohan-584473406/
+    - region "Philosophy" [ref=f32e50]:
+      - generic [ref=f32e51]:
+        - generic [ref=f32e52]:
+          - paragraph [ref=f32e53]: Philosophy
+          - paragraph [ref=f32e54]: The model interprets. The code decides.
+        - generic [ref=f32e55]:
+          - article [ref=f32e57]:
+            - heading "Interpretation ≠ authority" [level=3] [ref=f32e58]
+            - paragraph [ref=f32e59]: Models propose structure. Code validates, routes, and commits.
+          - article [ref=f32e61]:
+            - heading "Guardrails before generation" [level=3] [ref=f32e62]
+            - paragraph [ref=f32e63]: Policy, schema, and placement run deterministically — before any output ships.
+          - article [ref=f32e65]:
+            - heading "Evidence over assertion" [level=3] [ref=f32e66]
+            - paragraph [ref=f32e67]: Maps, traces, and tests are the source of truth — not model confidence.
+    - region "SatQuery AI" [ref=f32e68]:
+      - generic [ref=f32e71]:
+        - img "SatQuery map workstation with selectable evidence regions over satellite imagery" [ref=f32e74]:
+          - generic [ref=f32e77]:
+            - 'button "Evidence region: Surface change" [ref=f32e78]'
+            - 'button "Evidence region: Water edge" [ref=f32e79]'
+            - 'button "Evidence region: Built-up" [ref=f32e80]'
+          - paragraph: 12.9716° N · 77.5946° E · Sentinel-2
+          - paragraph [ref=f32e81]: 12.9716° N · 77.5946° E
+          - button "Expand SatQuery workstation image" [ref=f32e82]: Expand
+        - generic [ref=f32e85]:
+          - paragraph [ref=f32e86]: 01/Geospatial intelligence
+          - heading "SatQuery AI" [level=2] [ref=f32e87]
+          - paragraph [ref=f32e88]: Team at SRMIST · Backend & AI Systems Lead
+          - paragraph [ref=f32e89]: Map-first workstation for Earth-surface change — evidence-backed answers you inspect on the map.
+          - generic [ref=f32e90]:
+            - paragraph [ref=f32e91]: Outcome
+            - paragraph [ref=f32e92]: Evidence you can inspect on the map — not a black-box answer.
+          - paragraph [ref=f32e93]: Execution trace + map-linked evidence regions. Sentinel-2 optical, Sentinel-1 SAR, GeoChat VLM.
+          - generic [ref=f32e94]:
+            - link "Repository" [ref=f32e95] [cursor=pointer]:
+              - /url: https://github.com/Sai-Vidyut/SatQuery-AI
+            - link "Live" [ref=f32e96] [cursor=pointer]:
+              - /url: https://sat-query-ai-self.vercel.app
+    - region "Peffle" [ref=f32e97]:
+      - generic [ref=f32e100]:
+        - paragraph [ref=f32e101]: Request → Guard → Ledger
+        - generic [ref=f32e104]:
+          - img "Peffle blocks an agent charge when the daily spend cap would be exceeded" [ref=f32e105]
+          - button "Expand Peffle demonstration" [ref=f32e106]: Expand
+        - generic [ref=f32e109]:
+          - paragraph [ref=f32e110]: 02/Agent spend guard
+          - heading "Peffle" [level=2] [ref=f32e111]
+          - paragraph [ref=f32e112]: Solo · Library & CLI
+          - paragraph [ref=f32e113]: Local kill switch, spend cap, and human-approval gate for agent tool calls — enforced when the handler runs, not in the system prompt. Policy rules, daily budgets, and a SQLite ledger live in your process; the CLI approves pending charges and MCP exposes the same guard to agent runtimes.
+          - generic [ref=f32e114]:
+            - paragraph [ref=f32e115]: Outcome
+            - paragraph [ref=f32e116]: Stop the agent before it spends your money.
+          - paragraph [ref=f32e117]: peffle.guard() wraps handlers. Policy and ledger stay in-process. No SaaS. No telemetry.
+          - paragraph [ref=f32e118]: Published on npm. Enforcement runs entirely in your process.
+          - generic [ref=f32e119]:
+            - link "npm" [ref=f32e120] [cursor=pointer]:
+              - /url: https://www.npmjs.com/package/peffle
+            - link "Website" [ref=f32e121] [cursor=pointer]:
+              - /url: https://peffle.vercel.app
+    - region "DocNA" [ref=f32e122]:
+      - generic [ref=f32e125]:
+        - paragraph [ref=f32e126]: Workspace → Review → Export
+        - generic [ref=f32e129]:
+          - img "DocNA workspace showing document library and question detection" [ref=f32e130]
+          - img "DocNA review interface with document preview and response fields" [ref=f32e131]
+          - button "Expand DocNA review screenshot" [ref=f32e132]: Expand
+        - generic [ref=f32e135]:
+          - paragraph [ref=f32e136]: 03/Document intelligence
+          - heading "DocNA" [level=2] [ref=f32e137]
+          - paragraph [ref=f32e138]: Solo · End-to-end build
+          - paragraph [ref=f32e139]: Finds questions in Word docs, answers with AI, writes back surgically — original never touched.
+          - generic [ref=f32e140]:
+            - paragraph [ref=f32e141]: Outcome
+            - paragraph [ref=f32e142]: Surgical document mutation — never touch the original.
+          - paragraph [ref=f32e143]: AI → answer text. Placement → PlacementOp. OOXML adapter mutates a copy only.
+          - paragraph [ref=f32e144]: 311 tests · 18/18 real-AI fixtures.
+          - link "Repository" [ref=f32e146] [cursor=pointer]:
+            - /url: https://github.com/Sai-Vidyut/Project-DocNA
+    - region "BluePrint" [ref=f32e147]:
+      - generic [ref=f32e150]:
+        - paragraph [ref=f32e151]: Structure → Logic → Output
+        - generic [ref=f32e154]:
+          - generic:
+            - generic "Deterministic schema to diagram compilation":
+              - generic:
+                - paragraph: Structured input
+                - generic: "{ \"service\": \"auth-api\", \"entities\": [ \"User\", \"Session\" ], \"routes\": [ \"POST /login\", \"GET /me\" ] }"
+              - generic:
+                - paragraph: Compiled diagram
+                - img [aria-hidden]:
+                  - generic: auth-api
+                  - generic: User
+                  - generic: Session
+          - img "BluePrint compiled architecture diagram from structured schema" [ref=f32e157]
+        - generic [ref=f32e160]:
+          - paragraph [ref=f32e161]: 04/Deterministic planning
+          - heading "BluePrint" [level=2] [ref=f32e162]
+          - paragraph [ref=f32e163]: Solo · Full-stack
+          - paragraph [ref=f32e164]: Natural-language idea → developer-grade blueprint with architecture, schema, API, and roadmap.
+          - generic [ref=f32e165]:
+            - paragraph [ref=f32e166]: Outcome
+            - paragraph [ref=f32e167]: Structured blueprint — diagrams compiled, not hallucinated.
+          - paragraph [ref=f32e168]: Zod schema is source of truth. Mermaid compiled from structured data — never from the model.
+          - paragraph [ref=f32e169]: Next.js · TypeScript · Zod · Gemini · Mermaid
+          - generic [ref=f32e170]:
+            - link "Repository" [ref=f32e171] [cursor=pointer]:
+              - /url: https://github.com/Sai-Vidyut/project-blueprint
+            - link "Live" [ref=f32e172] [cursor=pointer]:
+              - /url: https://project-blueprint-eight.vercel.app
+    - region "Slyvr" [ref=f32e173]:
+      - generic [ref=f32e176]:
+        - paragraph [ref=f32e177]: Ingest → Index → Search → Clip
+        - generic "Slyvr library search demonstration" [ref=f32e180]:
+          - generic [ref=f32e181]:
+            - generic [ref=f32e182]:
+              - generic [ref=f32e183]:
+                - generic [ref=f32e184]: Ingest
+                - generic [aria-hidden] [ref=f32e185]: →
+              - generic [ref=f32e186]:
+                - generic [ref=f32e187]: Index
+                - generic [aria-hidden] [ref=f32e188]: →
+              - generic [ref=f32e189]:
+                - generic [ref=f32e190]: Search
+                - generic [aria-hidden] [ref=f32e191]: →
+              - generic [ref=f32e192]: Clip
+            - generic [ref=f32e194]:
+              - paragraph [ref=f32e195]: Search library
+              - paragraph [ref=f32e196]: Ask for a moment…
+            - generic [ref=f32e197]:
+              - article [ref=f32e198]:
+                - paragraph [ref=f32e201]: Balcony · golden hour
+              - article [ref=f32e202]:
+                - paragraph [ref=f32e205]: Kitchen prep cutaways
+              - article [ref=f32e206]:
+                - paragraph [ref=f32e209]: Street night B-roll
+              - article [ref=f32e210]:
+                - paragraph [ref=f32e213]: Sunset · railing take 2
+              - article [ref=f32e214]:
+                - paragraph [ref=f32e217]: Interview room A
+              - article [ref=f32e218]:
+                - paragraph [ref=f32e221]: Balcony · wide lockoff
+        - generic [ref=f32e224]:
+          - paragraph [ref=f32e225]: 05/Searchable media
+          - heading "Slyvr" [level=2] [ref=f32e226]
+          - paragraph [ref=f32e227]: Solo · Product & full-stack
+          - paragraph [ref=f32e228]: Private media library with ingest, indexing, and clip-level search — find a moment instead of scrubbing a drive.
+          - generic [ref=f32e229]:
+            - paragraph [ref=f32e230]: Outcome
+            - paragraph [ref=f32e231]: Your media. Finally searchable.
+          - paragraph [ref=f32e232]: Library owns the files. Search returns clips you can open. Demo mode runs fully in the browser.
+          - paragraph [ref=f32e233]: Live under /slyvr/ on this site.
+          - paragraph [ref=f32e234]: React · Vite · FastAPI · SQLite · Object storage
+          - generic [ref=f32e235]:
+            - link "Explore Slyvr →" [ref=f32e236] [cursor=pointer]:
+              - /url: /slyvr/
+            - link "Repository" [ref=f32e237] [cursor=pointer]:
+              - /url: https://github.com/Sai-Vidyut/slyvr
+    - generic [ref=f32e239]:
+      - generic [ref=f32e240]:
+        - paragraph [ref=f32e241]: Experience
+        - heading "Building inside real teams." [level=2] [ref=f32e242]
+      - article [ref=f32e245]:
+        - paragraph [ref=f32e246]: May 2026 – Jul 2026
+        - generic [ref=f32e247]:
+          - heading "Product & Backend Intern" [level=3] [ref=f32e248]
+          - paragraph [ref=f32e249]: Studojo Labs Private Limited
+          - list [ref=f32e250]:
+            - listitem [ref=f32e251]: Contributed to the design and development of backend services supporting core product workstreams over a two-month internship, collaborating with the engineering team from design through implementation.
+            - listitem [ref=f32e252]: Owned assigned backend deliverables end-to-end within a live software engineering team environment.
+      - generic [ref=f32e253]:
+        - paragraph [ref=f32e255]: Achievements
+        - generic [ref=f32e256]:
+          - article [ref=f32e258]:
+            - heading "Winner — GEO-HACK 3.0" [level=3] [ref=f32e259]
+            - paragraph [ref=f32e260]: GSSR Geospatial Hackathon
+            - paragraph [ref=f32e261]: Geospatial imagery
+          - article [ref=f32e263]:
+            - heading "First Place — Li-Fi" [level=3] [ref=f32e264]
+            - paragraph [ref=f32e265]: Light-based data transmission system
+            - paragraph [ref=f32e266]: Semiconductor engineering project
+          - article [ref=f32e268]:
+            - heading "Gold from Garbage Initiative" [level=3] [ref=f32e269]
+            - paragraph [ref=f32e270]: Recycled-materials engineering model
+          - article [ref=f32e272]:
+            - heading "Engineering Model Development" [level=3] [ref=f32e273]
+            - paragraph [ref=f32e274]: Coursework recognition
+    - generic [ref=f32e276]:
+      - generic [ref=f32e278]:
+        - generic [ref=f32e279]:
+          - paragraph [ref=f32e280]: Dossier/Resume
+          - heading "Capabilities" [level=2] [ref=f32e281]
+        - generic [ref=f32e282]:
+          - link "Download PDF" [ref=f32e283] [cursor=pointer]:
+            - /url: /resume.pdf
+          - paragraph [ref=f32e284]: Last updated · September 2026
+      - generic [ref=f32e285]:
+        - complementary [ref=f32e287]:
+          - generic [ref=f32e288]:
+            - paragraph [ref=f32e289]: Sai Vidyut Chandramohan
+            - paragraph [ref=f32e290]: Chennai, India
+            - link "saividyut2@gmail.com" [ref=f32e291] [cursor=pointer]:
+              - /url: mailto:saividyut2@gmail.com
+            - paragraph [ref=f32e292]: "8072350391"
+          - generic [ref=f32e293]:
+            - paragraph [ref=f32e294]: Education
+            - paragraph [ref=f32e295]: B.Tech, Computer Science and Engineering
+            - paragraph [ref=f32e296]: SRM Institute of Science and Technology (SRMIST)
+            - paragraph [ref=f32e297]: 2nd Year
+        - generic [ref=f32e298]:
+          - generic [ref=f32e299]:
+            - paragraph [ref=f32e300]: Second-year Computer Science student who builds ambitious end-to-end software and AI systems — turning ambiguous problems into working products across backend architecture, applied AI, and full-stack engineering.
+            - paragraph [ref=f32e301]: Guardrails, schema validation, and deterministic routing — models interpret; systems decide what ships.
+          - paragraph [ref=f32e303]: Technical skills
+          - generic [ref=f32e304]:
+            - generic [ref=f32e306]:
+              - paragraph [ref=f32e307]: Languages
+              - paragraph [ref=f32e308]: Python · JavaScript · TypeScript · Java · C · C++
+            - generic [ref=f32e310]:
+              - paragraph [ref=f32e311]: Backend & APIs
+              - paragraph [ref=f32e312]: FastAPI · REST API design · Pydantic · SQLAlchemy
+            - generic [ref=f32e314]:
+              - paragraph [ref=f32e315]: AI / LLM
+              - paragraph [ref=f32e316]: Structured AI generation · Multi-provider AI integration · Agentic workflow design · Remote-sensing VLM integration
+            - generic [ref=f32e318]:
+              - paragraph [ref=f32e319]: Frontend
+              - paragraph [ref=f32e320]: React · Next.js · Tailwind CSS · MapLibre
+            - generic [ref=f32e322]:
+              - paragraph [ref=f32e323]: Data & Geospatial
+              - paragraph [ref=f32e324]: PostgreSQL · MySQL · Prisma · Google Earth Engine · Sentinel-1/2
+            - generic [ref=f32e326]:
+              - paragraph [ref=f32e327]: Tools
+              - paragraph [ref=f32e328]: Git/GitHub · Docker · Azure Blob Storage · OOXML/lxml · Ollama
+    - region "Experiments." [ref=f32e329]:
+      - generic [ref=f32e330]:
+        - generic [ref=f32e331]:
+          - paragraph [ref=f32e332]: Lab
+          - heading "Experiments." [level=2] [ref=f32e333]
+        - generic [ref=f32e334]:
+          - article [ref=f32e336]:
+            - paragraph [ref=f32e337]: "01"
+            - generic [ref=f32e338]:
+              - heading "Radio Auto" [level=3] [ref=f32e339]
+              - paragraph [ref=f32e340]: Experiment
+            - generic [ref=f32e341]:
+              - paragraph [ref=f32e342]: Mumbai auto POV — time, weather, and audio layers in one cabin.
+              - link "Repository" [ref=f32e343] [cursor=pointer]:
+                - /url: https://github.com/Sai-Vidyut/radio-auto
+          - article [ref=f32e345]:
+            - paragraph [ref=f32e346]: "02"
+            - generic [ref=f32e347]:
+              - heading "GeoChat Service" [level=3] [ref=f32e348]
+              - paragraph [ref=f32e349]: Shipped
+            - generic [ref=f32e350]:
+              - paragraph [ref=f32e351]: GPU inference for geochat-7B inside SatQuery — OOM-hardened service supervisor.
+              - link "Service" [ref=f32e352] [cursor=pointer]:
+                - /url: https://github.com/Sai-Vidyut/SatQuery-AI/tree/main/services/geochat
+    - generic [ref=f32e353]:
+      - generic [ref=f32e354]:
+        - paragraph [ref=f32e356]: Contact
+        - heading "Systems with boundaries." [level=2] [ref=f32e357]
+        - generic [ref=f32e359]:
+          - generic [ref=f32e360]: saividyut2@gmail.com
+          - button "Copy email address" [ref=f32e361]: Copy
+        - generic [ref=f32e363]:
+          - link "Email" [ref=f32e364] [cursor=pointer]:
+            - /url: mailto:saividyut2@gmail.com
+          - link "GitHub" [ref=f32e365] [cursor=pointer]:
+            - /url: https://github.com/Sai-Vidyut
+          - link "LinkedIn" [ref=f32e366] [cursor=pointer]:
+            - /url: https://www.linkedin.com/in/sai-vidyut-chandramohan-584473406/
+          - link "Resume" [ref=f32e367] [cursor=pointer]:
+            - /url: /resume.pdf
+      - generic [ref=f32e368]:
+        - paragraph [ref=f32e369]: © 2026 Sai Vidyut Chandramohan
+        - paragraph [ref=f32e370]: Last updated · September 2026
+        - paragraph [ref=f32e371]: buildwsai.online
