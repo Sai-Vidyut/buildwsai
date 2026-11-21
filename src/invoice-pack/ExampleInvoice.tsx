@@ -61,11 +61,15 @@ export function ExampleInvoice() {
       </div>
       {pack.invoice ? (
         <div className="ip-example-output">
-          <Warnings warnings={pack.warnings} />
-          <InvoiceSheet invoice={pack.invoice} demo />
-          <h3>Three payment reminders</h3>
-          <p className="ip-fine">Copy and send with the invoice, about 7 days later, and about 14 days later.</p>
-          <Reminders reminders={pack.reminders} demo />
+          <div className="ip-doc-preview">
+            <Warnings warnings={pack.warnings} />
+            <InvoiceSheet invoice={pack.invoice} demo />
+          </div>
+          <section className="ip-reminders-block" aria-labelledby="example-reminders-heading">
+            <h3 id="example-reminders-heading">Three payment reminders</h3>
+            <p className="ip-fine">Copy and send with the invoice, about 7 days later, and about 14 days later.</p>
+            <Reminders reminders={pack.reminders} demo />
+          </section>
         </div>
       ) : null}
       <div className="ip-actions no-print">

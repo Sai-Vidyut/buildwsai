@@ -90,6 +90,7 @@
 .ip-wrap {
   width: min(68rem, calc(100% - clamp(1.25rem, 4vw, 3.25rem)));
   margin: 0 auto;
+  min-width: 0;
 }
 
 .ip-wrap:not(.ip-journey) {
@@ -384,25 +385,66 @@
 
 .ip-wizard-steps {
   list-style: none;
-  margin: 1rem 0 0;
+  margin: var(--ip-space-5) 0 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.25rem, 1fr));
+  gap: var(--ip-space-2);
+  min-width: 0;
 }
 
-.ip-wizard-steps li {
-  font-size: 0.82rem;
+.ip-wizard-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.3rem 0.45rem;
+  min-width: 0;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--ip-line);
+  border-radius: var(--ip-radius-sm);
+  background: var(--ip-white);
   color: var(--ip-muted);
+  font-size: 0.8125rem;
+  line-height: 1.35;
 }
 
-.ip-wizard-steps li.current {
+.ip-wizard-step-num {
+  font-family: var(--ip-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+}
+
+.ip-wizard-step-label {
+  overflow-wrap: anywhere;
+}
+
+.ip-wizard-step.current {
   color: var(--ip-ink);
+  border-color: var(--ip-ink);
   font-weight: 600;
 }
 
-.ip-wizard-steps li.done {
+.ip-wizard-step.done {
   color: #5c5852;
+  border-color: var(--ip-line-strong);
+}
+
+@media (max-width: 1080px) {
+  .ip-wizard-steps {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: var(--ip-space-2);
+  }
+
+  .ip-wizard-step {
+    flex: 0 0 auto;
+    width: min(11.75rem, 42vw);
+  }
 }
 
 .ip-wizard-panel {
@@ -815,6 +857,8 @@
 .ip-section {
   margin-top: var(--ip-space-8);
   scroll-margin-top: 5.5rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ip-wrap > .ip-section:first-child {
@@ -942,6 +986,88 @@
 .ip-row {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
+}
+
+.ip-form-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ip-space-3) var(--ip-space-4);
+  margin-top: var(--ip-space-6);
+  margin-bottom: var(--ip-space-2);
+}
+
+.ip-form-head h3 {
+  margin: 0;
+}
+
+.ip-receipt-form {
+  margin-top: var(--ip-space-6);
+  min-width: 0;
+}
+
+.ip-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--ip-space-4);
+  min-width: 0;
+}
+
+.ip-form-grid .ip-field {
+  margin-top: var(--ip-space-4);
+  min-width: 0;
+}
+
+.ip-form-grid .ip-field--full {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 760px) {
+  .ip-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ip-doc-preview {
+  margin-top: var(--ip-space-5);
+  min-width: 0;
+}
+
+.ip-doc-preview .ip-sheet {
+  margin-top: 0;
+}
+
+.ip-doc-preview .ip-sheet + .ip-sheet,
+.ip-doc-preview .ip-warn + .ip-sheet {
+  margin-top: var(--ip-space-4);
+}
+
+.ip-reminders-block {
+  margin-top: var(--ip-space-6);
+  padding-top: var(--ip-space-6);
+  border-top: 1px solid var(--ip-line);
+  min-width: 0;
+}
+
+.ip-reminders-block > h3 {
+  margin: 0 0 var(--ip-space-3);
+}
+
+.ip-reminders-block > .ip-fine {
+  margin: 0 0 var(--ip-space-4);
+}
+
+.ip-receipt-message {
+  margin-top: var(--ip-space-5);
+  padding-top: var(--ip-space-4);
+  border-top: 1px solid var(--ip-soft);
+}
+
+.ip-receipt-message > h3 {
+  margin: 0 0 var(--ip-space-3);
+  font-size: 1rem;
 }
 
 .ip-switch {
@@ -1185,6 +1311,34 @@
   padding: var(--ip-space-5) var(--ip-space-5) var(--ip-space-4);
   border-radius: 2px;
   box-shadow: 0 1px 0 rgba(28, 27, 25, 0.04);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.ip-doc-line,
+.ip-doc-who {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ip-doc-who {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.ip-doc-meta {
+  margin-top: var(--ip-space-4);
+}
+
+.ip-doc-meta .ip-doc-line + .ip-doc-line {
+  margin-top: 0.25rem;
+}
+
+.ip-doc-label {
+  color: var(--ip-muted);
+  margin-right: 0.35rem;
 }
 
 .ip-sheet-top,
@@ -1201,14 +1355,25 @@
 
 .ip-meta {
   min-width: min(100%, 220px);
+  flex: 1 1 12rem;
 }
 
-.ip-meta p,
+.ip-meta p {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 0.42fr) minmax(0, 1fr);
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  margin: 0.2rem 0;
+}
+
+.ip-meta span {
+  color: var(--ip-muted);
+}
+
 .ip-money {
   margin: 0.2rem 0;
 }
 
-.ip-meta span,
 .ip-money span {
   color: var(--ip-muted);
 }
@@ -1217,6 +1382,7 @@
   margin: 0 0 0.35rem;
   font-size: 1.55rem;
   line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .invoice-pack h3.ip-who {
@@ -1244,9 +1410,10 @@
 .ip-money-table th,
 .ip-money-table td {
   text-align: left;
-  padding: 0.45rem 0.15rem;
+  padding: 0.45rem 0.35rem;
   vertical-align: top;
   border-bottom: 1px solid var(--ip-soft);
+  overflow-wrap: anywhere;
 }
 
 .ip-lines th {
@@ -1265,14 +1432,33 @@
 }
 
 .ip-money-table {
-  margin-left: auto;
-  width: min(100%, 280px);
+  width: 100%;
+  max-width: 22rem;
+  margin: var(--ip-space-4) 0 0;
+  table-layout: fixed;
+}
+
+.ip-money-table--doc {
+  max-width: none;
 }
 
 .ip-money-table th,
 .ip-money-table td {
   border-bottom: none;
   font-weight: 500;
+}
+
+.ip-money-table th {
+  width: 58%;
+  padding-right: 0.75rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.ip-money-table td.ip-num {
+  width: 42%;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .ip-due th,
@@ -1327,9 +1513,20 @@
   background: #fff;
 }
 
+.ip-reminders-block .ip-reminder:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
 .ip-reminder {
-  margin-top: 1.35rem;
-  padding-top: 0.2rem;
+  margin-top: var(--ip-space-5);
+  padding-top: var(--ip-space-4);
+  border-top: 1px solid var(--ip-soft);
+}
+
+.ip-reminder h3 {
+  margin: 0 0 var(--ip-space-2);
+  font-size: 0.95rem;
 }
 
 .ip-demo-output {
@@ -1565,7 +1762,19 @@
   }
 
   .ip-wizard-steps {
-    gap: 0.35rem 0.55rem;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    gap: var(--ip-space-2);
+    padding-bottom: var(--ip-space-2);
+  }
+
+  .ip-wizard-step {
+    flex: 0 0 auto;
+    width: min(11.75rem, 56vw);
   }
 
   .ip-wizard-nav .ip-btn,

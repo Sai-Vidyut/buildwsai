@@ -85,9 +85,13 @@ export function InvoiceBuilder() {
           ) : null}
         </div>
         <Warnings warnings={result.warnings} />
-        <InvoiceSheet invoice={invoice} testId="pack-sheet" />
-        <h3>Three payment reminders</h3>
-        <Reminders reminders={result.reminders} />
+        <div className="ip-doc-preview">
+          <InvoiceSheet invoice={invoice} testId="pack-sheet" />
+        </div>
+        <section className="ip-reminders-block" aria-labelledby="pack-reminders-heading">
+          <h3 id="pack-reminders-heading">Three payment reminders</h3>
+          <Reminders reminders={result.reminders} />
+        </section>
         <div className="ip-actions no-print">
           <button
             type="button"
@@ -120,8 +124,13 @@ export function InvoiceBuilder() {
       </p>
       <ol className="ip-wizard-steps no-print" aria-label="Progress">
         {STEPS.map((item, i) => (
-          <li key={item.id} className={item.id === step ? 'current' : i < idx ? 'done' : ''}>
-            <span>{String(i + 1).padStart(2, '0')}</span> {item.title}
+          <li
+            key={item.id}
+            className={`ip-wizard-step${item.id === step ? ' current' : ''}${i < idx ? ' done' : ''}`}
+            aria-current={item.id === step ? 'step' : undefined}
+          >
+            <span className="ip-wizard-step-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="ip-wizard-step-label">{item.title}</span>
           </li>
         ))}
       </ol>
