@@ -77,6 +77,7 @@ const STATUS_LABEL: Record<ReminderStatus, string> = {
 }
 
 function statusLabel(reminder: FollowupReminder, delivery: Followup['delivery']): string {
+  if (reminder.status === 'sending') return 'Sending now'
   if (reminder.status === 'sent') return reminder.sentVia === 'manual' ? 'Sent by you' : 'Sent by email'
   if (delivery === 'manual' && (reminder.status === 'scheduled' || reminder.status === 'paused')) return 'Draft · not sent'
   return STATUS_LABEL[reminder.status]
@@ -96,7 +97,8 @@ const EVENT_LABEL: Record<string, string> = {
   retry_scheduled: 'Send failed, will retry',
   failed: 'Send failed',
   interrupted: 'Send interrupted',
-  skipped: 'Skipped (a later reminder was due)',
+  skipped: 'Skipped',
+  contact_removed: 'Client contact details removed',
 }
 
 function Notice({ tone, children }: { tone: 'info' | 'warn' | 'err'; children: ReactNode }) {
@@ -417,7 +419,8 @@ function SetupForm({
         My client expects to hear from me about this invoice, and I may use their contact details for these reminders.
       </label>
       <p className="ip-hint">
-        Client contact details are kept only for these reminders and removed 90 days after the last one.
+        Client contact details are kept only for these reminders, and removed once nothing has happened on this
+        follow-up for 90 days (paused follow-ups included).
       </p>
       <ErrorNotice error={error} />
       <div className="ip-actions">
@@ -524,6 +527,7 @@ function ManageView({ held, followup, onChange }: { held: HeldFollowup; followup
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<ApiError | null>(null)
   const [confirmPaid, setConfirmPaid] = useState(false)
+  const [missed, setMissed] = useState<FollowupReminder[]>([])
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
   const [second, setSecond] = useState(String(followup.secondDelayDays))
@@ -584,7 +588,7 @@ function ManageView({ held, followup, onChange }: { held: HeldFollowup; followup
       ) : null}
       {followup.contactPurged ? (
         <Notice tone="info">
-          <p>Client contact details were removed after the reminders finished.</p>
+          <p>Client contact details were removed after 90 days without activity, and the remaining reminders were closed.</p>
         </Notice>
       ) : null}
 
@@ -605,7 +609,16 @@ function ManageView({ held, followup, onChange }: { held: HeldFollowup; followup
               role="switch"
               checked={followup.remindersEnabled}
               disabled={busy}
-              onChange={(event) => void run({ action: event.target.checked ? 'resume' : 'pause' })}
+              onChange={(event) => {
+                if (!event.target.checked) {
+                  setMissed([])
+                  void run({ action: 'pause' })
+                  return
+                }
+                const passed = followup.reminders.filter((r) => r.status === 'paused' && new Date(r.dueAt).getTime() <= Date.now())
+                if (passed.length) setMissed(passed)
+                else void run({ action: 'resume' })
+              }}
             />
             {followup.remindersEnabled ? 'Reminders on' : 'Reminders paused'}
           </label>
@@ -619,6 +632,39 @@ function ManageView({ held, followup, onChange }: { held: HeldFollowup; followup
             Mark invoice paid
           </button>
         </div>
+      ) : null}
+
+      {missed.length > 0 && unpaid && !followup.remindersEnabled ? (
+        <div className="ip-fu-inline ip-fu-confirm" role="group" aria-label="Missed reminders" data-testid="followups-resume-choice">
+          <p>
+            {missed.length === 1
+              ? `Reminder ${missed[0].stage}'s date passed while reminders were paused.`
+              : `The dates for reminders ${missed.map((r) => r.stage).join(' and ')} passed while reminders were paused.`}{' '}
+            Missed reminders are skipped unless you choose to send the latest one now. Later reminders keep their dates.
+          </p>
+          <div className="ip-actions">
+            <button type="button" className="ip-btn" disabled={busy} onClick={() => void run({ action: 'resume' }).then((ok) => ok && setMissed([]))}>
+              Resume and skip missed
+            </button>
+            <button
+              type="button"
+              className="secondary"
+              disabled={busy}
+              onClick={() => void run({ action: 'resume', sendMissed: true }).then((ok) => ok && setMissed([]))}
+            >
+              Resume and send reminder {missed[missed.length - 1].stage} now
+            </button>
+            <button type="button" className="secondary" onClick={() => setMissed([])}>
+              Stay paused
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {followup.reminders.some((r) => r.status === 'sending') ? (
+        <Notice tone="info">
+          <p>A reminder is being sent right now. Once the email provider has accepted it, it cannot be recalled; pausing or marking paid applies to the remaining reminders.</p>
+        </Notice>
       ) : null}
 
       {scheduleOpen && unpaid ? (
@@ -637,7 +683,10 @@ function ManageView({ held, followup, onChange }: { held: HeldFollowup; followup
               setThird(t)
             }}
           />
-          <p className="ip-hint">Reminders already sent are not moved. Times are 10:00 India time.</p>
+          <p className="ip-hint">
+            Reminders already sent are not moved. Times are 10:00 India time. If a new date has already passed, that
+            reminder is sent at the next run (only the latest one, if several have passed).
+          </p>
           <button type="submit" className="secondary" disabled={busy}>
             Save schedule
           </button>

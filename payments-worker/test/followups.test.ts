@@ -14,10 +14,17 @@ class FakeEmail implements EmailProvider {
   attempts: EmailMessage[] = []
   delivered: EmailMessage[] = []
   queue: SendResult[] = []
+  // Runs while the provider call is in flight, to simulate a freelancer action racing the send.
+  during: (() => Promise<unknown>) | null = null
 
   async send(message: EmailMessage): Promise<SendResult> {
     this.attempts.push(message)
     await new Promise((resolve) => setTimeout(resolve, 1))
+    if (this.during) {
+      const action = this.during
+      this.during = null
+      await action()
+    }
     const result = this.queue.shift() ?? { ok: true as const, id: `em_${this.attempts.length}` }
     if (result.ok) this.delivered.push(message)
     return result
@@ -305,7 +312,7 @@ describe('reminder delivery', () => {
     await h.cron('2026-11-19T05:00:00Z')
     assert.equal(h.email.attempts.length, 0)
     assert.equal(h.reminders(id)[0].status, 'paused')
-    const resumed = await h.manage(id, token, 'resume')
+    const resumed = await h.manage(id, token, 'resume', { sendMissed: true })
     assert.equal(resumed.json.followup.remindersEnabled, true)
     await h.cron()
     assert.equal(h.email.delivered.length, 1)
@@ -407,6 +414,247 @@ describe('reminder delivery', () => {
     row = h.t.sqlite.prepare('SELECT client_email, contact_purged_at FROM client_invoices WHERE id = ?').get(id) as Record<string, unknown>
     assert.equal(row.client_email, null)
     assert.ok(row.contact_purged_at)
+  })
+})
+
+const statuses = (h: ReturnType<typeof harness>, id: string) => h.reminders(id).map((r) => r.status)
+
+describe('freelancer actions racing the scheduler', () => {
+  it('does not send when reminders are paused between the claim and the send', async () => {
+    const h = harness()
+    const { id, token } = await h.create()
+    h.t.sqlite.exec(`CREATE TEMP TRIGGER pause_on_claim AFTER UPDATE OF status ON client_reminders WHEN NEW.status = 'sending'
+      BEGIN UPDATE client_invoices SET reminders_enabled = 0 WHERE id = NEW.invoice_id; END`)
+    await h.cron('2026-11-19T05:00:00Z')
+    h.t.sqlite.exec('DROP TRIGGER pause_on_claim')
+    assert.equal(h.email.attempts.length, 0)
+    assert.equal(h.reminders(id)[0].status, 'paused')
+    assert.equal(h.reminders(id)[0].attempts, 0)
+    await h.manage(id, token, 'resume', { sendMissed: true })
+    await h.cron()
+    assert.equal(h.email.delivered.length, 1)
+  })
+
+  it('records an email the provider accepted during mark-paid as sent, and cancels the rest', async () => {
+    const h = harness()
+    const { id, token } = await h.create()
+    h.email.during = () => h.manage(id, token, 'mark_paid')
+    await h.cron('2026-11-19T05:00:00Z')
+    assert.equal(h.email.delivered.length, 1)
+    assert.deepEqual(statuses(h, id), ['sent', 'cancelled', 'cancelled'])
+    const view = (await h.manage(id, token, 'view')).json.followup
+    const sent = view.history.find((e: { event: string }) => e.event === 'sent')
+    assert.match(sent.detail, /marked the invoice paid while it was being sent/)
+    await h.cron('2026-12-20T00:00:00Z')
+    assert.equal(h.email.attempts.length, 1)
+  })
+
+  it('cancels instead of rescheduling when a send fails while the invoice is marked paid', async () => {
+    const h = harness()
+    const { id, token } = await h.create()
+    h.email.queue.push({ ok: false, retryable: true, reason: 'The email provider could not be reached.' })
+    h.email.during = () => h.manage(id, token, 'mark_paid')
+    await h.cron('2026-11-19T05:00:00Z')
+    const [first] = h.reminders(id)
+    assert.equal(first.status, 'cancelled')
+    assert.equal(first.error_reason, 'Cancelled because you marked the invoice paid.')
+    assert.deepEqual(statuses(h, id), ['cancelled', 'cancelled', 'cancelled'])
+    await h.cron('2026-12-20T00:00:00Z')
+    assert.equal(h.email.attempts.length, 1)
+  })
+
+  it('cancels instead of failing when a permanent error coincides with mark-paid', async () => {
+    const h = harness()
+    const { id, token } = await h.create()
+    h.email.queue.push({ ok: false, retryable: false, reason: 'The email provider refused the message (HTTP 422).' })
+    h.email.during = () => h.manage(id, token, 'mark_paid')
+    await h.cron('2026-11-19T05:00:00Z')
+    assert.deepEqual(statuses(h, id), ['cancelled', 'cancelled', 'cancelled'])
+  })
+
+  it('keeps a reminder paused when a send fails while reminders are paused', async () => {
+    const h = harness()
+    const { id, token } = await h.create()
+    h.email.queue.push({ ok: false, retryable: true, reason: 'The email provider could not be reached.' })
+    h.email.during = () => h.manage(id, token, 'pause')
+    await h.cron('2026-11-19T05:00:00Z')
+    assert.deepEqual(statuses(h, id), ['paused', 'paused', 'paused'])
+    await h.cron('2026-11-19T06:00:00Z')
+    assert.equal(h.email.attempts.length, 1, 'a paused reminder is not retried')
+  })
+
+  it('never leaves a reminder scheduled or sending after concurrent pause or mark-paid', async () => {
+    const h = harness()
+    const followups = []
+    for (let i = 0; i < 6; i += 1) followups.push(await h.create())
+    h.at('2026-11-19T05:00:00Z')
+    await Promise.all([
+      h.cron(),
+      ...followups.map((f, i) => h.manage(f.id, f.token, i % 2 ? 'pause' : 'mark_paid')),
+      h.cron(),
+    ])
+    for (const [i, f] of followups.entries()) {
+      const rows = h.reminders(f.id)
+      assert.ok(!rows.some((r) => r.status === 'sending' || r.status === 'scheduled'), `${i}: ${rows.map((r) => r.status)}`)
+      const expectedOpen = i % 2 ? 'paused' : 'cancelled'
+      assert.ok(rows.slice(1).every((r) => r.status === expectedOpen))
+      assert.ok(rows[0].status === 'sent' || rows[0].status === expectedOpen)
+    }
+    const deliveredBefore = h.email.delivered.length
+    await h.cron('2026-12-20T00:00:00Z')
+    assert.equal(h.email.delivered.length, deliveredBefore)
+  })
+})
+
+describe('resuming a paused schedule', () => {
+  async function pausedFollowup() {
+    const h = harness()
+    const f = await h.create()
+    await h.manage(f.id, f.token, 'pause')
+    return { h, ...f }
+  }
+
+  it('skips a reminder whose date passed while paused and keeps the later ones', async () => {
+    const { h, id, token } = await pausedFollowup()
+    h.at('2026-11-20T09:00:00Z')
+    const res = await h.manage(id, token, 'resume')
+    assert.deepEqual(res.json.followup.reminders.map((r: { status: string }) => r.status), ['cancelled', 'scheduled', 'scheduled'])
+    assert.equal(res.json.followup.reminders[0].errorReason, 'Skipped because its date passed while reminders were paused.')
+    await h.cron()
+    assert.equal(h.email.attempts.length, 0, 'nothing is sent straight after resuming')
+    await h.cron('2026-11-26T05:00:00Z')
+    assert.deepEqual(h.email.delivered.map((m) => m.subject), ['Friendly reminder — Invoice EX-1'])
+  })
+
+  it('skips every missed reminder when two dates have passed', async () => {
+    const { h, id, token } = await pausedFollowup()
+    h.at('2026-11-27T00:00:00Z')
+    await h.manage(id, token, 'resume')
+    assert.deepEqual(statuses(h, id), ['cancelled', 'cancelled', 'scheduled'])
+    await h.cron()
+    assert.equal(h.email.attempts.length, 0)
+    await h.cron('2026-12-03T05:00:00Z')
+    assert.deepEqual(h.email.delivered.map((m) => m.subject), ['Final payment reminder — Invoice EX-1'])
+  })
+
+  it('sends nothing when every date has passed, unless asked', async () => {
+    const { h, id, token } = await pausedFollowup()
+    h.at('2026-12-10T00:00:00Z')
+    await h.manage(id, token, 'resume')
+    assert.deepEqual(statuses(h, id), ['cancelled', 'cancelled', 'cancelled'])
+    await h.cron()
+    assert.equal(h.email.attempts.length, 0)
+  })
+
+  it('sends only the latest missed reminder when asked, then continues in order', async () => {
+    const { h, id, token } = await pausedFollowup()
+    h.at('2026-11-27T00:00:00Z')
+    const res = await h.manage(id, token, 'resume', { sendMissed: true })
+    assert.deepEqual(res.json.followup.reminders.map((r: { status: string }) => r.status), ['cancelled', 'scheduled', 'scheduled'])
+    await Promise.all([h.cron(), h.cron()])
+    await h.cron()
+    await h.cron('2026-12-03T05:00:00Z')
+    assert.deepEqual(h.email.delivered.map((m) => m.subject), [
+      'Friendly reminder — Invoice EX-1',
+      'Final payment reminder — Invoice EX-1',
+    ])
+  })
+
+  it('rejects a sendMissed value that is not true or false', async () => {
+    const { h, id, token } = await pausedFollowup()
+    assert.equal((await h.manage(id, token, 'resume', { sendMissed: 'yes' })).status, 400)
+    assert.deepEqual(statuses(h, id), ['paused', 'paused', 'paused'])
+  })
+})
+
+describe('contact retention', () => {
+  const contact = (h: ReturnType<typeof harness>, id: string) =>
+    h.t.sqlite.prepare('SELECT client_email, client_phone, reply_to, contact_purged_at FROM client_invoices WHERE id = ?').get(id) as Record<string, unknown>
+
+  it('removes contact details from a follow-up left paused for 90 days and closes its reminders', async () => {
+    const h = harness()
+    const { id, token } = await h.create()
+    await h.manage(id, token, 'pause')
+    await h.cron('2027-02-15T23:59:00Z')
+    assert.equal(contact(h, id).client_email, 'accounts@client.example')
+    await h.cron('2027-02-16T00:01:00Z')
+    const row = contact(h, id)
+    assert.equal(row.client_email, null)
+    assert.equal(row.client_phone, null)
+    assert.ok(row.contact_purged_at)
+    assert.deepEqual(statuses(h, id), ['cancelled', 'cancelled', 'cancelled'])
+    assert.equal((await h.manage(id, token, 'resume')).status, 422)
+    const history = (await h.manage(id, token, 'view')).json.followup.history
+    assert.equal(history[0].event, 'contact_removed')
+  })
+
+  it('removes contact details from a follow-up whose reminders all failed', async () => {
+    const h = harness()
+    const { id } = await h.create()
+    const refused = { ok: false as const, retryable: false, reason: 'The email provider refused the message (HTTP 422).' }
+    h.email.queue.push(refused, refused, refused)
+    for (const iso of ['2026-11-19T05:00:00Z', '2026-11-26T05:00:00Z', '2026-12-03T05:00:00Z']) await h.cron(iso)
+    assert.deepEqual(statuses(h, id), ['failed', 'failed', 'failed'])
+    await h.cron('2027-03-03T04:59:00Z')
+    assert.equal(contact(h, id).client_email, 'accounts@client.example')
+    await h.cron('2027-03-03T05:01:00Z')
+    assert.equal(contact(h, id).client_email, null)
+    assert.deepEqual(statuses(h, id), ['failed', 'failed', 'failed'])
+  })
+
+  it('keeps contact details for 90 days after the last reminder is sent, not 90 days after setup', async () => {
+    const h = harness()
+    const { id } = await h.create({ schedule: { enabled: true, secondDelayDays: 7, thirdDelayDays: 90 } })
+    for (const iso of ['2026-11-19T05:00:00Z', '2026-11-26T05:00:00Z', '2027-02-17T05:00:00Z']) await h.cron(iso)
+    assert.deepEqual(statuses(h, id), ['sent', 'sent', 'sent'])
+    assert.equal(contact(h, id).client_email, 'accounts@client.example')
+    await h.cron('2027-05-18T04:59:00Z')
+    assert.equal(contact(h, id).client_email, 'accounts@client.example')
+    await h.cron('2027-05-18T05:01:00Z')
+    assert.equal(contact(h, id).client_email, null)
+  })
+
+  it('keeps contact details while a reminder is scheduled and can still be sent', async () => {
+    const h = harness({ email: null })
+    const { id } = await h.create()
+    h.t.sqlite.exec(`UPDATE client_invoices SET updated_at = '2026-01-01T00:00:00.000Z'; UPDATE client_reminders SET updated_at = '2026-01-01T00:00:00.000Z'`)
+    await h.cron('2027-06-01T00:00:00Z')
+    assert.equal(contact(h, id).client_email, 'accounts@client.example')
+  })
+
+  it('does not treat reminders that can never be sent as a reason to keep contact details', async () => {
+    const h = harness()
+    const { id } = await h.create()
+    h.t.sqlite.exec(`UPDATE client_invoices SET updated_at = '2026-01-01T00:00:00.000Z'; UPDATE client_reminders SET updated_at = '2026-01-01T00:00:00.000Z'`)
+    h.t.env.RAZORPAY_KEY_ID = 'rzp_live_LIVEKEY123456'
+    await h.cron('2027-06-01T00:00:00Z')
+    assert.equal(contact(h, id).client_email, null)
+    assert.deepEqual(statuses(h, id), ['cancelled', 'cancelled', 'cancelled'])
+  })
+
+  it('purges nothing when the key mode is unknown', async () => {
+    const h = harness()
+    const { id, token } = await h.create()
+    await h.manage(id, token, 'pause')
+    h.t.env.RAZORPAY_KEY_ID = ''
+    await h.cron('2027-06-01T00:00:00Z')
+    assert.equal(contact(h, id).client_email, 'accounts@client.example')
+  })
+
+  it('never removes contact details while an email is being sent', async () => {
+    const h = harness()
+    const { id } = await h.create()
+    let during: Record<string, unknown> | null = null
+    h.email.during = async () => {
+      h.t.sqlite.exec(`UPDATE client_invoices SET updated_at = '2026-01-01T00:00:00.000Z';
+        UPDATE client_reminders SET updated_at = '2026-01-01T00:00:00.000Z';
+        UPDATE client_reminders SET status = 'cancelled' WHERE stage > 1`)
+      await runDueReminders(h.t.env, null, new Date('2027-06-01T00:00:00Z'))
+      during = contact(h, id)
+    }
+    await h.cron('2026-11-19T05:00:00Z')
+    assert.equal(during!.client_email, 'accounts@client.example')
+    assert.equal(h.email.delivered.length, 1)
   })
 })
 

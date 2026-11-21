@@ -253,7 +253,8 @@ export function createFollowup(order: HeldOrder, input: unknown, setup: Followup
 }
 
 export type FollowupAction =
-  | { action: 'view' | 'pause' | 'resume' | 'mark_paid' }
+  | { action: 'view' | 'pause' | 'mark_paid' }
+  | { action: 'resume'; sendMissed?: boolean }
   | { action: 'reschedule'; secondDelayDays: number; thirdDelayDays: number }
   | { action: 'update_template'; stage: 1 | 2 | 3; subject: string; body: string }
   | { action: 'update_contact'; contact: { clientEmail: string; clientPhone: string; replyTo: string }; invoiceLink?: string }

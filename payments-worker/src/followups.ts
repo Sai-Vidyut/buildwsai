@@ -337,7 +337,7 @@ export async function createFollowup(request: Request, deps: Deps, provider: Ema
 const ACTION_FIELDS: Record<string, readonly string[]> = {
   view: [],
   pause: [],
-  resume: [],
+  resume: ['sendMissed'],
   reschedule: ['secondDelayDays', 'thirdDelayDays'],
   update_template: ['stage', 'subject', 'body'],
   update_contact: ['contact', 'invoiceLink'],
@@ -384,14 +384,32 @@ export async function manageFollowup(request: Request, deps: Deps, provider: Ema
 
     case 'resume': {
       requireUnpaid()
+      if (body.sendMissed !== undefined && typeof body.sendMissed !== 'boolean') {
+        throw new HttpError(400, 'invalid_followup', 'Choose whether to send the latest missed reminder.')
+      }
       if (!row.client_email) throw validationError(['Add the client’s email address before turning reminders on.'])
       await db.prepare('UPDATE client_invoices SET reminders_enabled = 1, updated_at = ? WHERE id = ?').bind(nowIso, id).run()
+      // By default, reminders whose date passed while paused are skipped, so resuming never sends an old
+      // reminder by surprise. `sendMissed` opts in to sending the latest missed one at the next run.
+      if (body.sendMissed !== true) {
+        const skipped = await db
+          .prepare(
+            `UPDATE client_reminders SET status = 'cancelled', error_reason = ?, updated_at = ?
+             WHERE invoice_id = ? AND status = 'paused' AND due_at <= ?
+             RETURNING stage`,
+          )
+          .bind('Skipped because its date passed while reminders were paused.', nowIso, id, nowIso)
+          .all<{ stage: ReminderStage }>()
+        for (const { stage } of skipped.results.sort((a, b) => a.stage - b.stage)) {
+          await logEvent(db, id, stage, 'skipped', 'Its date passed while reminders were paused', nowIso)
+        }
+      }
       await db
         .prepare(`UPDATE client_reminders SET status = 'scheduled', next_attempt_at = due_at, updated_at = ? WHERE invoice_id = ? AND status = 'paused'`)
         .bind(nowIso, id)
         .run()
       await skipSupersededOverdue(db, id, nowIso)
-      await logEvent(db, id, null, 'resumed', null, nowIso)
+      await logEvent(db, id, null, 'resumed', body.sendMissed === true ? 'Sending the latest missed reminder' : null, nowIso)
       break
     }
 
@@ -510,14 +528,61 @@ export async function manageFollowup(request: Request, deps: Deps, provider: Ema
 export type CronEnv = { DB: D1Database; RAZORPAY_KEY_ID?: string }
 export type CronResult = { claimed: number; sent: number; retried: number; failed: number; released: number; recovered: number; purged: number }
 
-type ClaimedRow = ReminderRow & { inv_payment_status: string; inv_enabled: number; inv_email: string | null }
-
 function backoffMs(attempts: number): number {
   return RETRY_BASE_MS * 2 ** Math.max(0, attempts - 1)
 }
 
+const PAID_REASON = 'Cancelled because you marked the invoice paid.'
+const INVOICE_OF_REMINDER = 'SELECT 1 FROM client_invoices i WHERE i.id = client_reminders.invoice_id'
+
+// The invoice is read inside the same statement as the reminder write, so a mark-paid or pause that
+// lands while the provider call is in flight is never overwritten by the scheduler's result.
+const unlessPaidOrPaused = (fallback: string) =>
+  `CASE WHEN EXISTS (${INVOICE_OF_REMINDER} AND i.payment_status = 'paid') THEN 'cancelled'
+        WHEN EXISTS (${INVOICE_OF_REMINDER} AND i.reminders_enabled = 0) THEN 'paused'
+        ELSE ${fallback} END`
+const reasonUnlessPaid = (fallback: string) =>
+  `CASE WHEN EXISTS (${INVOICE_OF_REMINDER} AND i.payment_status = 'paid') THEN '${PAID_REASON}' ELSE ${fallback} END`
+
+// Contact details are deleted once a follow-up has had no activity (no reminder sent, edited, or
+// changed, and no freelancer action) for 90 days, unless a reminder is being sent or is scheduled
+// and can still be sent. Paused, paid, failed, cancelled, and other-mode follow-ups all expire.
+async function purgeInactiveContacts(db: D1Database, mode: 'test' | 'live', now: Date, nowIso: string): Promise<number> {
+  const cutoff = new Date(now.getTime() - CONTACT_RETENTION_MS).toISOString()
+  const { results } = await db
+    .prepare(
+      `UPDATE client_invoices SET client_email = NULL, client_phone = NULL, reply_to = NULL, payment_instructions = NULL,
+         reminders_enabled = 0, contact_purged_at = ?1, updated_at = ?1
+       WHERE contact_purged_at IS NULL AND updated_at < ?2
+         AND NOT EXISTS (
+           SELECT 1 FROM client_reminders r WHERE r.invoice_id = client_invoices.id AND (
+             r.status = 'sending'
+             OR r.updated_at >= ?2
+             OR (r.status = 'scheduled' AND client_invoices.reminders_enabled = 1
+                 AND client_invoices.payment_status = 'unpaid' AND client_invoices.mode = ?3)
+           )
+         )
+       RETURNING id`,
+    )
+    .bind(nowIso, cutoff, mode)
+    .all<{ id: string }>()
+  for (const { id } of results) {
+    await db
+      .prepare(
+        `UPDATE client_reminders SET status = 'cancelled', error_reason = ?, updated_at = ?
+         WHERE invoice_id = ? AND status IN ('scheduled', 'paused')`,
+      )
+      .bind('Closed because the client’s contact details were removed after 90 days without activity.', nowIso, id)
+      .run()
+    await logEvent(db, id, null, 'contact_removed', 'No activity for 90 days', nowIso)
+  }
+  return results.length
+}
+
 // Safe to run concurrently or repeatedly: a reminder is claimed by one conditional UPDATE, every
 // later write checks the claim id, and an interrupted send is never retried automatically.
+// Once the provider has accepted an email it cannot be recalled: a mark-paid or pause that arrives
+// during that call is applied to the remaining reminders, and the sent one is recorded as sent.
 export async function runDueReminders(env: CronEnv, provider: EmailProvider | null, now: Date): Promise<CronResult> {
   const db = env.DB
   const nowIso = now.toISOString()
@@ -542,20 +607,11 @@ export async function runDueReminders(env: CronEnv, provider: EmailProvider | nu
     }
   }
 
-  const purgeBefore = new Date(now.getTime() - CONTACT_RETENTION_MS).toISOString()
-  const purged = await db
-    .prepare(
-      `UPDATE client_invoices SET client_email = NULL, client_phone = NULL, reply_to = NULL, payment_instructions = NULL,
-         reminders_enabled = 0, contact_purged_at = ?, updated_at = ?
-       WHERE contact_purged_at IS NULL AND updated_at < ?
-         AND NOT EXISTS (SELECT 1 FROM client_reminders r WHERE r.invoice_id = client_invoices.id AND r.status IN ('scheduled', 'sending'))`,
-    )
-    .bind(nowIso, nowIso, purgeBefore)
-    .run()
-  result.purged = purged.meta.changes
-
+  // Without a key mode the scheduler cannot tell which follow-ups are live, so nothing is purged.
   const mode = keyMode(env.RAZORPAY_KEY_ID ?? '')
-  if (!provider || !mode) return result
+  if (!mode) return result
+  result.purged = await purgeInactiveContacts(db, mode, now, nowIso)
+  if (!provider) return result
 
   const claimId = newClaimId()
   await db
@@ -578,13 +634,9 @@ export async function runDueReminders(env: CronEnv, provider: EmailProvider | nu
     .run()
 
   const { results: claimed } = await db
-    .prepare(
-      `SELECT r.*, i.payment_status AS inv_payment_status, i.reminders_enabled AS inv_enabled, i.client_email AS inv_email
-       FROM client_reminders r JOIN client_invoices i ON i.id = r.invoice_id
-       WHERE r.claim_id = ? AND r.status = 'sending'`,
-    )
+    .prepare(`SELECT * FROM client_reminders WHERE claim_id = ? AND status = 'sending'`)
     .bind(claimId)
-    .all<ClaimedRow>()
+    .all<ReminderRow>()
   result.claimed = claimed.length
 
   const settle = (reminderId: string, sql: string, ...values: unknown[]) =>
@@ -592,16 +644,26 @@ export async function runDueReminders(env: CronEnv, provider: EmailProvider | nu
 
   for (const reminder of claimed) {
     const invoice = await getInvoice(db, reminder.invoice_id)
-    // Re-read just before sending: the freelancer may have marked it paid or paused it since the claim.
-    if (!invoice || invoice.payment_status !== 'unpaid' || invoice.reminders_enabled !== 1 || !invoice.client_email) {
-      const paid = invoice?.payment_status === 'paid'
-      const next: ReminderStatus = paid ? 'cancelled' : invoice?.reminders_enabled === 1 ? 'failed' : 'paused'
-      const reason = paid ? 'Cancelled because you marked the invoice paid.' : next === 'failed' ? 'No client email address.' : null
+    // Final gate, checked atomically just before the provider call: the freelancer may have marked
+    // the invoice paid, paused reminders, or removed the email since the claim.
+    const gate =
+      invoice && invoice.client_email
+        ? await db
+            .prepare(
+              `UPDATE client_reminders SET claimed_at = ?
+               WHERE id = ? AND claim_id = ? AND status = 'sending'
+                 AND EXISTS (${INVOICE_OF_REMINDER} AND i.payment_status = 'unpaid' AND i.reminders_enabled = 1
+                             AND i.client_email IS NOT NULL AND i.mode = ?)`,
+            )
+            .bind(nowIso, reminder.id, claimId, mode)
+            .run()
+        : null
+    if (!invoice || !invoice.client_email || !gate?.meta.changes) {
       await settle(
         reminder.id,
-        `UPDATE client_reminders SET status = ?, attempts = attempts - 1, error_reason = ?, claim_id = NULL, updated_at = ?`,
-        next,
-        reason,
+        `UPDATE client_reminders SET status = ${unlessPaidOrPaused("'failed'")}, attempts = attempts - 1,
+           error_reason = ${reasonUnlessPaid(`CASE WHEN EXISTS (${INVOICE_OF_REMINDER} AND i.reminders_enabled = 0) THEN NULL ELSE 'No client email address.' END`)},
+           claim_id = NULL, updated_at = ?`,
         nowIso,
       )
       result.released += 1
@@ -626,13 +688,19 @@ export async function runDueReminders(env: CronEnv, provider: EmailProvider | nu
         outcome.id,
         nowIso,
       )
-      await logEvent(db, invoice.id, reminder.stage, 'sent', `Email via ${provider.name}`, nowIso)
+      const after = await getInvoice(db, invoice.id)
+      const overlap =
+        after?.payment_status === 'paid' ? '; you marked the invoice paid while it was being sent'
+        : after?.reminders_enabled === 0 ? '; you paused reminders while it was being sent'
+        : ''
+      await logEvent(db, invoice.id, reminder.stage, 'sent', `Email via ${provider.name}${overlap}`, nowIso)
       result.sent += 1
     } else if (outcome.retryable && reminder.attempts < MAX_SEND_ATTEMPTS) {
       const retryAt = new Date(now.getTime() + backoffMs(reminder.attempts)).toISOString()
       await settle(
         reminder.id,
-        `UPDATE client_reminders SET status = 'scheduled', next_attempt_at = ?, error_reason = ?, claim_id = NULL, updated_at = ?`,
+        `UPDATE client_reminders SET status = ${unlessPaidOrPaused("'scheduled'")}, next_attempt_at = ?,
+           error_reason = ${reasonUnlessPaid('?')}, claim_id = NULL, updated_at = ?`,
         retryAt,
         outcome.reason,
         nowIso,
@@ -642,7 +710,8 @@ export async function runDueReminders(env: CronEnv, provider: EmailProvider | nu
     } else {
       await settle(
         reminder.id,
-        `UPDATE client_reminders SET status = 'failed', error_reason = ?, claim_id = NULL, updated_at = ?`,
+        `UPDATE client_reminders SET status = CASE WHEN EXISTS (${INVOICE_OF_REMINDER} AND i.payment_status = 'paid') THEN 'cancelled' ELSE 'failed' END,
+           error_reason = ${reasonUnlessPaid('?')}, claim_id = NULL, updated_at = ?`,
         outcome.reason,
         nowIso,
       )
