@@ -5,6 +5,10 @@ import { Reveal } from './motion-kit'
 import { EASE_OUT } from './motion-tokens'
 import { Errors, ReceiptSheet, Warnings } from './Sheets'
 import { PayBox } from './PayBox'
+import { ExportPanel } from './ExportPanel'
+import { onlinePaymentsEnabled } from './payments-api'
+
+const PROTECTED_EXPORTS = onlinePaymentsEnabled()
 
 const emptyReceipt: ReceiptInput = {
   seller: '',
@@ -140,7 +144,11 @@ export function AdvanceOffer() {
             <textarea id="ar-excluded" maxLength={240} value={form.excluded ?? ''} onChange={(e) => patch({ excluded: e.target.value })} />
           </div>
         </div>
-        <p className="ip-muted">Nothing you type is uploaded. This form does not ask about GST.</p>
+        <p className="ip-muted">
+          {PROTECTED_EXPORTS
+            ? 'Nothing you type is uploaded until you export the final receipt. This form does not ask about GST.'
+            : 'Nothing you type is uploaded. This form does not ask about GST.'}
+        </p>
         <div className="ip-actions">
           <button type="submit">Prepare the receipt</button>
         </div>
@@ -164,12 +172,17 @@ export function AdvanceOffer() {
                 receipt={result.receipt}
                 message={result.message}
                 demo={result.receipt.seller === 'Example Decor'}
+                draft={PROTECTED_EXPORTS}
               />
-              <div className="ip-actions no-print">
-                <button type="button" onClick={() => window.print()}>
-                  Print or save as PDF
-                </button>
-              </div>
+              {PROTECTED_EXPORTS ? (
+                <ExportPanel kind="receipt" getInput={() => form} />
+              ) : (
+                <div className="ip-actions no-print">
+                  <button type="button" onClick={() => window.print()}>
+                    Print or save as PDF
+                  </button>
+                </div>
+              )}
             </motion.div>
           ) : receipt ? (
             <motion.div

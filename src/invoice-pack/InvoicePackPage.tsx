@@ -35,7 +35,9 @@ const JOURNEY = [
 const FEATURES = [
   { title: 'One invoice', body: 'Line items, totals, and GST when it applies.', icon: 'doc' },
   { title: 'Three reminders', body: 'Ready to copy and send on your timeline.', icon: 'msg' },
-  { title: 'Your browser only', body: 'Nothing is uploaded. You control what you send.', icon: 'lock' },
+  ONLINE_PAYMENTS
+    ? { title: 'Private drafts', body: 'Drafts stay in your browser. Only the final export is built on our server, and not kept.', icon: 'lock' }
+    : { title: 'Your browser only', body: 'Nothing is uploaded. You control what you send.', icon: 'lock' },
 ] as const
 
 const RECEIVE = [
@@ -300,7 +302,8 @@ export default function InvoicePackPage() {
                     {ONLINE_PAYMENTS ? (
                       <p>
                         Pay ₹499 through Razorpay by UPI, card, netbanking, or wallet. The order is marked paid only
-                        after our server verifies the payment with Razorpay. You can also pay by UPI directly and enter
+                        after our server verifies the payment with Razorpay, and then the final invoice export unlocks
+                        in this browser. You can also pay by UPI directly and enter
                         the payment reference. That order is checked by hand, and saving a reference does not mark it
                         paid.
                       </p>
@@ -341,7 +344,10 @@ export default function InvoicePackPage() {
                     design studio.
                   </p>
                   <p>
-                    What you type stays in this browser unless you copy or print it. Invoice Pack does not publish
+                    {ONLINE_PAYMENTS
+                      ? 'What you type stays in this browser until you export the final document, which our server builds and does not keep.'
+                      : 'What you type stays in this browser unless you copy or print it.'}{' '}
+                    Invoice Pack does not publish
                     customer names, reviews, or revenue figures.
                   </p>
                   <p>
@@ -362,7 +368,11 @@ export default function InvoicePackPage() {
                 <p className="ip-label">Disclosures</p>
                 <h2 id="legal-heading">Tax, privacy, and payment</h2>
                 <ul className="ip-quiet-list">
-                  <li>The draft is calculated in this browser from what you enter. It is not uploaded to a server.</li>
+                  <li>
+                    {ONLINE_PAYMENTS
+                      ? 'The draft is calculated in this browser from what you enter. When you export after paying, the details are sent to our server to build the final document. They are not stored; the server keeps only a fingerprint of the invoice number or receipt client to tie the export to your order.'
+                      : 'The draft is calculated in this browser from what you enter. It is not uploaded to a server.'}
+                  </li>
                   <li>GST appears only when you say you are registered and the client is in India.</li>
                   <li>
                     UPI payee for this product: {INVOICE_CHECKOUT.pa}. Amount ₹499. Order reference is the same in tn

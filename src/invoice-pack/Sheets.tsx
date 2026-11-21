@@ -37,19 +37,30 @@ function MetaLine({ label, value }: { label: string; value: string }) {
   )
 }
 
+function DraftMark() {
+  return (
+    <p className="ip-draft-mark">
+      <span>Draft preview · not for sending</span>
+    </p>
+  )
+}
+
 export function InvoiceSheet({
   invoice,
   demo,
+  draft,
   testId,
 }: {
   invoice: Invoice
   demo?: boolean
+  draft?: boolean
   testId?: string
 }) {
   const payBits = [invoice.accountName, invoice.bankName, invoice.accountNumber, invoice.ifsc].filter(Boolean)
   return (
-    <article className="ip-sheet" data-testid={testId ?? (demo ? 'demo-sheet' : 'pack-sheet')}>
+    <article className={draft ? 'ip-sheet ip-sheet--draft' : 'ip-sheet'} data-testid={testId ?? (demo ? 'demo-sheet' : 'pack-sheet')}>
       {demo ? <p className="ip-demo-flag">DEMO</p> : null}
+      {draft ? <DraftMark /> : null}
       <div className="ip-sheet-top">
         <div>
           <p className="ip-kicker">{invoice.title}</p>
@@ -144,16 +155,22 @@ export function ReceiptSheet({
   receipt,
   message,
   demo,
+  draft,
   testId,
 }: {
   receipt: Receipt
   message: string
   demo?: boolean
+  draft?: boolean
   testId?: string
 }) {
   return (
-    <article className="ip-sheet ip-receipt-doc" data-testid={testId ?? (demo ? 'advance-demo' : 'advance-sheet')}>
+    <article
+      className={draft ? 'ip-sheet ip-receipt-doc ip-sheet--draft' : 'ip-sheet ip-receipt-doc'}
+      data-testid={testId ?? (demo ? 'advance-demo' : 'advance-sheet')}
+    >
       {demo ? <p className="ip-demo-flag">DEMO</p> : null}
+      {draft ? <DraftMark /> : null}
       <p className="ip-kicker">Advance receipt</p>
       <h3 className="ip-who">{receipt.seller}</h3>
       {receipt.place ? <p className="ip-doc-line">{receipt.place}</p> : null}
