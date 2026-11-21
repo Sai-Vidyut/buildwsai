@@ -9,7 +9,7 @@ export default function Root() {
   return (
     <Suspense
       fallback={
-        <p style={{ padding: '2rem', fontFamily: 'Georgia, serif', background: '#efeae2' }}>
+        <p style={{ padding: '2rem', fontFamily: 'Georgia, serif', background: '#f6f5f2' }}>
           Loading Invoice Pack…
         </p>
       }

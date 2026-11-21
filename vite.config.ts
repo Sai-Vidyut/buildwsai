@@ -40,7 +40,7 @@ function invoicePackShell(): Plugin {
       )
       html = html.replace(
         '<meta name="theme-color" content="#fafafa" />',
-        '<meta name="theme-color" content="#efeae2" />',
+        '<meta name="theme-color" content="#f6f5f2" />',
       )
       if (!html.includes('invoice-pack-spa-path')) {
         html = html.replace('<head>', '<head>\n    ' + RESTORE)

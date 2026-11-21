@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { DEMO_LINES, buildPack, demoInput, type DemoLine } from './logic'
+import { PaperPreview } from './PaperPreview'
 import { Errors, InvoiceSheet, Reminders, Warnings } from './Sheets'
 
 export function DemoInvoice() {
@@ -15,78 +16,107 @@ export function DemoInvoice() {
 
   return (
     <section id="demo" className="ip-section" aria-labelledby="demo-heading">
-      <p className="ip-kicker">Demo</p>
-      <h2 id="demo-heading">A fictional invoice</h2>
-      <p>
-        Example Studio in Karnataka bills Sample Client Pvt Ltd in Mumbai. Neither is a real customer. The
-        number is EX-1. The lines and amounts below are the example. Change GST, the client’s country, or the
-        state, and the draft and the three reminders recalculate in this browser. Nothing is uploaded.
-      </p>
-      <div className="no-print">
-        <label className="ip-check">
-          <input
-            type="checkbox"
-            checked={gst}
-            data-testid="gst-toggle"
-            onChange={(event) => setGst(event.target.checked)}
-          />
-          I am GST-registered and this draft should show GST
-        </label>
-        <label className="ip-check">
-          <input
-            type="checkbox"
-            checked={foreign}
-            data-testid="foreign-toggle"
-            onChange={(event) => setForeign(event.target.checked)}
-          />
-          Client is outside India
-        </label>
-        <label className="ip-check">
-          <input
-            type="checkbox"
-            checked={sameState}
-            disabled={foreign}
-            data-testid="same-state-toggle"
-            onChange={(event) => setSameState(event.target.checked)}
-          />
-          Client is in Karnataka too (CGST and SGST)
-        </label>
-        {lines.map((line, index) => (
-          <div className="ip-row" key={line.description}>
+      <div className="ip-demo">
+        <div className="ip-demo-copy">
+          <p className="ip-label">Try it yourself</p>
+          <h2 id="demo-heading">Invoice Demo</h2>
+          <p>
+            Generate a sample invoice and see the three reminder messages in action.
+          </p>
+          <p className="ip-fine">
+            Example Studio, Sample Client Pvt Ltd, and EX-1 are fictional. The draft stays in this browser.
+          </p>
+          <a className="ip-btn" href="#demo-workspace">
+            Open the Interactive Demo →
+          </a>
+        </div>
+        <div className="ip-workspace" id="demo-workspace">
+          <div className="ip-workspace-form no-print">
+            <h3>Invoice Details</h3>
             <div className="ip-field">
-              <label htmlFor={`demo-desc-${index}`}>Line {index + 1}</label>
-              <input id={`demo-desc-${index}`} value={line.description} readOnly />
+              <label htmlFor="demo-client">Client name</label>
+              <input id="demo-client" value="Sample Client Pvt Ltd" readOnly />
             </div>
-            <div className="ip-field">
-              <label htmlFor={`demo-amt-${index}`}>Amount in rupees</label>
+            {lines.map((line, index) => (
+              <div className="ip-line-edit" key={line.description}>
+                <div className="ip-field">
+                  <label htmlFor={`demo-desc-${index}`}>{index === 0 ? 'Service / item' : `Line ${index + 1}`}</label>
+                  <input id={`demo-desc-${index}`} value={line.description} readOnly />
+                </div>
+                <div className="ip-field">
+                  <label htmlFor={`demo-amt-${index}`}>Amount</label>
+                  <input
+                    id={`demo-amt-${index}`}
+                    className="ip-amount"
+                    inputMode="decimal"
+                    value={line.amount}
+                    data-testid={`demo-amt-${index}`}
+                    onChange={(event) => {
+                      const next = lines.map((item, itemIndex) =>
+                        itemIndex === index ? { ...item, amount: event.target.value } : item,
+                      )
+                      setLines(next)
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+            <label className="ip-switch">
+              <span>GST (18%)</span>
               <input
-                id={`demo-amt-${index}`}
-                inputMode="decimal"
-                value={line.amount}
-                data-testid={`demo-amt-${index}`}
-                onChange={(event) => {
-                  const next = lines.map((item, itemIndex) =>
-                    itemIndex === index ? { ...item, amount: event.target.value } : item,
-                  )
-                  setLines(next)
-                }}
+                type="checkbox"
+                checked={gst}
+                data-testid="gst-toggle"
+                aria-label="I am GST-registered and this draft should show GST"
+                onChange={(event) => setGst(event.target.checked)}
               />
+            </label>
+            <label className="ip-switch">
+              <span>Client outside India</span>
+              <input
+                type="checkbox"
+                checked={foreign}
+                data-testid="foreign-toggle"
+                onChange={(event) => setForeign(event.target.checked)}
+              />
+            </label>
+            <label className="ip-switch">
+              <span>Same state, CGST and SGST</span>
+              <input
+                type="checkbox"
+                checked={sameState}
+                disabled={foreign}
+                data-testid="same-state-toggle"
+                onChange={(event) => setSameState(event.target.checked)}
+              />
+            </label>
+            <Errors errors={pack.errors} />
+          </div>
+          <div className="ip-workspace-preview">
+            {pack.invoice ? (
+              <div className="no-print">
+                <PaperPreview invoice={pack.invoice} demo />
+              </div>
+            ) : (
+              <p className="ip-fine">Enter a valid amount to see the draft.</p>
+            )}
+          </div>
+        </div>
+      </div>
+      {pack.invoice ? (
+        <div className="ip-demo-output">
+          <Warnings warnings={pack.warnings} />
+          <div className="ip-demo-output-head">
+            <h3>The draft and three reminders</h3>
+            <div className="ip-actions no-print">
+              <button type="button" onClick={() => window.print()}>
+                Print or save as PDF
+              </button>
             </div>
           </div>
-        ))}
-      </div>
-      <Errors errors={pack.errors} />
-      {pack.invoice ? (
-        <>
-          <Warnings warnings={pack.warnings} />
           <InvoiceSheet invoice={pack.invoice} demo />
-          <h3>Three reminders</h3>
-          <p className="ip-muted">
-            The words are the pack’s reminders: one to send with the invoice, one about 7 days later, one about
-            14 days later.
-          </p>
           <Reminders reminders={pack.reminders} demo />
-        </>
+        </div>
       ) : null}
     </section>
   )
