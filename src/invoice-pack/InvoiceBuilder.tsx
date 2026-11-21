@@ -170,19 +170,21 @@ export function InvoiceBuilder() {
                 onChange={(event) => patch({ supplierAddress: event.target.value })}
               />
             </Field>
-            <label className="ip-check">
-              <input
-                id="gstRegistered"
-                type="checkbox"
-                checked={Boolean(form.gstRegistered)}
-                onChange={(event) => patch({ gstRegistered: event.target.checked })}
-              />
-              I am GST-registered
-            </label>
-            <p className="ip-hint">
-              Turn this on only if you are registered. The draft adds GST when the client is in India. If you are not
-              registered, leave it off and the draft will not add GST.
-            </p>
+            <div className="ip-check-block">
+              <label className="ip-check">
+                <input
+                  id="gstRegistered"
+                  type="checkbox"
+                  checked={Boolean(form.gstRegistered)}
+                  onChange={(event) => patch({ gstRegistered: event.target.checked })}
+                />
+                I am GST-registered
+              </label>
+              <p className="ip-hint">
+                Turn this on only if you are registered. The draft adds GST when the client is in India. If you are not
+                registered, leave it off and the draft will not add GST.
+              </p>
+            </div>
             {form.gstRegistered ? (
               <Field id="supplierGstin" label="Your GSTIN" hint="Required on a tax invoice if you are registered.">
                 <input
@@ -217,19 +219,21 @@ export function InvoiceBuilder() {
                 onChange={(event) => patch({ clientAddress: event.target.value })}
               />
             </Field>
-            <label className="ip-check">
-              <input
-                id="foreignClient"
-                type="checkbox"
-                checked={Boolean(form.foreignClient)}
-                onChange={(event) => patch({ foreignClient: event.target.checked })}
-              />
-              Client is outside India
-            </label>
-            <p className="ip-hint">
-              For a client outside India, the draft does not add GST. Confirm export treatment with a chartered
-              accountant before you send it.
-            </p>
+            <div className="ip-check-block">
+              <label className="ip-check">
+                <input
+                  id="foreignClient"
+                  type="checkbox"
+                  checked={Boolean(form.foreignClient)}
+                  onChange={(event) => patch({ foreignClient: event.target.checked })}
+                />
+                Client is outside India
+              </label>
+              <p className="ip-hint">
+                For a client outside India, the draft does not add GST. Confirm export treatment with a chartered
+                accountant before you send it.
+              </p>
+            </div>
             {!form.foreignClient ? (
               <Field
                 id="clientState"
@@ -380,19 +384,21 @@ export function InvoiceBuilder() {
                 onChange={(event) => patch({ gstRate: event.target.value })}
               />
             </Field>
-            <label className="ip-check">
-              <input
-                id="reverseCharge"
-                type="checkbox"
-                checked={Boolean(form.reverseCharge)}
-                onChange={(event) => patch({ reverseCharge: event.target.checked })}
-              />
-              Tax is payable by the client on reverse charge
-            </label>
-            <p className="ip-hint">
-              Turn this on only when reverse charge applies. GST is then noted on the draft and not added to the
-              balance the client pays you.
-            </p>
+            <div className="ip-check-block">
+              <label className="ip-check">
+                <input
+                  id="reverseCharge"
+                  type="checkbox"
+                  checked={Boolean(form.reverseCharge)}
+                  onChange={(event) => patch({ reverseCharge: event.target.checked })}
+                />
+                Tax is payable by the client on reverse charge
+              </label>
+              <p className="ip-hint">
+                Turn this on only when reverse charge applies. GST is then noted on the draft and not added to the
+                balance the client pays you.
+              </p>
+            </div>
           </div>
         ) : null}
 
