@@ -1,0 +1,35 @@
+name = "invoice-pack-payments"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+# Secrets (never put them in this file):
+#   wrangler secret put RAZORPAY_KEY_ID
+#   wrangler secret put RAZORPAY_KEY_SECRET
+#   wrangler secret put RAZORPAY_WEBHOOK_SECRET
+# For `wrangler dev`, copy .dev.vars.example to .dev.vars (git-ignored).
+
+[vars]
+# Comma-separated list of browser origins allowed to call the API.
+ALLOWED_ORIGINS = "https://buildwsai.online,https://www.buildwsai.online"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "invoice-pack-payments"
+# Replace with the id printed by `wrangler d1 create invoice-pack-payments`.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+# Per-client-IP limits. Counters are per Cloudflare location and approximate.
+[[ratelimits]]
+name = "ORDER_LIMITER"
+namespace_id = "4901"
+simple = { limit = 10, period = 60 }
+
+[[ratelimits]]
+name = "VERIFY_LIMITER"
+namespace_id = "4902"
+simple = { limit = 30, period = 60 }
+
+[observability]
+enabled = true

@@ -1,0 +1,6 @@
+# Copy to .dev.vars for `wrangler dev`. .dev.vars is git-ignored.
+# Use Razorpay TEST MODE keys only (they start with rzp_test_).
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=replace-with-test-key-secret
+RAZORPAY_WEBHOOK_SECRET=replace-with-webhook-secret
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
