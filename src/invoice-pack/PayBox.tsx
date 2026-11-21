@@ -52,31 +52,41 @@ export function PayBox({ checkout }: { checkout: Checkout }) {
         Payee name: {checkout.pn}. UPI ID: <strong>{checkout.pa}</strong>. Amount: ₹{checkout.am}.
       </p>
       <p>
-        Pay ₹{checkout.am}, then submit the UTR or reference from your UPI app. A UTR is not proof of payment.
-        This page saves the order as payment pending. There is no control here that marks an order paid.
+        Pay ₹{checkout.am} using UPI, then enter the payment reference from your UPI app so your order can be
+        identified.
       </p>
-      <QrCode text={uri} label={`UPI QR for ₹${checkout.am}`} />
-      <p>
-        Order reference: <strong>{orderRef}</strong>
+      <p className="ip-fine">
+        Saving a reference here does not verify payment or confirm delivery. This page cannot mark an order paid.
       </p>
-      <p>
-        <a href={uri}>UPI payment link</a>
-      </p>
-      <p className="ip-uri" data-testid={`uri-${checkout.am}`}>
-        {uri}
-      </p>
-      <div className="ip-actions">
-        <button
-          type="button"
-          className="secondary"
-          onClick={() => {
-            void copyText(uri).then((ok) => setCopied(ok ? 'Copied' : 'Select the link and copy it'))
-          }}
-        >
-          {copied}
-        </button>
+      <div className="ip-pay-grid">
+        <div className="ip-pay-qr">
+          <QrCode text={uri} label={`UPI QR for ₹${checkout.am}`} />
+        </div>
+        <div className="ip-pay-details">
+          <p className="ip-pay-ref">
+            <span>Order reference</span>
+            <strong>{orderRef}</strong>
+          </p>
+          <p>
+            <a href={uri}>UPI payment link</a>
+          </p>
+          <p className="ip-uri" data-testid={`uri-${checkout.am}`}>
+            {uri}
+          </p>
+          <div className="ip-actions">
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => {
+                void copyText(uri).then((ok) => setCopied(ok ? 'Copied' : 'Select the link and copy it'))
+              }}
+            >
+              {copied}
+            </button>
+          </div>
+        </div>
       </div>
-      <form
+      <form className="ip-pay-form"
         onSubmit={(event) => {
           event.preventDefault()
           const value = utr.trim()
@@ -117,9 +127,7 @@ export function PayBox({ checkout }: { checkout: Checkout }) {
             required
           />
         </div>
-        <div className="ip-actions">
-          <button type="submit">Save reference as pending</button>
-        </div>
+        <button type="submit">Save reference as pending</button>
       </form>
       {noticeError ? (
         <p className="ip-err" role="alert">

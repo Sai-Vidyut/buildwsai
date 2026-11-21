@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Invoice, Reminder } from './logic'
+import type { Invoice, Receipt, Reminder } from './logic'
 import { inr } from './logic'
 import { copyText } from './copy'
 
@@ -90,7 +90,7 @@ export function InvoiceSheet({
           ))}
         </tbody>
       </table>
-      <table className="ip-money-table">
+      <table className="ip-money-table ip-money-table--doc">
         <tbody>
           <tr>
             <th>Taxable value</th>
@@ -136,6 +136,85 @@ export function InvoiceSheet({
           {demo ? ' DEMO figures. Example Studio and Sample Client Pvt Ltd are not real.' : ''}
         </p>
       </div>
+    </article>
+  )
+}
+
+export function ReceiptSheet({
+  receipt,
+  message,
+  demo,
+  testId,
+}: {
+  receipt: Receipt
+  message: string
+  demo?: boolean
+  testId?: string
+}) {
+  return (
+    <article className="ip-sheet ip-receipt-doc" data-testid={testId ?? (demo ? 'advance-demo' : 'advance-sheet')}>
+      {demo ? <p className="ip-demo-flag">DEMO</p> : null}
+      <p className="ip-kicker">Advance receipt</p>
+      <h3 className="ip-who">{receipt.seller}</h3>
+      {receipt.place ? <p className="ip-doc-line">{receipt.place}</p> : null}
+      <div className="ip-doc-meta">
+        <p className="ip-doc-line">
+          <span className="ip-doc-label">Receipt date</span> {receipt.receiptDateLabel}
+        </p>
+        <p className="ip-doc-line">
+          <span className="ip-doc-label">Job date</span> {receipt.jobDateLabel}
+        </p>
+      </div>
+      <div className="ip-block">
+        <p className="ip-kicker">Received from</p>
+        <p className="ip-doc-who">{receipt.client}</p>
+      </div>
+      <div className="ip-block">
+        <p className="ip-kicker">Job</p>
+        <p className="ip-doc-line">{receipt.job}</p>
+      </div>
+      <table className="ip-money-table ip-money-table--doc">
+        <tbody>
+          <tr>
+            <th scope="row">Total agreed</th>
+            <td className="ip-num">{receipt.totalLabel}</td>
+          </tr>
+          <tr>
+            <th scope="row">Advance received</th>
+            <td className="ip-num">{receipt.advanceLabel}</td>
+          </tr>
+          <tr className="ip-due">
+            <th scope="row">Balance</th>
+            <td className="ip-num">{receipt.balanceLabel}</td>
+          </tr>
+        </tbody>
+      </table>
+      {receipt.included || receipt.excluded || receipt.upi ? (
+        <div className="ip-block">
+          {receipt.included ? (
+            <>
+              <p className="ip-kicker">Included</p>
+              <p className="ip-doc-line">{receipt.included}</p>
+            </>
+          ) : null}
+          {receipt.excluded ? (
+            <>
+              <p className="ip-kicker">Not included</p>
+              <p className="ip-doc-line">{receipt.excluded}</p>
+            </>
+          ) : null}
+          {receipt.upi ? <p className="ip-upi">{receipt.upi}</p> : null}
+        </div>
+      ) : null}
+      <p className="ip-fine">
+        {demo
+          ? 'DEMO. Example Decor and Sample Client are not real. This receipt does not calculate GST. Not a contract and not a tax invoice.'
+          : 'A receipt for the advance entered above. Not a contract, not a tax invoice, and not legal or tax advice.'}
+      </p>
+      <section className="ip-receipt-message" aria-labelledby="receipt-message-heading">
+        <h3 id="receipt-message-heading">Message to send with the receipt</h3>
+        <pre className="ip-msg">{message}</pre>
+      </section>
     </article>
   )
 }
