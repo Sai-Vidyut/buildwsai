@@ -1,39 +1,20 @@
-import { useEffect, useRef } from 'react'
-import { gsap } from '../../lib/gsap'
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
+import { motion, useScroll, useSpring } from 'motion/react'
+import { useReducedMotion } from '../../hooks/useReducedMotion'
 
 export function ScrollProgress() {
-  const bar = useRef<HTMLDivElement>(null)
-  const reduced = usePrefersReducedMotion()
-
-  useEffect(() => {
-    if (reduced || !bar.current) return
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        bar.current,
-        { scaleX: 0 },
-        {
-          scaleX: 1,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: document.documentElement,
-            start: 'top top',
-            end: 'bottom bottom',
-            scrub: 0.15,
-          },
-        },
-      )
-    })
-
-    return () => ctx.revert()
-  }, [reduced])
+  const { scrollYProgress } = useScroll()
+  const reduced = useReducedMotion()
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 28,
+    restDelta: 0.001,
+  })
 
   return (
-    <div
-      className="fixed top-0 left-0 right-0 h-[2px] z-[60] pointer-events-none origin-left scale-x-0 bg-[var(--color-black)] print:hidden"
-      ref={bar}
+    <motion.div
       aria-hidden
+      className="fixed inset-x-0 top-0 z-50 h-[2px] origin-left bg-[var(--color-signal)]"
+      style={{ scaleX: reduced ? scrollYProgress : scaleX }}
     />
   )
 }
