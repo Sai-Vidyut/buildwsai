@@ -137,9 +137,10 @@ export const featuredProjects: FeaturedProject[] = [
     role: 'Solo · Product & full-stack',
     stack: ['React', 'Vite', 'FastAPI', 'SQLite', 'Object storage'],
     links: [
+      { label: 'Explore', href: 'https://buildwsai.online/slyvr/' },
       { label: 'Repository', href: 'https://github.com/Sai-Vidyut/slyvr', external: true },
     ],
-    status: 'Source on GitHub. Public demo is offline.',
+    status: 'Live on buildwsai.online/slyvr.',
     image: {
       src: '/images/slyvr-library.webp',
       srcSet: '/images/slyvr-library-960.webp 960w, /images/slyvr-library.webp 1400w',
@@ -256,8 +257,9 @@ export const achievements = [
     detail: 'Semiconductor engineering project',
   },
   {
-    title: 'Gold from Garbage Initiative',
-    context: 'Recycled-materials engineering model',
+    title: 'Final Round Qualifier — IdeaSpark 3.0',
+    context: 'Founders Club, SRMIST',
+    detail: '5–6 Oct 2026',
   },
   {
     title: 'Engineering Model Development',
