@@ -1,11 +1,10 @@
 # Razorpay payments: architecture and setup
 
-Invoice Pack (₹499) and Advance Receipt (₹399) can be paid in two ways:
+Invoice Pack (₹499) is purchased through **Razorpay Checkout** (UPI, card, netbanking, or wallet). A backend creates the order, verifies the payment, and records it. The page says "paid" only after the backend confirms it.
 
-- **Pay using Razorpay** — Razorpay Checkout (UPI, card, netbanking, wallet). A backend creates the order, verifies the payment, and records it. The page says "paid" only after the backend confirms it.
-- **Pay using UPI** — the existing direct UPI QR and link to `saividyut2@okicici`. Unchanged. The customer saves their UTR in the browser as `payment_pending`, and the payment is checked by hand.
+**Advance Receipt** is no longer sold. Existing paid `advance-receipt` rows in D1 keep their export through `POST /api/payments/exports/receipt`. New checkout only accepts `productId: "invoice-pack"`.
 
-Nothing here is deployed automatically. Until you set the `PAYMENTS_API_URL` repository variable, the live site shows only the direct UPI option, exactly as before.
+Nothing here is deployed automatically. Until you set the `PAYMENTS_API_URL` repository variable, checkout is unavailable on the static build and the invoice is not locked behind the Worker.
 
 ## Architecture
 
@@ -32,7 +31,7 @@ Razorpay webhooks ── POST /api/payments/webhook (payment.captured, payment.f
 
 Flow:
 
-1. The browser sends only a product id. The Worker looks up the price (49900 or 39900 paise), creates a Razorpay order, stores it in D1 with status `created`, and returns the Razorpay order id, amount, currency, and the public key id.
+1. The browser sends only a product id. The Worker looks up the price (49900 paise for Invoice Pack), creates a Razorpay order, stores it in D1 with status `created`, and returns the Razorpay order id, amount, currency, and the public key id.
 2. The browser opens Razorpay Checkout with that order. Closing the window marks nothing; the page shows "not paid" and offers a retry on the same order.
 3. On success, Razorpay hands the browser `razorpay_payment_id` and `razorpay_signature`.
 4. The browser posts those to `/verify`. The Worker recomputes `HMAC_SHA256(stored_order_id + "|" + payment_id, key_secret)`, compares it in constant time, then fetches the payment from Razorpay and checks order id, amount, and currency. Only a `captured` payment marks the order `paid`. An `authorized` payment is shown as "processing".
@@ -57,7 +56,7 @@ All responses are JSON with `Cache-Control: no-store`. Errors are `{ "error": { 
 
 | Method and path | Body | Notes |
 | --- | --- | --- |
-| `POST /api/payments/create-order` | `{ "productId": "invoice-pack" \| "advance-receipt" }` | Any other field, including `amount`, is rejected with 400. Rate limit 10/min per IP. Returns 201 `{ orderRef, accessToken, razorpayOrderId, amount, currency, keyId, productId, productName }`. `accessToken` is returned once; only its SHA-256 is stored. |
+| `POST /api/payments/create-order` | `{ "productId": "invoice-pack" }` | `advance-receipt` and any unknown id return 400. Any other field, including `amount`, is rejected with 400. Rate limit 10/min per IP. Returns 201 `{ orderRef, accessToken, razorpayOrderId, amount, currency, keyId, productId, productName }`. `accessToken` is returned once; only its SHA-256 is stored. |
 | `POST /api/payments/verify` | `{ orderRef, razorpay_order_id, razorpay_payment_id, razorpay_signature }` | Rate limit 30/min per IP. Returns the order view; repeat calls return `alreadyVerified: true`. 400 for bad signature, wrong order, or wrong amount. 409 if the order was already paid by a different payment. |
 | `GET /api/payments/orders/:orderRef` | — | Returns `{ orderRef, productId, productName, amount, currency, status, razorpayPaymentId, paidAt }`. Reconciles an `authorized` order with Razorpay. Order refs carry 100 random bits, so they cannot be guessed. |
 | `POST /api/payments/webhook` | Razorpay event (raw) | Requires a valid `X-Razorpay-Signature`. No CORS. Always 2xx once processed or deduplicated; 5xx on processing errors so Razorpay retries. |
@@ -74,7 +73,7 @@ CORS allows only the origins in `ALLOWED_ORIGINS` (default `https://buildwsai.on
 
 ## Protected exports
 
-When `PAYMENTS_API_URL` is set, the invoice preview is locked: line amounts, taxes, the balance, GSTINs, UPI and bank details are replaced with blurred placeholders and are not in the page's DOM, the reminder messages are hidden, and there is no print button. The summary card above the preview still shows the total so customers can check their numbers. The Advance Receipt keeps its watermarked draft preview. The final document comes only from the Worker:
+When `PAYMENTS_API_URL` is set, the invoice preview is locked: line amounts, taxes, the balance, GSTINs, UPI and bank details are replaced with blurred placeholders and are not in the page's DOM, the reminder messages are hidden, and there is no print button. The summary card above the preview still shows the total so customers can check their numbers. The final invoice comes only from the Worker:
 
 1. `create-order` returns a 256-bit `accessToken` alongside the order reference. The browser keeps both in `localStorage`; D1 keeps only the token's SHA-256. The order reference alone, which appears on screen and in Razorpay, unlocks nothing.
 2. To export, the browser posts the order reference, the token, and the form fields. The Worker checks the token in constant time, checks that the order is `paid`, is for this product, and was paid with the same key mode as the current `RAZORPAY_KEY_ID` (test payments never unlock exports once live keys are set).
@@ -334,11 +333,9 @@ The tests run the real Worker handler against an in-memory SQLite database loade
 - **An email the provider has accepted cannot be recalled.** Marking paid or pausing while a reminder is being sent stops the remaining reminders, not that one.
 - **The follow-up `manageToken` lives in one browser**, like the export token.
 - **The export token lives in one browser.** Clearing site data or switching devices loses it. The page has no account system, so recovery is manual: look up the order by reference or Razorpay payment id and help by email (support is shown on the page).
-- **Direct UPI payments do not unlock exports.** They are confirmed manually, so a UPI customer needs the exported file sent by hand.
 - **No purchase receipts by email.** The confirmation shows the order reference and Razorpay payment id on screen. Only client reminders can be emailed, and only when the email secrets are set.
 - **Refunds** are not handled by the backend. Refund from the Razorpay Dashboard; the order stays `paid` in D1.
 - **A second capture on a paid order** (very rare; Razorpay blocks new payments once an order is paid) is recorded in the `payments` ledger and logged as `second_capture`, and the order keeps its first payment. Refund the extra payment from the Dashboard.
 - **Rate limits** are approximate and per Cloudflare location. They stop casual abuse, not a determined distributed attack. Razorpay order creation is free, so the impact of abuse is limited to D1 row writes.
-- **Direct UPI payments** remain manual: saving a UTR does not mark anything paid.
 - **Admin access depends on one secret and the browsers you enrol.** Anyone with the admin key can create codes and admin passes. Keep the key in a password manager, use it only on the admin page, and rotate `ADMIN_KEY_SHA256` if it may have leaked. A leaked admin pass gives free Invoice Pack purchases until you revoke it. There is no second factor; for that, put [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/) in front of `/api/payments/admin` so admin calls also need your Cloudflare login.
 - **Grants cannot be revoked once issued.** Revoking an admin pass or a code stops new grants, but an invoice already unlocked keeps its export and follow-ups, within the usual per-invoice limits.

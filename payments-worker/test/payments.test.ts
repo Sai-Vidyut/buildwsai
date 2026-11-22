@@ -39,14 +39,13 @@ describe('create-order', () => {
     assert.equal(row?.razorpay_order_id, res.json.razorpayOrderId)
   })
 
-  it('creates a ₹399 Advance Receipt order priced on the server', async () => {
+  it('no longer sells Advance Receipt through checkout', async () => {
     const t = setup()
     const res = await t.call('POST', '/api/payments/create-order', { body: { productId: 'advance-receipt' } })
-    assert.equal(res.status, 201)
-    assert.equal(res.json.amount, 39900)
-    assert.match(res.json.orderRef, /^AR-/)
-    assert.equal(t.razorpay.requests[0].body && (t.razorpay.requests[0].body as { amount: number }).amount, 39900)
-    assert.equal(t.orderRow(res.json.orderRef)?.amount_paise, 39900)
+    assert.equal(res.status, 400)
+    assert.equal(res.json.error.code, 'unknown_product')
+    assert.equal(t.razorpay.requests.length, 0)
+    assert.equal(t.count('orders'), 0)
   })
 
   it('rejects client-supplied amounts and never contacts Razorpay', async () => {
@@ -213,7 +212,7 @@ describe('verify', () => {
 
   it('keeps an authorized payment as processing until it is captured', async () => {
     const t = setup()
-    const order = await t.createOrder('advance-receipt')
+    const order = await t.seedLegacyOrder('advance-receipt')
     const payment = t.razorpay.addPayment(order.razorpayOrderId, { status: 'authorized' })
     const res = await t.call('POST', '/api/payments/verify', {
       body: {

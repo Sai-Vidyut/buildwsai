@@ -2,22 +2,12 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { DEMO_RECEIPT, buildPack, buildReceipt, examplePack } from '../../src/invoice-pack/logic.ts'
 import { finalTitle, renderReceipt } from '../src/render.ts'
-import { checkoutSignature, setup } from './helpers.ts'
+import { setup } from './helpers.ts'
 
 type T = ReturnType<typeof setup>
 
 async function paidOrder(t: T, productId: 'invoice-pack' | 'advance-receipt' = 'invoice-pack') {
-  const order = await t.createOrder(productId)
-  const payment = t.razorpay.addPayment(order.razorpayOrderId)
-  const res = await t.call('POST', '/api/payments/verify', {
-    body: {
-      orderRef: order.orderRef,
-      razorpay_order_id: order.razorpayOrderId,
-      razorpay_payment_id: payment.id,
-      razorpay_signature: await checkoutSignature(order.razorpayOrderId, payment.id),
-    },
-  })
-  assert.equal(res.json.status, 'paid')
+  const order = await t.paidOrder(productId)
   return order
 }
 

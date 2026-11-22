@@ -18,7 +18,7 @@ describe('webhook', () => {
 
   it('marks an order paid from payment.captured even if the browser never verified', async () => {
     const t = setup()
-    const order = await t.createOrder('advance-receipt')
+    const order = await t.seedLegacyOrder('advance-receipt')
     const payment = t.razorpay.addPayment(order.razorpayOrderId)
     const res = await t.sendWebhook('payment.captured', payment, { eventId: 'evt_cap_1' })
     assert.equal(res.status, 200)
@@ -93,7 +93,7 @@ describe('webhook', () => {
 
   it('marks an order failed from payment.failed', async () => {
     const t = setup()
-    const order = await t.createOrder('advance-receipt')
+    const order = await t.seedLegacyOrder('advance-receipt')
     const failed = t.razorpay.addPayment(order.razorpayOrderId, { status: 'failed', error_code: 'BAD_REQUEST_ERROR' })
     const res = await t.sendWebhook('payment.failed', failed, { eventId: 'evt_fail' })
     assert.equal(res.json.status, 'processed')

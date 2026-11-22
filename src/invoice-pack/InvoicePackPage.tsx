@@ -2,7 +2,6 @@ import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useState } from 'r
 import { MotionConfig, motion } from 'motion/react'
 import {
   CONTACT_EMAIL,
-  INVOICE_CHECKOUT,
   INVOICE_DESCRIPTION,
   INVOICE_OG_IMAGE,
   INVOICE_OG_IMAGE_ALT,
@@ -11,7 +10,6 @@ import {
   buildPack,
   demoInput,
 } from './logic'
-import { AdvanceOffer } from './AdvanceOffer'
 import { ExampleInvoice } from './ExampleInvoice'
 import { HeroVisual } from './HeroVisual'
 import { InvoiceBuilder } from './InvoiceBuilder'
@@ -34,14 +32,8 @@ const JOURNEY = [
   'Review the draft, totals, and three reminder messages.',
   'Read any warnings that apply to your job.',
   ...(ONLINE_PAYMENTS
-    ? [
-        'Pay ₹499 through Razorpay or by UPI when you are ready.',
-        'Razorpay payments are confirmed by our server. A direct UPI payment reference is checked manually.',
-      ]
-    : [
-        'Pay ₹499 by UPI when you are ready.',
-        'Save your payment reference here. Payment is checked manually — this page does not confirm it automatically.',
-      ]),
+    ? ['Pay ₹499 through Razorpay when you are ready.', 'Our server confirms the payment with Razorpay before the final export unlocks.']
+    : ['Pay ₹499 through Razorpay on the live site when you are ready.']),
 ] as const
 
 const FEATURES = [
@@ -368,35 +360,17 @@ export default function InvoicePackPage() {
                       {ONLINE_PAYMENTS ? <span className="ip-pricing-promise-note">As soon as Razorpay confirms your payment.</span> : null}
                     </span>
                   </p>
-                  <p className="ip-lede">
-                    Pay once for one invoice pack. There is no subscription. Advance Receipt is a separate offer below if
-                    you need it.
-                  </p>
+                  <p className="ip-lede">Pay once for one invoice pack. There is no subscription.</p>
                   <div className="ip-pay-intro no-print">
                     <h3>How payment works</h3>
-                    {ONLINE_PAYMENTS ? (
-                      <p>
-                        Pay ₹499 through Razorpay by UPI, card, netbanking, or wallet. The order is marked paid only
-                        after our server verifies the payment with Razorpay, and then the final invoice export unlocks
-                        in this browser. You can also pay by UPI directly and enter
-                        the payment reference. That order is checked by hand, and saving a reference does not mark it
-                        paid.
-                      </p>
-                    ) : (
-                      <p>
-                        Pay ₹499 using UPI. Enter the payment reference from your UPI app so your order can be
-                        identified. Saving a reference here does not prove payment, does not confirm delivery, and does
-                        not mark your order paid automatically.
-                      </p>
-                    )}
+                    <p>
+                      Pay ₹499 through Razorpay (UPI, card, netbanking, or wallet). The order is marked paid only after
+                      our server verifies the payment with Razorpay, and then the final invoice export unlocks in this
+                      browser.
+                    </p>
                   </div>
-                  <p className="ip-fine no-print">
-                    {ONLINE_PAYMENTS
-                      ? 'Direct UPI payments are checked against the UPI account. This page cannot verify those on its own.'
-                      : 'After you pay, payment is checked against the UPI account. This page cannot verify it on its own.'}
-                  </p>
                   <div id="pay-499">
-                    <PayBox checkout={INVOICE_CHECKOUT} />
+                    <PayBox />
                   </div>
                   <p className="ip-wa-row no-print">
                     Questions before you pay?{' '}
@@ -405,10 +379,6 @@ export default function InvoicePackPage() {
                 </Reveal>
               </section>
             </div>
-          </div>
-
-          <div className="ip-wrap">
-            <AdvanceOffer />
           </div>
 
           <div className="ip-wrap ip-closing">
@@ -450,15 +420,10 @@ export default function InvoicePackPage() {
                 <ul className="ip-quiet-list">
                   <li>
                     {ONLINE_PAYMENTS
-                      ? 'The draft is calculated in this browser from what you enter. When you export after paying, the details are sent to our server to build the final document. They are not stored; the server keeps only a fingerprint of the invoice number or receipt client to tie the export to your order.'
+                      ? 'The draft is calculated in this browser from what you enter. When you export after paying, the details are sent to our server to build the final document. They are not stored; the server keeps only a fingerprint of the invoice number to tie the export to your order.'
                       : 'The draft is calculated in this browser from what you enter. It is not uploaded to a server.'}
                   </li>
                   <li>GST appears only when you say you are registered and the client is in India.</li>
-                  <li>
-                    UPI payee for this product: {INVOICE_CHECKOUT.pa}. Amount ₹499. Order reference is the same in tn
-                    and tr. The QR code is that link.
-                  </li>
-                  <li>A UTR you save is stored as payment_pending in this browser only.</li>
                   {ONLINE_PAYMENTS ? (
                     <li>
                       Razorpay payments are processed by Razorpay. Our server keeps the order reference, product,

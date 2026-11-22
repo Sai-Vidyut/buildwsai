@@ -8,10 +8,8 @@ import {
   isGrantRef,
   PAYMENT_CONFIRMED_EVENT,
   PaymentsApiError,
-  type ExportKind,
   type ExportResult,
   type HeldOrder,
-  type ProductId,
 } from './payments-api'
 import { scrollToSection } from './scroll-to'
 
@@ -24,10 +22,7 @@ type State =
   | { name: 'done'; order: HeldOrder; result: ExportResult }
   | { name: 'error'; order: HeldOrder; code: string; message: string; details: string[] }
 
-const COPY: Record<ExportKind, { product: ProductId; noun: string; price: number; payId: string }> = {
-  invoice: { product: 'invoice-pack', noun: 'invoice', price: 499, payId: 'pay-499' },
-  receipt: { product: 'advance-receipt', noun: 'receipt', price: 399, payId: 'pay-399' },
-}
+const COPY = { product: 'invoice-pack' as const, noun: 'invoice', price: 499, payId: 'pay-499' }
 
 // Prints server-rendered HTML in a sandboxed frame: no scripts run, and it never shares the page's DOM.
 function printHtml(html: string) {
@@ -62,15 +57,14 @@ function downloadHtml(html: string, filename: string) {
 }
 
 export function ExportPanel({
-  kind,
   getInput,
   onExported,
 }: {
-  kind: ExportKind
   getInput: () => unknown
   onExported?: (result: ExportResult) => void
 }) {
-  const copy = COPY[kind]
+  const copy = COPY
+  const kind = 'invoice' as const
   const [state, setState] = useState<State>({ name: 'checking' })
   const busy = useRef(false)
 
@@ -105,7 +99,7 @@ export function ExportPanel({
     busy.current = true
     setState({ name: 'exporting', order })
     try {
-      const result = await exportDocument(kind, order, getInput())
+      const result = await exportDocument('invoice', order, getInput())
       setState({ name: 'done', order, result })
       onExported?.(result)
       printHtml(result.html)

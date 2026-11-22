@@ -2,7 +2,7 @@ import { newAccessToken, newOrderRef, ORDER_REF_PATTERN, sha256Hex, verifyHmac }
 import { keyMode, type Env } from './env.ts'
 import { HttpError, json, readJsonObject, rejectUnknownFields } from './http.ts'
 import { applyPayment, getOrderById, insertOrder, paymentMismatch, publicStatus, type OrderRow } from './orders.ts'
-import { findProduct, PRODUCTS } from './products.ts'
+import { PRODUCTS, purchasableProduct } from './products.ts'
 import { RazorpayApiError, type RazorpayClient } from './razorpay.ts'
 
 const RAZORPAY_ORDER_ID = /^order_[A-Za-z0-9]{8,40}$/
@@ -29,8 +29,8 @@ function orderView(order: OrderRow) {
 export async function createOrder(request: Request, deps: Deps): Promise<Response> {
   const body = await readJsonObject(request)
   rejectUnknownFields(body, ['productId'])
-  const product = findProduct(body.productId)
-  if (!product) throw new HttpError(400, 'unknown_product', 'Choose a valid product.')
+  const product = purchasableProduct(body.productId)
+  if (!product) throw new HttpError(400, 'unknown_product', 'Choose Invoice Pack to continue.')
 
   const mode = keyMode(deps.env.RAZORPAY_KEY_ID)
   if (!mode) throw new HttpError(503, 'payments_unavailable', 'Online payments are not available right now.')

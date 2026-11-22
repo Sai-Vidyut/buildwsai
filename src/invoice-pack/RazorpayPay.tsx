@@ -52,11 +52,9 @@ function messageOf(error: unknown): string {
 export function RazorpayPay({
   productId,
   amountInr,
-  onUseUpi,
 }: {
   productId: ProductId
-  amountInr: 499 | 399
-  onUseUpi: () => void
+  amountInr: 499
 }) {
   const [phase, setPhase] = useState<Phase>({ name: 'idle' })
   const orderRef = useRef<CreatedOrder | null>(null)
@@ -119,7 +117,7 @@ export function RazorpayPay({
       const [order] = await Promise.all([
         orderRef.current ? Promise.resolve(orderRef.current) : createOrder(productId),
         loadCheckout().catch(() => {
-          throw new PaymentsApiError(0, 'checkout_unavailable', 'Razorpay Checkout could not load. Check your connection, or pay using UPI.')
+          throw new PaymentsApiError(0, 'checkout_unavailable', 'Razorpay Checkout could not load. Check your connection and try again.')
         }),
       ])
       orderRef.current = order
@@ -228,8 +226,8 @@ export function RazorpayPay({
         <p className="ip-fine">
           {onlinePaymentsEnabled() ? (
             <>
-              <a href={productId === 'invoice-pack' ? '#create' : '#advance'} className="ip-rzp-export-link">
-                {productId === 'invoice-pack' ? 'Export your final invoice' : 'Export your final receipt'}
+              <a href="#create" className="ip-rzp-export-link">
+                Export your final invoice
               </a>{' '}
               from this browser.{' '}
             </>
@@ -271,7 +269,7 @@ export function RazorpayPay({
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.25, ease: EASE_OUT }}
           >
-            <StatusMessage phase={phase} onUseUpi={onUseUpi} onRecheck={recheck} />
+            <StatusMessage phase={phase} onRecheck={recheck} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -284,20 +282,7 @@ export function RazorpayPay({
   )
 }
 
-function StatusMessage({
-  phase,
-  onUseUpi,
-  onRecheck,
-}: {
-  phase: Phase
-  onUseUpi: () => void
-  onRecheck: (orderRef: string) => void
-}) {
-  const useUpi = (
-    <button type="button" className="ip-plain ip-rzp-link" onClick={onUseUpi}>
-      Pay using UPI instead
-    </button>
-  )
+function StatusMessage({ phase, onRecheck }: { phase: Phase; onRecheck: (orderRef: string) => void }) {
   switch (phase.name) {
     case 'verifying':
       return (
@@ -325,14 +310,12 @@ function StatusMessage({
       return (
         <div className="ip-rzp-status ip-rzp-status--warn" role="status">
           <p>Checkout was closed before the payment finished. The order is not paid.</p>
-          {useUpi}
         </div>
       )
     case 'failed':
       return (
         <div className="ip-rzp-status ip-rzp-status--err" role="alert">
-          <p>{phase.message} You can try again, or use another method.</p>
-          {useUpi}
+          <p>{phase.message} You can try Razorpay again.</p>
         </div>
       )
     case 'error':
@@ -348,7 +331,6 @@ function StatusMessage({
               </>
             ) : null}
           </p>
-          {useUpi}
         </div>
       )
     default:
