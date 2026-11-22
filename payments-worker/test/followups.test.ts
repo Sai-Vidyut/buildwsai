@@ -2,12 +2,13 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { examplePack, type PackInput } from '../../src/invoice-pack/logic.ts'
 import { DEFAULT_TEMPLATES, renderTemplate, reminderSchedule } from '../../src/invoice-pack/reminders.ts'
-import type { EmailMessage, EmailProvider, SendResult } from '../src/email.ts'
+import { ResendProvider, type EmailMessage, type EmailProvider, type SendResult } from '../src/email.ts'
 import { MAX_SEND_ATTEMPTS, runDueReminders } from '../src/followups.ts'
 import { setup } from './helpers.ts'
 
 // examplePack(): invoice EX-1 dated 19 Nov 2026, due in 15 days.
 const BEFORE_INVOICE = new Date('2026-11-18T00:00:00Z')
+const FREELANCER_EMAIL = 'hello@freelancer.example'
 
 class FakeEmail implements EmailProvider {
   readonly name = 'fake'
@@ -49,7 +50,7 @@ function harness(options: { email?: FakeEmail | null; now?: Date } = {}) {
       orderRef: paid.orderRef,
       accessToken: paid.accessToken,
       input: examplePack(),
-      contact: { clientEmail: 'accounts@client.example', clientPhone: '+91 98765 43210' },
+      contact: { clientEmail: 'accounts@client.example', clientPhone: '+91 98765 43210', replyTo: FREELANCER_EMAIL },
       schedule: { enabled: true, secondDelayDays: 7, thirdDelayDays: 14 },
       consent: true,
       ...overrides,
@@ -137,6 +138,75 @@ describe('follow-up setup', () => {
     assert.equal(resume.status, 422)
     await h.cron('2026-12-10T00:00:00Z')
     assert.equal(h.email.attempts.length, 0)
+  })
+
+  it('requires the freelancer’s email for client replies whenever a client email is given', async () => {
+    const h = harness()
+    const order = await h.t.paidOrder()
+    for (const replyTo of [undefined, '', '   ']) {
+      const { res } = await h.create({ contact: { clientEmail: 'accounts@client.example', replyTo } }, order)
+      assert.equal(res.status, 422, String(replyTo))
+      assert.ok(res.json.error.details.some((d: string) => d.includes('replies reach you')))
+    }
+    const badReply = await h.create({ contact: { clientEmail: 'accounts@client.example', replyTo: 'nope' } }, order)
+    assert.equal(badReply.res.status, 422)
+    assert.equal(h.t.count('client_invoices'), 0)
+
+    const { id, token } = await h.create({}, order)
+    const cleared = await h.manage(id, token, 'update_contact', { contact: { clientEmail: 'accounts@client.example' } })
+    assert.equal(cleared.status, 422)
+    assert.equal((await h.manage(id, token, 'view')).json.followup.contact.replyTo, FREELANCER_EMAIL)
+  })
+
+  it('emails the client with the freelancer as reply-to, never the Invoice Pack sender', async () => {
+    const h = harness()
+    await h.create()
+    await h.cron('2026-11-19T04:30:00Z')
+    assert.equal(h.email.delivered.length, 1)
+    assert.equal(h.email.delivered[0].to, 'accounts@client.example')
+    assert.equal(h.email.delivered[0].replyTo, FREELANCER_EMAIL)
+  })
+
+  it('sends reply_to to Resend with the Invoice Pack address only as the sender', async () => {
+    const requests: Array<{ url: string; body: Record<string, unknown> }> = []
+    const resend = new ResendProvider('re_test_key', 'reminders@buildwsai.online', async (url, init) => {
+      requests.push({ url: String(url), body: JSON.parse(String(init?.body)) })
+      return new Response(JSON.stringify({ id: 'em_1' }), { status: 200 })
+    })
+    const result = await resend.send({
+      to: 'accounts@client.example',
+      subject: 'Invoice EX-1',
+      text: 'Hello',
+      fromName: 'Asha Design',
+      replyTo: FREELANCER_EMAIL,
+      idempotencyKey: 'rem_1',
+    })
+    assert.deepEqual(result, { ok: true, id: 'em_1' })
+    assert.equal(requests[0].url, 'https://api.resend.com/emails')
+    assert.equal(requests[0].body.reply_to, FREELANCER_EMAIL)
+    assert.equal(requests[0].body.from, '"Asha Design via Invoice Pack" <reminders@buildwsai.online>')
+    assert.deepEqual(requests[0].body.to, ['accounts@client.example'])
+  })
+
+  it('does not email a follow-up saved without a reply-to address', async () => {
+    const h = harness()
+    const { id, token } = await h.create()
+    h.t.sqlite.prepare('UPDATE client_invoices SET reply_to = NULL WHERE id = ?').run(id)
+    await h.cron('2026-11-19T04:30:00Z')
+    assert.equal(h.email.attempts.length, 0)
+    const first = h.reminders(id)[0]
+    assert.equal(first.status, 'failed')
+    assert.match(String(first.error_reason), /email address for client replies/)
+    assert.equal((await h.manage(id, token, 'retry', { stage: 1 })).status, 422)
+
+    const fixed = await h.manage(id, token, 'update_contact', {
+      contact: { clientEmail: 'accounts@client.example', replyTo: FREELANCER_EMAIL },
+    })
+    assert.equal(fixed.status, 200)
+    assert.equal((await h.manage(id, token, 'retry', { stage: 1 })).status, 200)
+    await h.cron('2026-11-19T04:45:00Z')
+    assert.equal(h.email.delivered.length, 1)
+    assert.equal(h.email.delivered[0].replyTo, FREELANCER_EMAIL)
   })
 
   it('allows one follow-up per order, for the invoice the order covers', async () => {

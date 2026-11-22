@@ -26,9 +26,12 @@ export function createD1(): { d1: D1Database; sqlite: DatabaseSync } {
         params = values as SQLInputValue[]
         return statement
       },
-      async run() {
+      runSync() {
         const result = sqlite.prepare(sql).run(...params)
         return { success: true, meta: { changes: Number(result.changes) } }
+      },
+      async run() {
+        return statement.runSync()
       },
       async first<T>() {
         const row = sqlite.prepare(sql).get(...params)
@@ -40,12 +43,12 @@ export function createD1(): { d1: D1Database; sqlite: DatabaseSync } {
     }
     return statement
   }
-  // D1 runs a batch as one transaction.
-  const batch = async (statements: { run(): Promise<unknown> }[]) => {
+  // D1 runs a batch as one transaction that no other request can interleave with.
+  const batch = async (statements: { runSync(): unknown }[]) => {
     sqlite.exec('BEGIN')
     try {
       const results = []
-      for (const statement of statements) results.push(await statement.run())
+      for (const statement of statements) results.push(statement.runSync())
       sqlite.exec('COMMIT')
       return results
     } catch (error) {
@@ -118,7 +121,9 @@ export function checkoutSignature(orderId: string, paymentId: string, secret = K
   return hmacSha256Hex(secret, `${orderId}|${paymentId}`)
 }
 
-export function setup(options: { limiter?: RateLimiter; emailProvider?: EmailProvider | null; now?: () => Date } = {}) {
+export const ADMIN_KEY = 'admin-key-for-tests-only-0123456789abcdefABCDEF'
+
+export function setup(options: { limiter?: RateLimiter; emailProvider?: EmailProvider | null; now?: () => Date; adminKeyHash?: string } = {}) {
   const { d1, sqlite } = createD1()
   const razorpay = new FakeRazorpay()
   const env: Env = {
@@ -129,6 +134,7 @@ export function setup(options: { limiter?: RateLimiter; emailProvider?: EmailPro
     ALLOWED_ORIGINS: `${ORIGIN},http://localhost:5173`,
     ORDER_LIMITER: options.limiter,
     VERIFY_LIMITER: options.limiter,
+    ADMIN_KEY_SHA256: options.adminKeyHash,
   }
   const handle = createHandler(razorpay.fetch, options.now, { emailProvider: () => options.emailProvider ?? null })
   const responses: string[] = []

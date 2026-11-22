@@ -45,6 +45,33 @@ export function newFollowupId(): string {
 
 export const FOLLOWUP_ID_PATTERN = /^FU-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
 
+function randomSymbols(count: number): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(count)), (b) => REF_ALPHABET[b & 31]).join('')
+}
+
+// Grants (GR), admin passes (AP) and promo code ids (PC) are non-secret, unguessable identifiers.
+export function newAccessRef(prefix: 'GR' | 'AP' | 'PC'): string {
+  return `${prefix}-${randomSymbols(20)}`
+}
+
+export const GRANT_REF_PATTERN = /^GR-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+export const ADMIN_PASS_ID_PATTERN = /^AP-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+export const PROMO_ID_PATTERN = /^PC-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+
+// A redeemable promo code: 20 symbols (100 bits) in groups of five, e.g. IPC-ABCDE-FGHJK-LMNPQ-RSTUV.
+export function newPromoCode(): string {
+  const symbols = randomSymbols(20)
+  return `IPC-${symbols.match(/.{5}/g)!.join('-')}`
+}
+
+// Accepts the code with any case, spaces or hyphens; returns the canonical form, or null.
+export function canonicalPromoCode(input: unknown): string | null {
+  if (typeof input !== 'string' || input.length > 64) return null
+  const compact = input.toUpperCase().replace(/[\s-]+/g, '')
+  const match = /^IPC([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20})$/.exec(compact)
+  return match ? `IPC-${match[1].match(/.{5}/g)!.join('-')}` : null
+}
+
 export function newClaimId(): string {
   return toHex(crypto.getRandomValues(new Uint8Array(16)).buffer as ArrayBuffer)
 }

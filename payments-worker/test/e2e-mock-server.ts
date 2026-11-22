@@ -22,6 +22,7 @@ const env = {
   RAZORPAY_KEY_SECRET: KEY_SECRET,
   RAZORPAY_WEBHOOK_SECRET: WEBHOOK_SECRET,
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS ?? 'http://127.0.0.1:4173,http://localhost:4173',
+  ADMIN_KEY_SHA256: process.env.ADMIN_KEY_SHA256,
 }
 
 createServer(async (req, res) => {

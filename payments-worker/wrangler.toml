@@ -7,6 +7,7 @@ workers_dev = true
 #   wrangler secret put RAZORPAY_KEY_ID
 #   wrangler secret put RAZORPAY_KEY_SECRET
 #   wrangler secret put RAZORPAY_WEBHOOK_SECRET
+#   wrangler secret put ADMIN_KEY_SHA256   (optional; SHA-256 hex of your admin key, enables the admin API)
 # For `wrangler dev`, copy .dev.vars.example to .dev.vars (git-ignored).
 
 [vars]
@@ -37,6 +38,12 @@ simple = { limit = 10, period = 60 }
 name = "VERIFY_LIMITER"
 namespace_id = "4902"
 simple = { limit = 30, period = 60 }
+
+# Admin API and admin-key attempts. Kept strict to slow down guessing.
+[[ratelimits]]
+name = "ADMIN_LIMITER"
+namespace_id = "4903"
+simple = { limit = 10, period = 60 }
 
 [observability]
 enabled = true

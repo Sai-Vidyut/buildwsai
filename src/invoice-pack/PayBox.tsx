@@ -6,6 +6,7 @@ import { newOrderRef, upiPayUri } from './logic'
 import { loadOrders, saveOrder, type StoredOrder } from './storage'
 import { copyText } from './copy'
 import { onlinePaymentsEnabled, type ProductId } from './payments-api'
+import { FreeAccess } from './FreeAccess'
 import { RazorpayPay } from './RazorpayPay'
 
 function QrCode({ text, label }: { text: string; label: string }) {
@@ -98,6 +99,7 @@ export function PayBox({ checkout }: { checkout: Checkout }) {
           <div id={panelId('upi')} role="tabpanel" aria-labelledby={tabId('upi')} hidden={method !== 'upi'}>
             <UpiPay checkout={checkout} amount={amount} />
           </div>
+          {checkout.prefix === 'IP' ? <FreeAccess /> : null}
         </>
       ) : (
         <UpiPay checkout={checkout} amount={amount} />

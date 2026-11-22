@@ -4,9 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 
-const INVOICE_TITLE = 'Invoice Pack — ₹499 for one client invoice and three reminders'
+const INVOICE_TITLE = 'Invoice Pack for Freelancers | BuildWSai'
 const INVOICE_DESCRIPTION =
-  'Invoice Pack for freelancers in India. ₹499 for one draft invoice and three payment reminders. Advance Receipt is ₹399. Pay by UPI. A UTR is not proof of payment.'
+  'Create a print-ready invoice for a finished freelance job, with GST when it applies, and three payment reminders. ₹499 one-time, for freelancers in India.'
+const INVOICE_OG_IMAGE = 'https://buildwsai.online/og-invoice-pack.png'
+const INVOICE_OG_IMAGE_ALT =
+  'A sample Invoice Pack tax invoice from Example Studio to Sample Client Pvt Ltd, with IGST and a balance due of ₹56,640.'
+const PORTFOLIO_OG_IMAGE = 'https://buildwsai.online/og-image.png'
+const PORTFOLIO_OG_IMAGE_ALT = 'BuildWSai — Systems Engineer portfolio by Sai Vidyut C'
 const PORTFOLIO_DESCRIPTION =
   'Sai Vidyut C — Engineer building geospatial intelligence, agent spend guardrails, and deterministic AI systems.'
 
@@ -38,6 +43,8 @@ function invoicePackShell(): Plugin {
         '<meta property="og:url" content="https://buildwsai.online/" />',
         '<meta property="og:url" content="https://buildwsai.online/invoice-pack" />',
       )
+      html = html.replaceAll(`content="${PORTFOLIO_OG_IMAGE}"`, `content="${INVOICE_OG_IMAGE}"`)
+      html = html.replaceAll(`content="${PORTFOLIO_OG_IMAGE_ALT}"`, `content="${INVOICE_OG_IMAGE_ALT}"`)
       html = html.replace(
         '<meta name="theme-color" content="#fafafa" />',
         '<meta name="theme-color" content="#f6f5f2" />',

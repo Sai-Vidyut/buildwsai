@@ -693,6 +693,23 @@ html.ip-root {
   font-size: 0.92rem;
 }
 
+.ip-price-promise {
+  display: inline-flex;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  color: var(--ip-ink);
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.ip-price-promise svg,
+.ip-pricing-promise svg {
+  flex: none;
+  color: var(--ip-accent);
+}
+
 .ip-hero-visual {
   position: relative;
   min-width: 0;
@@ -2175,6 +2192,67 @@ html.ip-root {
   letter-spacing: -0.045em;
 }
 
+.ip-pricing-promise {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.9rem 0 1.1rem;
+  color: var(--ip-ink);
+  font-size: clamp(1.1rem, 1.6vw, 1.3rem);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.ip-pricing-promise svg {
+  margin-top: 0.3em;
+}
+
+.ip-pricing-promise-note {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--ip-muted);
+  font-size: 0.92rem;
+  font-weight: 400;
+}
+
+.ip-wa-row {
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ip-line);
+  color: var(--ip-ink-2);
+  font-size: 0.95rem;
+}
+
+.invoice-pack a.ip-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ip-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--ip-line-strong);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color 0.2s var(--ip-ease);
+}
+
+.invoice-pack a.ip-wa:hover {
+  text-decoration-color: currentColor;
+}
+
+.invoice-pack a.ip-wa svg {
+  flex: none;
+  color: var(--ip-ok);
+}
+
+.ip-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .ip-pay-intro {
   margin-top: 1.75rem;
   padding-top: 1.25rem;
@@ -3216,5 +3294,180 @@ html.ip-root {
 
   .ip-wrap {
     width: auto;
+  }
+}
+
+/* —— Free access (admin pass or promo code) —— */
+
+.ip-free {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ip-line);
+}
+
+.ip-free-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.ip-free-form {
+  display: grid;
+  gap: 0.6rem;
+  overflow: hidden;
+}
+
+/* —— Admin (owner only, /invoice-pack#admin) —— */
+
+.ip-admin {
+  min-height: 70vh;
+}
+
+.ip-admin-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ip-admin-title {
+  margin: 0.3rem 0 0;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.1;
+}
+
+.ip-admin-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.ip-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.ip-admin-wide {
+  grid-column: 1 / -1;
+}
+
+.ip-admin-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1.2rem 1.25rem;
+  border: 1px solid var(--ip-line);
+  border-radius: 14px;
+  background: var(--ip-white);
+  min-width: 0;
+}
+
+.ip-admin-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.ip-admin-signin {
+  max-width: 30rem;
+}
+
+.ip-admin-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.invoice-pack ul.ip-admin-list {
+  display: grid;
+  gap: 0;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ip-admin-list li {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--ip-line);
+  overflow-wrap: anywhere;
+}
+
+.ip-admin-code code {
+  display: block;
+  padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--ip-line-strong);
+  border-radius: 10px;
+  background: var(--ip-paper);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.ip-admin-table-wrap {
+  overflow-x: auto;
+}
+
+.ip-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.ip-admin-table th {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--ip-line-strong);
+  color: var(--ip-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ip-admin-table td {
+  padding: 0.7rem 0.6rem;
+  border-bottom: 1px solid var(--ip-line);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.ip-admin-confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .ip-admin-table thead {
+    display: none;
+  }
+
+  .ip-admin-table tr {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--ip-line);
+  }
+
+  .ip-admin-table td {
+    padding: 0;
+    border: 0;
   }
 }

@@ -32,6 +32,8 @@ Invoice Pack (₹499) and Advance Receipt (₹399) can be paid through Razorpay 
 - The build reads `VITE_PAYMENTS_API_URL` (GitHub repository variable `PAYMENTS_API_URL`). When it is empty, only the direct UPI option is shown and documents print freely as before.
 - When it is set, the invoice preview hides amounts and payment details, the receipt preview is watermarked, and the final invoice or receipt is exported by the Worker only for a paid order.
 - After paying, the freelancer can schedule three payment reminders to their client (day 0/7/14 by default, 10:00 IST). A Cron Trigger emails them when `RESEND_API_KEY` and `EMAIL_FROM` are set; otherwise they are drafts to copy or open in an email app. See [Payment follow-ups](docs/payments/razorpay-setup.md#payment-follow-ups).
+- The owner can unlock Invoice Pack for free and issue one-time promotional codes from `/invoice-pack#admin`. Every admin action and every free unlock is authorized by the Worker, and nothing is recorded as a Razorpay payment. See [Free access](docs/payments/razorpay-setup.md#free-access-admin-and-promotional-codes).
+- The `/invoice-pack` share image (`public/og-invoice-pack.png`) is the landing page's sample invoice rendered by the Worker's own export template. Regenerate it after changing the sample or the invoice design with `npm run og:invoice-pack` (needs Chrome; set `CHROME_PATH` if it is not on `PATH`).
 - Setup, architecture, costs, and the test-to-live switch: [`docs/payments/razorpay-setup.md`](docs/payments/razorpay-setup.md).
 - Backend tests: `cd payments-worker && npm ci && npm test`.
 

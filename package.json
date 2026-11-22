@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "check:pack": "node --experimental-strip-types src/invoice-pack/selfcheck.ts",
     "test:payments": "npm --prefix payments-worker test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "og:invoice-pack": "node --experimental-strip-types scripts/og-invoice-pack.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

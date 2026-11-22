@@ -7,3 +7,5 @@ ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 # Optional: client reminder email through Resend. Leave unset to keep reminders as drafts.
 # RESEND_API_KEY=
 # EMAIL_FROM=reminders@your-verified-domain.example
+# Optional: SHA-256 (hex) of a local admin key, to try the owner-only admin page at /invoice-pack#admin.
+# ADMIN_KEY_SHA256=

@@ -61,9 +61,13 @@ All responses are JSON with `Cache-Control: no-store`. Errors are `{ "error": { 
 | `POST /api/payments/verify` | `{ orderRef, razorpay_order_id, razorpay_payment_id, razorpay_signature }` | Rate limit 30/min per IP. Returns the order view; repeat calls return `alreadyVerified: true`. 400 for bad signature, wrong order, or wrong amount. 409 if the order was already paid by a different payment. |
 | `GET /api/payments/orders/:orderRef` | — | Returns `{ orderRef, productId, productName, amount, currency, status, razorpayPaymentId, paidAt }`. Reconciles an `authorized` order with Razorpay. Order refs carry 100 random bits, so they cannot be guessed. |
 | `POST /api/payments/webhook` | Razorpay event (raw) | Requires a valid `X-Razorpay-Signature`. No CORS. Always 2xx once processed or deduplicated; 5xx on processing errors so Razorpay retries. |
-| `POST /api/payments/exports/invoice` and `/exports/receipt` | `{ orderRef, accessToken, input }` | Rate limit 30/min per IP, body ≤ 16 KB. Returns `{ html, filename, exportsUsed, exportsLimit }`. 403 `not_entitled` (unknown order, wrong token, or order from the other key mode), 403 `wrong_product`, 402 `payment_required`, 422 `document_incomplete`, 409 `document_mismatch`, 429 `export_limit`. |
+| `POST /api/payments/exports/invoice` and `/exports/receipt` | `{ orderRef, accessToken, input }` (`orderRef` may be a paid order or a `GR-` grant) | Rate limit 30/min per IP, body ≤ 16 KB. Returns `{ html, filename, exportsUsed, exportsLimit }`. 403 `not_entitled` (unknown order, wrong token, or order from the other key mode), 403 `wrong_product`, 402 `payment_required`, 422 `document_incomplete`, 409 `document_mismatch`, 429 `export_limit`. |
 | `POST /api/payments/followups` | `{ orderRef, accessToken, input, contact, schedule, templates?, invoiceLink?, consent: true }` | Rate limit 30/min per IP, body ≤ 32 KB. Needs a paid Invoice Pack order and its token; binds or must match the order's invoice number. Returns 201 `{ followup, manageToken }`; `manageToken` is returned once and only its SHA-256 is stored. 400 `consent_required`, 402, 403, 409 `document_mismatch` or `followup_exists`, 422 `invalid_followup` with `details`. |
 | `POST /api/payments/followups/manage` | `{ id, token, action, … }` | Rate limit 30/min per IP. `action` is `view`, `pause`, `resume`, `reschedule`, `update_template`, `update_contact`, `mark_paid`, `mark_sent`, or `retry`. Needs the follow-up's own `manageToken`; the purchase token does not work. 403 `not_authorized` for a wrong token, unknown id, or a follow-up from the other key mode. 409 `invoice_paid` or `reminder_locked`. |
+| `POST /api/payments/grants/redeem` | `{ code, email? }` | Rate limit 10/min per IP. Redeems a one-time promo code. Returns 201 `{ grantRef, accessToken, productId, source: "promo_grant" }`; `accessToken` is returned once. Every refusal (unknown, used, expired, revoked, other key mode, email mismatch) is the same 403 `code_invalid`; the reason goes only to the audit trail. |
+| `POST /api/payments/grants/admin` | `{ passToken }` | Rate limit 10/min per IP. Uses a valid admin pass to grant one free Invoice Pack purchase. Returns 201 like `redeem` with `source: "admin_grant"`. 403 `admin_pass_invalid` for an unknown, revoked or other-mode pass. |
+| `GET /api/payments/grants/:grantRef` | — | `{ grantRef, productId, source, status: "active", grantedAt }`, or 404 when unknown or from the other key mode. Grant refs carry 100 random bits. |
+| `POST /api/payments/admin` | `{ action, … }` with header `Authorization: Bearer <admin key>` | Owner only. Rate limit 10/min per IP (`ADMIN_LIMITER`). 404 when `ADMIN_KEY_SHA256` is not set, 401 `admin_unauthorized` for a missing or wrong key. Actions: `overview`, `create_code` (`email?`, `expiresAt?`, `note?`; returns the plaintext `code` once), `revoke_code` (`codeId`; unused codes only, else 409), `create_admin_pass` (`label?`; returns `passToken` once), `revoke_admin_pass` (`passId`). Every response lists admin passes, codes with their status, and the latest audit events; never a hash or a key. |
 | `GET /api/payments/health` | — | `{ ok, configured, emailDelivery }`. Shows whether secrets are set, never their values. |
 
 CORS allows only the origins in `ALLOWED_ORIGINS` (default `https://buildwsai.online,https://www.buildwsai.online`). Requests from any other browser origin get 403. No cookies or credentials are used.
@@ -99,7 +103,7 @@ After paying for Invoice Pack, the freelancer can schedule three reminders to th
 
 **Delivery.**
 
-- With `RESEND_API_KEY` and `EMAIL_FROM` set, the Cron Trigger emails due reminders through Resend, from `"<freelancer> via Invoice Pack" <EMAIL_FROM>`, with the freelancer's reply-to address.
+- With `RESEND_API_KEY` and `EMAIL_FROM` set, the Cron Trigger emails due reminders through Resend, from `"<freelancer> via Invoice Pack" <EMAIL_FROM>`, with `reply_to` set to the freelancer's own email address, so a client's reply goes to the freelancer and never to BuildWSai. That address is required whenever a client email is given (setup, contact edits, resume and retry all check it), and the scheduler never emails a follow-up that lacks one: the reminder is marked failed with a request to add it. `EMAIL_FROM` only needs to be on the domain whose SPF and DKIM records are verified in Resend.
 - Without them, nothing is sent. The page labels each reminder **Draft · not sent** and offers **Copy message**, **Open email draft** (a `mailto:` link) and **I sent this myself**. A reminder is only ever shown as sent after the provider accepted it or the freelancer recorded it.
 - WhatsApp is not implemented. The client phone number is stored for the freelancer's records only.
 
@@ -111,17 +115,44 @@ After paying for Invoice Pack, the freelancer can schedule three reminders to th
 
 **Contact data retention.** The client's email, phone, reply-to address and payment instructions are deleted by the scheduler once the follow-up has had **no activity for 90 days**. Activity means any reminder being sent, edited, skipped or otherwise changed, or any freelancer action. The only things that keep contact details beyond that are a reminder being sent right now, or a reminder that is scheduled and can still be sent (invoice unpaid, reminders on, current key mode). Paused, paid, failed, cancelled and completed follow-ups therefore all expire 90 days after their last activity, and a completed one is kept for 90 days after its last reminder went out. On deletion, remaining paused or scheduled reminders are cancelled and a `contact_removed` entry is added to the history. If the Worker has no Razorpay key configured, nothing is deleted, because it cannot tell which follow-ups are still live.
 
+## Free access: admin and promotional codes
+
+Free Invoice Pack access uses explicit grant records and never touches Razorpay data. Nothing is written to `orders`, `payments` or `webhook_events`, so a grant can never look like a payment, be refunded, or be confirmed by a webhook.
+
+**How the owner is identified.** The site has no user accounts; the only credentials are per-purchase bearer tokens. Admin follows the same model:
+
+1. **Admin key.** You generate a long random key and keep it in your password manager. The Worker stores only its SHA-256 as the secret `ADMIN_KEY_SHA256`, so the key is not in the frontend bundle, the repository or D1. Every request to `POST /api/payments/admin` must send it as `Authorization: Bearer …`. The Worker hashes and compares it in constant time, behind a 10/min per-IP limit. Without the secret, the admin API returns 404.
+2. **Admin page.** Open `https://buildwsai.online/invoice-pack#admin`, which is not linked anywhere. The page keeps the key only in memory for that tab and never saves it. The page itself grants nothing; every action is authorized by the Worker.
+3. **Permanent admin access (`admin_grant`).** **Turn on admin access in this browser** creates an admin pass: a 256-bit token stored in that browser, with only its hash in `admin_passes`. The pass can claim any number of free Invoice Pack purchases, one per invoice, from the pay box (**Unlock this invoice with admin access**). It cannot manage codes; that always needs the admin key. Each claim creates an `access_grants` row with `source = 'admin_grant'`. Passes are tied to the key mode in use when they were created, and you can revoke any pass from the admin page. Invoices already unlocked keep working after their pass is revoked.
+
+**Promotional codes (`promo_grant`).**
+
+- **Format and storage.** Codes look like `IPC-XXXXX-XXXXX-XXXXX-XXXXX`: 20 symbols drawn with `crypto.getRandomValues`, about 100 bits. Only a SHA-256 of the code and its last four characters (for recognising it in the list) are stored. The plaintext is shown once, when created.
+- **Options.** A code can be restricted to an email address (case-insensitive) and can have an expiry. A bare date means the end of that day in India; expiry can be at most a year away. Codes belong to the key mode they were created in, so a test-mode code never works with live keys.
+- **Redemption.** Redeeming a code creates one grant: one complete Invoice Pack, with the final export and client follow-ups. The claim is a single conditional `UPDATE` (not redeemed, not revoked, not expired, matching mode and email) in the same D1 transaction as the grant insert. Concurrent or replayed requests therefore produce exactly one grant. `promo_code_id` is also `UNIQUE` on `access_grants`. A redeemed code never works again and cannot be revoked; only unused codes can be revoked.
+- **Status.** Unused, redeemed, expired or revoked. The list shows the redemption time, the email given at redemption, and the grant it created.
+
+**What a grant unlocks.** The export and follow-up endpoints run the same server-side check for a paid order and for a grant: the secret's hash, the key mode, and the product (grants are Invoice Pack only). The same rules then apply: one invoice number per grant, 20 exports, and one follow-up per grant. Ordinary customers still need a Razorpay payment verified by signature or webhook; nothing in this feature changes that path.
+
+**Audit trail.** `access_events` records each code's creation, redemption, refused redemptions (with the reason), expiry and revocation, and each admin pass's creation, use and revocation. Expiry is recorded the first time anything runs after the expiry time: the 15-minute Cron Trigger, a redemption attempt, or the admin page. A code is refused from the moment it expires regardless.
+
+**Personal data.** An email restriction, and the email given when redeeming, are stored with the code so the admin can see who used it. They are shown only on the admin page.
+
 ## Database schema (D1)
 
-Defined in `payments-worker/migrations/0001_init.sql`, `0002_entitlements.sql` and `0003_client_followups.sql`.
+Defined in `payments-worker/migrations/0001_init.sql`, `0002_entitlements.sql`, `0003_client_followups.sql` and `0004_free_access.sql`.
 
 - **`orders`** — `id` (internal reference such as `IP-7KQ…`, primary key), `product_id`, `amount_paise`, `currency`, `mode` (test/live), `razorpay_order_id` (unique), `razorpay_payment_id` (unique), `status`, `failure_code`, `paid_at`, `created_at`, `updated_at`. Index on `(status, created_at)`. From migration 0002: `access_token_hash`, `document_key`, `export_count`, `last_export_at`.
 - **`payments`** — ledger, one row per Razorpay payment attempt. `razorpay_payment_id` is the primary key, so a payment can never be recorded twice. Columns: `order_id`, `amount_paise`, `currency`, `status` (authorized/captured/failed), `method`, `error_code`, `source` (verify/webhook/reconcile), timestamps. A captured row is never downgraded.
 - **`webhook_events`** — `event_id` (primary key), `event_type`, `razorpay_order_id`, `razorpay_payment_id`, `status` (received/processed/ignored/failed), `note`, `attempts`, `received_at`, `processed_at`.
 
-- **`client_invoices`** (0003) — one per follow-up: `order_id` (unique, references `orders`), `manage_token_hash`, `mode`, invoice snapshot (business and client name, invoice number, amount, dates, payment instructions, optional https link), client contact details, delays (checked 1–60 and 2–90, third after second), `reminders_enabled`, `payment_status` (unpaid/paid), `paid_source` (only `freelancer_confirmed`), `consent_at`, `contact_purged_at`.
+- **`client_invoices`** (0003, rebuilt in 0004) — one per follow-up: exactly one of `order_id` (unique, references `orders`) or `grant_id` (unique, references `access_grants`), `manage_token_hash`, `mode`, invoice snapshot (business and client name, invoice number, amount, dates, payment instructions, optional https link), client contact details, delays (checked 1–60 and 2–90, third after second), `reminders_enabled`, `payment_status` (unpaid/paid), `paid_source` (only `freelancer_confirmed`), `consent_at`, `contact_purged_at`.
 - **`client_reminders`** (0003) — three per invoice, unique on `(invoice_id, stage)`: subject and body templates, `status`, `due_at` and `next_attempt_at` (UTC), `attempts`, `claim_id`, `sent_at`, `sent_via` (provider/manual), `provider_message_id`, `error_reason`. Indexed on `(status, next_attempt_at)`.
 - **`client_reminder_events`** (0003) — history per invoice: stage, event, detail, time.
+- **`admin_passes`** (0004) — permanent admin access per browser: `label`, `token_hash` (unique), `mode`, `created_at`, `last_used_at`, `revoked_at`.
+- **`promo_codes`** (0004) — `code_hash` (unique), `code_hint` (last four characters), `mode`, `note`, `bound_email`, `expires_at`, `redeemed_at`, `redeemed_email`, `grant_id` (unique), `revoked_at`, `expired_at`. A code cannot be both redeemed and revoked.
+- **`access_grants`** (0004) — one free Invoice Pack purchase: `source` (`admin_grant` or `promo_grant`), `mode`, `access_token_hash`, `admin_pass_id` or `promo_code_id` (unique), `document_key`, `export_count`, `last_export_at`. A check constraint ties each source to its parent.
+- **`access_events`** (0004) — append-only audit trail: subject (admin pass or promo code), event, actor (admin, holder, system), detail, time.
 
 Personal data: Razorpay purchases store none; Razorpay keeps the buyer's contact details on its side. Follow-ups store the client contact details the freelancer enters, with their confirmation of consent, only for sending the reminders, and delete them after 90 days without activity (see [Contact data retention](#payment-follow-ups)). They are returned only to the holder of the follow-up's `manageToken`.
 
@@ -174,7 +205,7 @@ Copy the printed `database_id` into `payments-worker/wrangler.toml`, replacing `
 npm run db:migrate:remote
 ```
 
-This applies every migration in `migrations/` that has not run yet (0001, 0002 and 0003). Run it again after pulling a branch that adds a migration, before deploying the Worker.
+This applies every migration in `migrations/` that has not run yet (0001 to 0004). Run it again after pulling a branch that adds a migration, before deploying the Worker. Migration 0004 rebuilds `client_invoices` so a follow-up can belong to a grant; it copies every existing row and column, and D1 runs it in one transaction with foreign keys checked at commit.
 
 ### 5. Secrets
 
@@ -196,6 +227,17 @@ npx wrangler secret put RESEND_API_KEY
 ```
 
 and set `EMAIL_FROM` (for example `reminders@buildwsai.online`, on the verified domain) under `[vars]` in `wrangler.toml`. Without both, follow-ups work in draft mode and nothing is emailed. `/health` reports `emailDelivery: true` once both are set.
+
+Optional, for the owner-only admin page and free access codes. Generate an admin key locally, store it in your password manager, and give the Worker only its hash:
+
+```bash
+openssl rand -base64 48 | tr -d '\n/+=' > admin-key.txt                   # your admin key; keep it private
+tr -d '\n' < admin-key.txt | sha256sum | cut -d' ' -f1                   # paste this hash at the next prompt
+npx wrangler secret put ADMIN_KEY_SHA256
+rm admin-key.txt                                                         # after saving the key in your password manager
+```
+
+Without `ADMIN_KEY_SHA256` the admin API returns 404. To rotate the key, put a new hash; existing admin passes and codes keep working, and you can revoke passes from the admin page.
 
 For local development, copy `.dev.vars.example` to `.dev.vars` (git-ignored), fill in test values, then run `npm run db:migrate:local` and `npm run dev`.
 
@@ -278,7 +320,7 @@ npm run typecheck
 npm test
 ```
 
-The tests run the real Worker handler against an in-memory SQLite database loaded from the real migration (standing in for D1) and a fake Razorpay API that signs payments the same way Razorpay does. They cover order creation for both products, rejection of client-supplied amounts, valid and invalid signatures, wrong order, wrong amount, duplicate verification, invalid and duplicate webhooks, failed and cancelled payments, out-of-order events, CORS, rate limiting, that no response contains a secret, protected exports (unpaid, wrong token, wrong product, test-to-live switch, document binding, export cap, recomputed totals, HTML escaping, no content in refused responses), and follow-ups (`test/followups.test.ts`: default and custom schedules, invalid intervals, consent and contact checks, authorization, duplicate and concurrent cron runs, paused reminders, retries with backoff, interrupted sends, mark-paid cancellation, pause and mark-paid racing a claimed or in-flight send, resuming after one, two or all reminder dates passed (with and without sending the latest missed one), draft mode, test-to-live isolation, contact retention for paused, paid, failed, completed, other-mode and in-flight follow-ups, history, IST and UTC times). They run in CI through `.github/workflows/payments-worker.yml`.
+The tests run the real Worker handler against an in-memory SQLite database loaded from the real migration (standing in for D1) and a fake Razorpay API that signs payments the same way Razorpay does. They cover order creation for both products, rejection of client-supplied amounts, valid and invalid signatures, wrong order, wrong amount, duplicate verification, invalid and duplicate webhooks, failed and cancelled payments, out-of-order events, CORS, rate limiting, that no response contains a secret, protected exports (unpaid, wrong token, wrong product, test-to-live switch, document binding, export cap, recomputed totals, HTML escaping, no content in refused responses), free access (`test/access.test.ts`: admin authentication and rate limiting, permanent admin passes, promo code creation, single and concurrent redemption, expiry, revocation, email binding, test/live separation, grants unlocking exports and follow-ups, no forged payments, and a data-preserving check of migration 0004), and follow-ups (`test/followups.test.ts`: default and custom schedules, invalid intervals, consent and contact checks, authorization, duplicate and concurrent cron runs, paused reminders, retries with backoff, interrupted sends, mark-paid cancellation, pause and mark-paid racing a claimed or in-flight send, resuming after one, two or all reminder dates passed (with and without sending the latest missed one), draft mode, test-to-live isolation, contact retention for paused, paid, failed, completed, other-mode and in-flight follow-ups, history, IST and UTC times). They run in CI through `.github/workflows/payments-worker.yml`.
 
 `test/e2e-mock-server.ts` serves the same handler over HTTP for local browser testing, with `MOCK_EMAIL=1` for a fake email outbox and `/__test/cron` to run the scheduler. It is never deployed.
 
@@ -298,3 +340,5 @@ The tests run the real Worker handler against an in-memory SQLite database loade
 - **A second capture on a paid order** (very rare; Razorpay blocks new payments once an order is paid) is recorded in the `payments` ledger and logged as `second_capture`, and the order keeps its first payment. Refund the extra payment from the Dashboard.
 - **Rate limits** are approximate and per Cloudflare location. They stop casual abuse, not a determined distributed attack. Razorpay order creation is free, so the impact of abuse is limited to D1 row writes.
 - **Direct UPI payments** remain manual: saving a UTR does not mark anything paid.
+- **Admin access depends on one secret and the browsers you enrol.** Anyone with the admin key can create codes and admin passes. Keep the key in a password manager, use it only on the admin page, and rotate `ADMIN_KEY_SHA256` if it may have leaked. A leaked admin pass gives free Invoice Pack purchases until you revoke it. There is no second factor; for that, put [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/) in front of `/api/payments/admin` so admin calls also need your Cloudflare login.
+- **Grants cannot be revoked once issued.** Revoking an admin pass or a code stops new grants, but an invoice already unlocked keeps its export and follow-ups, within the usual per-invoice limits.

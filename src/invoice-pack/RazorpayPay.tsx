@@ -7,6 +7,7 @@ import {
   createOrder,
   forgetOrder,
   getOrderStatus,
+  isGrantRef,
   onlinePaymentsEnabled,
   PaymentsApiError,
   recentOrders,
@@ -71,7 +72,7 @@ export function RazorpayPay({
 
   // Restore a confirmation after a reload. The server decides whether the order is paid.
   useEffect(() => {
-    const last = recentOrders(productId)[0]?.ref
+    const last = recentOrders(productId).find((held) => !isGrantRef(held.ref))?.ref
     if (!last) return
     let active = true
     getOrderStatus(last)

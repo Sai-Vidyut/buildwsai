@@ -1,3 +1,4 @@
+import { claimAdminGrant, expirePromoCodes, getGrantStatus, handleAdmin, redeemPromoCode } from './access.ts'
 import { emailProviderFor, type EmailProvider } from './email.ts'
 import { isConfigured, type Env, type RateLimiter } from './env.ts'
 import { clientIp, corsHeaders, errorResponse, HttpError, json, parseAllowedOrigins } from './http.ts'
@@ -8,6 +9,7 @@ import { RazorpayClient, type FetchLike } from './razorpay.ts'
 import { handleWebhook } from './webhook.ts'
 
 const STATUS_ROUTE = /^\/api\/payments\/orders\/([^/]{1,64})$/
+const GRANT_STATUS_ROUTE = /^\/api\/payments\/grants\/(GR-[^/]{1,61})$/
 
 async function enforceLimit(limiter: RateLimiter | undefined, key: string): Promise<void> {
   if (!limiter) return
@@ -81,6 +83,25 @@ export function createHandler(fetchImpl: FetchLike, now: () => Date = () => new 
         return path.endsWith('/manage') ? await manageFollowup(request, deps, provider) : await createFollowup(request, deps, provider)
       }
 
+      if (path === '/api/payments/admin') {
+        if (request.method !== 'POST') throw new HttpError(405, 'method_not_allowed', 'Method not allowed.')
+        await enforceLimit(env.ADMIN_LIMITER ?? env.ORDER_LIMITER, `admin:${clientIp(request)}`)
+        return await handleAdmin(request, deps)
+      }
+
+      if (path === '/api/payments/grants/redeem' || path === '/api/payments/grants/admin') {
+        if (request.method !== 'POST') throw new HttpError(405, 'method_not_allowed', 'Method not allowed.')
+        await enforceLimit(env.ORDER_LIMITER, `grant:${clientIp(request)}`)
+        return path.endsWith('/redeem') ? await redeemPromoCode(request, deps) : await claimAdminGrant(request, deps)
+      }
+
+      const grantMatch = GRANT_STATUS_ROUTE.exec(path)
+      if (grantMatch) {
+        if (request.method !== 'GET') throw new HttpError(405, 'method_not_allowed', 'Method not allowed.')
+        await enforceLimit(env.VERIFY_LIMITER, `status:${clientIp(request)}`)
+        return await getGrantStatus(grantMatch[1], deps)
+      }
+
       const statusMatch = STATUS_ROUTE.exec(path)
       if (statusMatch) {
         if (request.method !== 'GET') throw new HttpError(405, 'method_not_allowed', 'Method not allowed.')
@@ -108,6 +129,9 @@ export default {
       runDueReminders(env, emailProviderFor(env, fetchImpl), new Date())
         .then((result) => console.log('reminders.run', JSON.stringify(result)))
         .catch((error) => console.error('reminders.run_failed', error instanceof Error ? error.name : 'unknown')),
+    )
+    ctx.waitUntil(
+      expirePromoCodes(env.DB, new Date()).catch((error) => console.error('promo.expire_failed', error instanceof Error ? error.name : 'unknown')),
     )
   },
 } satisfies ExportedHandler<Env>
