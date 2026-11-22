@@ -4,6 +4,8 @@ import {
   ADVANCE_CHECKOUT,
   DEMO_RECEIPT,
   INVOICE_CHECKOUT,
+  INVOICE_TITLE,
+  WHATSAPP_URL,
   buildPack,
   buildReceipt,
   demoInput,
@@ -145,5 +147,10 @@ assert(
   sameStatePack.ok && sameStatePack.invoice?.taxLines.some((t) => t.name === 'CGST'),
   'state codes drive CGST when supplier and client match',
 )
+
+const whatsapp = new URL(WHATSAPP_URL)
+assert(whatsapp.origin === 'https://wa.me' && /^\/\d{11,15}$/.test(whatsapp.pathname), 'WhatsApp link is wa.me/<country code + number>')
+assert(whatsapp.searchParams.get('text') === "Hi, I'm interested in the Invoice Pack.", 'WhatsApp message is prefilled')
+assert(INVOICE_TITLE === 'Invoice Pack for Freelancers | BuildWSai', 'Invoice Pack page title')
 
 console.log('invoice pack checks ok')

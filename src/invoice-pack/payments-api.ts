@@ -65,13 +65,13 @@ const FRIENDLY: Record<number, string> = {
   503: 'Online payments are not available right now. You can still pay using UPI.',
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}, extraHeaders: Record<string, string> = {}): Promise<T> {
   if (!BASE_URL) throw new PaymentsApiError(0, 'not_configured', FRIENDLY[503])
   let response: Response
   try {
     response = await fetch(`${BASE_URL}${path}`, {
       ...init,
-      headers: init.body ? { 'Content-Type': 'application/json' } : undefined,
+      headers: { ...(init.body ? { 'Content-Type': 'application/json' } : {}), ...extraHeaders },
       credentials: 'omit',
       signal: AbortSignal.timeout(20_000),
     })
@@ -117,7 +117,12 @@ export function getOrderStatus(orderRef: string): Promise<OrderStatus> {
   return request<OrderStatus>(`/api/payments/orders/${encodeURIComponent(orderRef)}`)
 }
 
-const ORDER_REF = /^(IP|AR)-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+// IP/AR are Razorpay orders; GR is free access (admin or promo code) that unlocks the same features.
+const ORDER_REF = /^(IP|AR|GR)-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+
+export function isGrantRef(ref: string): boolean {
+  return ref.startsWith('GR-')
+}
 const ACCESS_TOKEN = /^[A-Za-z0-9_-]{43}$/
 const recentKey = (productId: ProductId) => `razorpay-orders-${productId}`
 
@@ -164,14 +169,113 @@ export function announcePaid(productId: ProductId): void {
 export async function findPaidOrder(productId: ProductId): Promise<HeldOrder | null> {
   for (const held of recentOrders(productId)) {
     try {
-      const status = await getOrderStatus(held.ref)
-      if (status.productId === productId && status.status === 'paid') return held
+      const status = isGrantRef(held.ref) ? await getGrantStatus(held.ref) : await getOrderStatus(held.ref)
+      if (status.productId === productId && (status.status === 'paid' || status.status === 'active')) return held
     } catch (error) {
       if (error instanceof PaymentsApiError && error.status === 404) forgetOrder(productId, held.ref)
       else throw error
     }
   }
   return null
+}
+
+// ---- Free access ---------------------------------------------------------------------------------
+
+export type GrantStatus = { grantRef: string; productId: ProductId; source: 'admin_grant' | 'promo_grant'; status: 'active'; grantedAt: string }
+export type IssuedGrant = { grantRef: string; accessToken: string; productId: 'invoice-pack'; source: 'admin_grant' | 'promo_grant' }
+
+export function getGrantStatus(ref: string): Promise<GrantStatus> {
+  return request<GrantStatus>(`/api/payments/grants/${encodeURIComponent(ref)}`)
+}
+
+function holdGrant(grant: IssuedGrant): IssuedGrant {
+  rememberOrder('invoice-pack', { ref: grant.grantRef, token: grant.accessToken })
+  announcePaid('invoice-pack')
+  return grant
+}
+
+export async function redeemPromoCode(code: string, email: string): Promise<IssuedGrant> {
+  const body = email.trim() ? { code, email: email.trim() } : { code }
+  return holdGrant(await request<IssuedGrant>('/api/payments/grants/redeem', { method: 'POST', body: JSON.stringify(body) }))
+}
+
+const ADMIN_PASS_KEY = 'invoice-pack-admin-pass'
+const ADMIN_PASS_ID = /^AP-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
+export type HeldAdminPass = { id: string; token: string }
+
+// The admin pass lets this browser claim free Invoice Pack purchases. The server checks it on every use
+// and the admin can revoke it; holding a stale copy here grants nothing.
+export function heldAdminPass(): HeldAdminPass | null {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(ADMIN_PASS_KEY) || 'null')
+    if (!parsed || typeof parsed !== 'object') return null
+    const { id, token } = parsed as Record<string, unknown>
+    return ADMIN_PASS_ID.test(String(id)) && ACCESS_TOKEN.test(String(token)) ? { id: String(id), token: String(token) } : null
+  } catch {
+    return null
+  }
+}
+
+export function rememberAdminPass(pass: HeldAdminPass): void {
+  try {
+    localStorage.setItem(ADMIN_PASS_KEY, JSON.stringify(pass))
+  } catch {
+    // Storage may be blocked; admin access then lasts only until the page closes.
+  }
+}
+
+export function forgetAdminPass(): void {
+  try {
+    localStorage.removeItem(ADMIN_PASS_KEY)
+  } catch {
+    // Nothing to clean up when storage is blocked.
+  }
+}
+
+export async function claimAdminGrant(pass: HeldAdminPass): Promise<IssuedGrant> {
+  return holdGrant(await request<IssuedGrant>('/api/payments/grants/admin', { method: 'POST', body: JSON.stringify({ passToken: pass.token }) }))
+}
+
+export type PromoCodeStatus = 'unused' | 'redeemed' | 'expired' | 'revoked'
+export type AdminPromoCode = {
+  id: string
+  hint: string
+  mode: 'test' | 'live'
+  note: string | null
+  boundEmail: string | null
+  expiresAt: string | null
+  createdAt: string
+  status: PromoCodeStatus
+  redeemedAt: string | null
+  redeemedEmail: string | null
+  grantRef: string | null
+  revokedAt: string | null
+}
+export type AdminPassInfo = {
+  id: string
+  label: string
+  mode: 'test' | 'live'
+  createdAt: string
+  lastUsedAt: string | null
+  revokedAt: string | null
+  status: 'active' | 'revoked' | 'other_mode'
+}
+export type AdminOverview = {
+  mode: 'test' | 'live'
+  adminPasses: AdminPassInfo[]
+  codes: AdminPromoCode[]
+  events: { subjectType: 'admin_pass' | 'promo_code'; subjectId: string; event: string; actor: string; detail: string | null; at: string }[]
+}
+export type AdminAction =
+  | { action: 'overview' }
+  | { action: 'create_code'; email?: string; expiresAt?: string; note?: string }
+  | { action: 'revoke_code'; codeId: string }
+  | { action: 'create_admin_pass'; label?: string }
+  | { action: 'revoke_admin_pass'; passId: string }
+
+// The admin key is sent only as a header to the admin endpoint and is never stored by this page.
+export function adminRequest<T = AdminOverview>(adminKey: string, action: AdminAction): Promise<T> {
+  return request<T>('/api/payments/admin', { method: 'POST', body: JSON.stringify(action) }, { Authorization: `Bearer ${adminKey}` })
 }
 
 export type ExportKind = 'invoice' | 'receipt'

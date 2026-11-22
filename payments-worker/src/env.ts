@@ -10,6 +10,9 @@ export type Env = {
   ALLOWED_ORIGINS?: string
   ORDER_LIMITER?: RateLimiter
   VERIFY_LIMITER?: RateLimiter
+  ADMIN_LIMITER?: RateLimiter
+  // SHA-256 (hex) of the owner's admin key. Without it, every admin endpoint returns 404.
+  ADMIN_KEY_SHA256?: string
   // Optional email delivery for client reminders. Without both, reminders become drafts the freelancer sends.
   RESEND_API_KEY?: string
   EMAIL_FROM?: string

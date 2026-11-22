@@ -291,6 +291,7 @@ function SetupForm({
     if (email.trim() && !isEmail(email.trim())) errors.push('Enter a valid client email address.')
     if (phone.trim() && !normalizePhone(phone)) errors.push('Enter the client phone number with digits only, for example +91 98765 43210.')
     if (replyTo.trim() && !isEmail(replyTo.trim())) errors.push('Enter a valid email address for client replies.')
+    if (email.trim() && !replyTo.trim()) errors.push('Add your email address so your client’s replies reach you.')
     if (link.trim() && !isHttpsUrl(link.trim())) errors.push('The invoice link must be an https:// address.')
     for (const stage of STAGES) errors.push(...templateErrors(templates[stage]).map((problem) => `Reminder ${stage}: ${problem}`))
     if (!consent) errors.push('Confirm that your client expects to hear from you about this invoice.')
@@ -356,8 +357,19 @@ function SetupForm({
       </div>
       <div className="ip-row">
         <div className="ip-field">
-          <label htmlFor={`${id}-reply`}>Your email for client replies (recommended)</label>
-          <input id={`${id}-reply`} type="email" autoComplete="email" maxLength={254} value={replyTo} onChange={(e) => setReplyTo(e.target.value)} />
+          <label htmlFor={`${id}-reply`}>Your email for client replies</label>
+          <input
+            id={`${id}-reply`}
+            type="email"
+            autoComplete="email"
+            maxLength={254}
+            aria-describedby={`${id}-reply-hint`}
+            value={replyTo}
+            onChange={(e) => setReplyTo(e.target.value)}
+          />
+          <p className="ip-hint" id={`${id}-reply-hint`}>
+            Required with a client email. When your client replies, it comes to you, not to Invoice Pack.
+          </p>
         </div>
         <div className="ip-field">
           <label htmlFor={`${id}-link`}>Link to the invoice (optional)</label>
@@ -718,6 +730,7 @@ function ManageView({ held, followup, onChange }: { held: HeldFollowup; followup
           <div className="ip-field">
             <label htmlFor={`${id}-reply`}>Your email for client replies</label>
             <input id={`${id}-reply`} type="email" maxLength={254} value={replyTo} onChange={(e) => setReplyTo(e.target.value)} />
+            <p className="ip-hint">Your client’s replies come to this address.</p>
           </div>
           <button type="submit" className="secondary" disabled={busy}>
             Save contact

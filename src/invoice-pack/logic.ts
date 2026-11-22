@@ -39,11 +39,19 @@ export const STATES: ReadonlyArray<readonly [string, string]> = [
 
 const STATE_NAME: Record<string, string> = Object.fromEntries(STATES)
 
-export const INVOICE_TITLE = 'Invoice Pack — ₹499 for one client invoice and three reminders'
+export const INVOICE_TITLE = 'Invoice Pack for Freelancers | BuildWSai'
 export const INVOICE_DESCRIPTION =
-  'Invoice Pack for freelancers in India. ₹499 for one draft invoice and three payment reminders. Advance Receipt is ₹399. Pay by UPI. A UTR is not proof of payment.'
+  'Create a print-ready invoice for a finished freelance job, with GST when it applies, and three payment reminders. ₹499 one-time, for freelancers in India.'
+
+export const INVOICE_OG_IMAGE = 'https://buildwsai.online/og-invoice-pack.png'
+export const INVOICE_OG_IMAGE_ALT =
+  'A sample Invoice Pack tax invoice from Example Studio to Sample Client Pvt Ltd, with IGST and a balance due of ₹56,640.'
 
 export const CONTACT_EMAIL = 'saividyut2@gmail.com'
+// The number already published on the portfolio, with India's country code, as wa.me requires.
+export const WHATSAPP_NUMBER = '918072350391'
+export const WHATSAPP_MESSAGE = "Hi, I'm interested in the Invoice Pack."
+export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
 export type Checkout = {
   pa: 'saividyut2@okicici'

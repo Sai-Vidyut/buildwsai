@@ -1,8 +1,8 @@
 import { buildPack, buildReceipt, type LineInput, type PackInput, type ReceiptInput } from '../../src/invoice-pack/logic.ts'
-import { ACCESS_TOKEN_PATTERN, ORDER_REF_PATTERN, sha256Hex, timingSafeEqualHex } from './crypto.ts'
+import { ACCESS_TOKEN_PATTERN, GRANT_REF_PATTERN, ORDER_REF_PATTERN, sha256Hex, timingSafeEqualHex } from './crypto.ts'
 import { keyMode } from './env.ts'
 import { HttpError, json, readJsonObject, rejectUnknownFields } from './http.ts'
-import { getOrderById, type OrderRow } from './orders.ts'
+import { getOrderById } from './orders.ts'
 import type { Deps } from './payments.ts'
 import type { ProductId } from './products.ts'
 import { renderInvoice, renderReceipt } from './render.ts'
@@ -88,13 +88,34 @@ function safeFilePart(value: string): string {
 const notEntitled = () =>
   new HttpError(403, 'not_entitled', 'This browser does not hold a paid order for this document. Pay first, or use the browser you paid in.')
 
-// The single server-side entitlement check: the order exists, the browser holds its secret,
-// it was paid with the current key mode, and it is for this product.
-export async function authorizePaidOrder(orderRef: unknown, accessToken: unknown, kind: ExportKind, deps: Deps): Promise<OrderRow> {
-  if (typeof orderRef !== 'string' || !ORDER_REF_PATTERN.test(orderRef) || typeof accessToken !== 'string' || !ACCESS_TOKEN_PATTERN.test(accessToken)) {
-    throw notEntitled()
-  }
-  const order = await getOrderById(deps.env.DB, orderRef)
+// A paid Razorpay order, or a free grant (admin or promo). Both cover one document.
+export type Entitlement = {
+  source: 'order' | 'admin_grant' | 'promo_grant'
+  id: string
+  mode: 'test' | 'live'
+  document_key: string | null
+  export_count: number
+}
+
+type GrantRow = Entitlement & { product_id: 'invoice-pack'; access_token_hash: string; source: 'admin_grant' | 'promo_grant' }
+
+// Table names and the guard that keeps each entitlement usable, for conditional writes. Never user input.
+export function entitlementTarget(entitlement: Entitlement): { table: 'orders' | 'access_grants'; guard: string } {
+  return entitlement.source === 'order' ? { table: 'orders', guard: "status = 'paid'" } : { table: 'access_grants', guard: '1 = 1' }
+}
+
+export function getEntitlement(db: D1Database, entitlement: Entitlement): Promise<{ document_key: string | null; export_count: number } | null> {
+  const { table } = entitlementTarget(entitlement)
+  return db.prepare(`SELECT document_key, export_count FROM ${table} WHERE id = ?`).bind(entitlement.id).first()
+}
+
+// The single server-side entitlement check. The browser must hold the order's or grant's secret, it must
+// belong to the current key mode, and it must be for this product. An order must also be paid.
+export async function authorizeEntitlement(ref: unknown, accessToken: unknown, kind: ExportKind, deps: Deps): Promise<Entitlement> {
+  if (typeof ref !== 'string' || typeof accessToken !== 'string' || !ACCESS_TOKEN_PATTERN.test(accessToken)) throw notEntitled()
+  if (GRANT_REF_PATTERN.test(ref)) return authorizeGrant(ref, accessToken, kind, deps)
+  if (!ORDER_REF_PATTERN.test(ref)) throw notEntitled()
+  const order = await getOrderById(deps.env.DB, ref)
   const presented = await sha256Hex(accessToken)
   if (!order || !order.access_token_hash || !timingSafeEqualHex(presented, order.access_token_hash)) throw notEntitled()
   // A test-mode payment must never unlock exports once live keys are configured, and vice versa.
@@ -105,7 +126,20 @@ export async function authorizePaidOrder(orderRef: unknown, accessToken: unknown
   if (order.status !== 'paid') {
     throw new HttpError(402, 'payment_required', 'This order is not confirmed as paid yet. Try again once the payment is confirmed.')
   }
-  return order
+  return { source: 'order', id: order.id, mode: order.mode, document_key: order.document_key, export_count: order.export_count }
+}
+
+async function authorizeGrant(ref: string, accessToken: string, kind: ExportKind, deps: Deps): Promise<Entitlement> {
+  const grant = await deps.env.DB.prepare(
+    'SELECT id, source, mode, product_id, access_token_hash, document_key, export_count FROM access_grants WHERE id = ?',
+  )
+    .bind(ref)
+    .first<GrantRow>()
+  const presented = await sha256Hex(accessToken)
+  if (!grant || !timingSafeEqualHex(presented, grant.access_token_hash)) throw notEntitled()
+  if (grant.mode !== keyMode(deps.env.RAZORPAY_KEY_ID)) throw notEntitled()
+  if (grant.product_id !== PRODUCT_FOR[kind]) throw new HttpError(403, 'wrong_product', 'This free access is for Invoice Pack, not Advance Receipt.')
+  return { source: grant.source, id: grant.id, mode: grant.mode, document_key: grant.document_key, export_count: grant.export_count }
 }
 
 export const documentMismatch = () =>
@@ -114,7 +148,7 @@ export const documentMismatch = () =>
 export async function exportDocument(kind: ExportKind, request: Request, deps: Deps): Promise<Response> {
   const body = await readJsonObject(request, MAX_EXPORT_BODY)
   rejectUnknownFields(body, ['orderRef', 'accessToken', 'input'])
-  const order = await authorizePaidOrder(body.orderRef, body.accessToken, kind, deps)
+  const order = await authorizeEntitlement(body.orderRef, body.accessToken, kind, deps)
 
   let html: string
   let filename: string
@@ -139,15 +173,16 @@ export async function exportDocument(kind: ExportKind, request: Request, deps: D
 
   const documentKey = await sha256Hex(identity)
   const now = deps.now().toISOString()
+  const { table, guard } = entitlementTarget(order)
   const claimed = await deps.env.DB.prepare(
-    `UPDATE orders SET document_key = COALESCE(document_key, ?), export_count = export_count + 1, last_export_at = ?, updated_at = ?
-     WHERE id = ? AND status = 'paid' AND (document_key IS NULL OR document_key = ?) AND export_count < ?`,
+    `UPDATE ${table} SET document_key = COALESCE(document_key, ?), export_count = export_count + 1, last_export_at = ?, updated_at = ?
+     WHERE id = ? AND ${guard} AND (document_key IS NULL OR document_key = ?) AND export_count < ?`,
   )
     .bind(documentKey, now, now, order.id, documentKey, EXPORT_LIMIT)
     .run()
 
   if (claimed.meta.changes === 0) {
-    const fresh = await getOrderById(deps.env.DB, order.id)
+    const fresh = await getEntitlement(deps.env.DB, order)
     if (fresh?.document_key && fresh.document_key !== documentKey) {
       if (kind === 'invoice') throw documentMismatch()
       throw new HttpError(409, 'document_mismatch', 'This order is already used for a receipt to a different client. Each order covers one receipt.')
@@ -155,6 +190,6 @@ export async function exportDocument(kind: ExportKind, request: Request, deps: D
     throw new HttpError(429, 'export_limit', `This order has reached its limit of ${EXPORT_LIMIT} exports.`)
   }
 
-  const after = await getOrderById(deps.env.DB, order.id)
+  const after = await getEntitlement(deps.env.DB, order)
   return json({ html, filename, exportsUsed: after?.export_count ?? 0, exportsLimit: EXPORT_LIMIT }, 200, deps.headers)
 }

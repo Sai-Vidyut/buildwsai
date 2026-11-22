@@ -1,6 +1,16 @@
-import { useEffect, useLayoutEffect, useMemo } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { MotionConfig, motion } from 'motion/react'
-import { CONTACT_EMAIL, INVOICE_CHECKOUT, INVOICE_DESCRIPTION, INVOICE_TITLE, buildPack, demoInput } from './logic'
+import {
+  CONTACT_EMAIL,
+  INVOICE_CHECKOUT,
+  INVOICE_DESCRIPTION,
+  INVOICE_OG_IMAGE,
+  INVOICE_OG_IMAGE_ALT,
+  INVOICE_TITLE,
+  WHATSAPP_URL,
+  buildPack,
+  demoInput,
+} from './logic'
 import { AdvanceOffer } from './AdvanceOffer'
 import { ExampleInvoice } from './ExampleInvoice'
 import { HeroVisual } from './HeroVisual'
@@ -12,6 +22,8 @@ import { onlinePaymentsEnabled } from './payments-api'
 import { scrollToSection } from './scroll-to'
 import { SiteHeader } from './SiteHeader'
 import './invoice-pack.css'
+
+const AdminPage = lazy(() => import('./AdminPage'))
 
 const ONLINE_PAYMENTS = onlinePaymentsEnabled()
 
@@ -84,47 +96,84 @@ function FeatureIcon({ name }: { name: (typeof FEATURES)[number]['icon'] }) {
   )
 }
 
+const INVOICE_URL = 'https://buildwsai.online/invoice-pack'
+
+const INVOICE_META: ReadonlyArray<readonly [selector: string, attribute: string, value: string]> = [
+  ['meta[name="description"]', 'content', INVOICE_DESCRIPTION],
+  ['link[rel="canonical"]', 'href', INVOICE_URL],
+  ['meta[property="og:title"]', 'content', INVOICE_TITLE],
+  ['meta[property="og:description"]', 'content', INVOICE_DESCRIPTION],
+  ['meta[property="og:url"]', 'content', INVOICE_URL],
+  ['meta[property="og:image"]', 'content', INVOICE_OG_IMAGE],
+  ['meta[property="og:image:alt"]', 'content', INVOICE_OG_IMAGE_ALT],
+  ['meta[name="twitter:title"]', 'content', INVOICE_TITLE],
+  ['meta[name="twitter:description"]', 'content', INVOICE_DESCRIPTION],
+  ['meta[name="twitter:image"]', 'content', INVOICE_OG_IMAGE],
+  ['meta[name="twitter:image:alt"]', 'content', INVOICE_OG_IMAGE_ALT],
+]
+
+function PromiseIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  )
+}
+
+function WhatsAppLink({ label = 'Chat on WhatsApp' }: { label?: string }) {
+  return (
+    <a className="ip-wa" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" data-testid="whatsapp-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M4.5 19.5l1.1-3.6A8 8 0 1 1 8.4 18.6z" />
+        <path d="M9.2 8.6c.2-.5.6-.5.9-.5h.4l.9 2.1-.6.8a5 5 0 0 0 2.3 2.2l.8-.6 2 .9v.4c0 .3 0 .8-.5 1-1.6.8-6.5-2.6-6.2-6.3z" />
+      </svg>
+      {label}
+      <span className="ip-sr-only"> (opens WhatsApp)</span>
+    </a>
+  )
+}
+
 function useInvoiceMeta() {
   useLayoutEffect(() => {
     const previousTitle = document.title
-    const description = document.querySelector('meta[name="description"]')
-    const previousDescription = description?.getAttribute('content')
-    const canonical = document.querySelector('link[rel="canonical"]')
-    const previousCanonical = canonical?.getAttribute('href')
-    const ogTitle = document.querySelector('meta[property="og:title"]')
-    const previousOgTitle = ogTitle?.getAttribute('content')
-    const ogDescription = document.querySelector('meta[property="og:description"]')
-    const previousOgDescription = ogDescription?.getAttribute('content')
-    const ogUrl = document.querySelector('meta[property="og:url"]')
-    const previousOgUrl = ogUrl?.getAttribute('content')
+    const restore = INVOICE_META.map(([selector, attribute, value]) => {
+      const element = document.querySelector(selector)
+      const previous = element?.getAttribute(attribute)
+      element?.setAttribute(attribute, value)
+      return () => {
+        if (previous != null) element?.setAttribute(attribute, previous)
+      }
+    })
     document.title = INVOICE_TITLE
-    description?.setAttribute('content', INVOICE_DESCRIPTION)
-    canonical?.setAttribute('href', 'https://buildwsai.online/invoice-pack')
-    ogTitle?.setAttribute('content', INVOICE_TITLE)
-    ogDescription?.setAttribute('content', INVOICE_DESCRIPTION)
-    ogUrl?.setAttribute('content', 'https://buildwsai.online/invoice-pack')
     document.documentElement.classList.add('ip-root')
     return () => {
       document.documentElement.classList.remove('ip-root')
       document.title = previousTitle
-      if (previousDescription != null) description?.setAttribute('content', previousDescription)
-      if (previousCanonical != null) canonical?.setAttribute('href', previousCanonical)
-      if (previousOgTitle != null) ogTitle?.setAttribute('content', previousOgTitle)
-      if (previousOgDescription != null) ogDescription?.setAttribute('content', previousOgDescription)
-      if (previousOgUrl != null) ogUrl?.setAttribute('content', previousOgUrl)
+      for (const undo of restore) undo()
     }
   }, [])
 }
 
 const HEADLINE = ['Create your invoice.', 'Get paid.'] as const
 
+function useAdminRoute(): boolean {
+  const [admin, setAdmin] = useState(() => window.location.hash === '#admin')
+  useEffect(() => {
+    const onHash = () => setAdmin(window.location.hash === '#admin')
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+  return admin
+}
+
 export default function InvoicePackPage() {
   useInvoiceMeta()
+  const admin = useAdminRoute()
   const hero = useMemo(() => buildPack(demoInput({ gst: true, foreign: false, sameState: false })), [])
 
   useEffect(() => {
     const id = window.location.hash.replace(/^#/, '')
-    if (!id) return
+    if (!id || id === 'admin') return
     document.getElementById(id)?.scrollIntoView()
   }, [])
 
@@ -141,6 +190,21 @@ export default function InvoicePackPage() {
     document.addEventListener('click', onClick)
     return () => document.removeEventListener('click', onClick)
   }, [])
+
+  if (admin) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <div className="invoice-pack">
+          <SiteHeader />
+          <main id="main" tabIndex={-1}>
+            <Suspense fallback={<p className="ip-wrap ip-fine">Loading admin…</p>}>
+              <AdminPage />
+            </Suspense>
+          </main>
+        </div>
+      </MotionConfig>
+    )
+  }
 
   return (
     <MotionConfig reducedMotion="user">
@@ -200,6 +264,10 @@ export default function InvoicePackPage() {
                   <p className="ip-price">
                     <span className="ip-price-num">₹499</span>
                     <span className="ip-price-note">One-time payment · No subscription</span>
+                    <span className="ip-price-promise" data-testid="hero-promise">
+                      <PromiseIcon />
+                      Get your print-ready invoice instantly
+                    </span>
                   </p>
                 </motion.div>
               </div>
@@ -293,6 +361,13 @@ export default function InvoicePackPage() {
                   <h2 id="pricing-heading">
                     <span className="ip-pricing-amount">₹499</span> · one time
                   </h2>
+                  <p className="ip-pricing-promise" data-testid="pricing-promise">
+                    <PromiseIcon />
+                    <span>
+                      Print-ready invoice, instantly
+                      {ONLINE_PAYMENTS ? <span className="ip-pricing-promise-note">As soon as Razorpay confirms your payment.</span> : null}
+                    </span>
+                  </p>
                   <p className="ip-lede">
                     Pay once for one invoice pack. There is no subscription. Advance Receipt is a separate offer below if
                     you need it.
@@ -323,6 +398,10 @@ export default function InvoicePackPage() {
                   <div id="pay-499">
                     <PayBox checkout={INVOICE_CHECKOUT} />
                   </div>
+                  <p className="ip-wa-row no-print">
+                    Questions before you pay?{' '}
+                    <WhatsAppLink />
+                  </p>
                 </Reveal>
               </section>
             </div>
@@ -351,8 +430,9 @@ export default function InvoicePackPage() {
                     customer names, reviews, or revenue figures.
                   </p>
                   <p>
-                    Contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. That address is public so you can
-                    write. It is not consent to receive marketing. To opt out of notes, email that address.
+                    Contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or message on <WhatsAppLink label="WhatsApp" />.
+                    That address is public so you can write. It is not consent to receive marketing. To opt out of
+                    notes, email that address.
                   </p>
                   <p>
                     <a href="/" data-testid="portfolio-link">

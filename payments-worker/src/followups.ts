@@ -18,7 +18,7 @@ import {
 import { ACCESS_TOKEN_PATTERN, FOLLOWUP_ID_PATTERN, newAccessToken, newClaimId, newFollowupId, sha256Hex, timingSafeEqualHex } from './crypto.ts'
 import type { EmailProvider } from './email.ts'
 import { keyMode } from './env.ts'
-import { authorizePaidOrder, documentMismatch, invoiceDocumentKey, sanitizePackInput } from './exports.ts'
+import { authorizeEntitlement, documentMismatch, entitlementTarget, invoiceDocumentKey, sanitizePackInput } from './exports.ts'
 import { HttpError, json, readJsonObject, rejectUnknownFields } from './http.ts'
 import type { Deps } from './payments.ts'
 
@@ -26,7 +26,8 @@ export type ReminderStatus = 'scheduled' | 'sending' | 'sent' | 'failed' | 'canc
 
 export type ClientInvoiceRow = {
   id: string
-  order_id: string
+  order_id: string | null
+  grant_id: string | null
   manage_token_hash: string
   mode: 'test' | 'live'
   business_name: string
@@ -104,6 +105,10 @@ function stageOf(value: unknown): ReminderStage {
 
 type Contact = { clientEmail: string | null; clientPhone: string | null; replyTo: string | null }
 
+// Reminders go out from the Invoice Pack sender; without the freelancer's address as reply-to,
+// a client's reply would reach Invoice Pack instead of the freelancer.
+const REPLY_TO_REQUIRED = 'Add your email address so your client’s replies reach you.'
+
 function parseContact(raw: unknown, requireEmail: boolean): Contact {
   const src = record(raw ?? {})
   rejectUnknownFields(src, ['clientEmail', 'clientPhone', 'replyTo'])
@@ -116,6 +121,7 @@ function parseContact(raw: unknown, requireEmail: boolean): Contact {
   if (phoneRaw && !phone) errors.push('Enter the client phone number with digits only, for example +91 98765 43210.')
   const replyTo = typeof src.replyTo === 'string' ? src.replyTo.trim() : ''
   if (replyTo && !isEmail(replyTo)) errors.push('Enter a valid email address for client replies.')
+  if (email && !replyTo) errors.push(REPLY_TO_REQUIRED)
   if (errors.length) throw validationError(errors)
   return { clientEmail: email || null, clientPhone: phone, replyTo: replyTo || null }
 }
@@ -244,8 +250,8 @@ export async function createFollowup(request: Request, deps: Deps, provider: Ema
   const db = deps.env.DB
   const body = await readJsonObject(request, MAX_CREATE_BODY)
   rejectUnknownFields(body, ['orderRef', 'accessToken', 'input', 'contact', 'schedule', 'templates', 'invoiceLink', 'consent'])
-  // Follow-ups can send email, so only a paid Invoice Pack order can create one, for its own invoice.
-  const order = await authorizePaidOrder(body.orderRef, body.accessToken, 'invoice', deps)
+  // Follow-ups can send email, so only a paid Invoice Pack order or a free grant can create one, for its own invoice.
+  const order = await authorizeEntitlement(body.orderRef, body.accessToken, 'invoice', deps)
   if (body.consent !== true) {
     throw new HttpError(400, 'consent_required', 'Confirm that your client expects to hear from you about this invoice.')
   }
@@ -264,10 +270,11 @@ export async function createFollowup(request: Request, deps: Deps, provider: Ema
 
   const nowIso = deps.now().toISOString()
   const documentKey = await invoiceDocumentKey(invoice.invoiceNumber)
+  const { table, guard } = entitlementTarget(order)
   const bound = await db
     .prepare(
-      `UPDATE orders SET document_key = COALESCE(document_key, ?), updated_at = ?
-       WHERE id = ? AND status = 'paid' AND (document_key IS NULL OR document_key = ?)`,
+      `UPDATE ${table} SET document_key = COALESCE(document_key, ?), updated_at = ?
+       WHERE id = ? AND ${guard} AND (document_key IS NULL OR document_key = ?)`,
     )
     .bind(documentKey, nowIso, order.id, documentKey)
     .run()
@@ -280,14 +287,15 @@ export async function createFollowup(request: Request, deps: Deps, provider: Ema
   const statements = [
     db
       .prepare(
-        `INSERT INTO client_invoices (id, order_id, manage_token_hash, mode, business_name, client_name, client_email, client_phone, reply_to,
+        `INSERT INTO client_invoices (id, order_id, grant_id, manage_token_hash, mode, business_name, client_name, client_email, client_phone, reply_to,
            invoice_number, amount_paise, currency, invoice_date, due_date, payment_instructions, invoice_link,
            second_delay_days, third_delay_days, reminders_enabled, consent_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
-        order.id,
+        order.source === 'order' ? order.id : null,
+        order.source === 'order' ? null : order.id,
         await sha256Hex(manageToken),
         order.mode,
         invoice.supplierName,
@@ -323,7 +331,10 @@ export async function createFollowup(request: Request, deps: Deps, provider: Ema
   try {
     await db.batch(statements)
   } catch {
-    const existing = await db.prepare('SELECT id FROM client_invoices WHERE order_id = ?').bind(order.id).first<{ id: string }>()
+    const existing = await db
+      .prepare('SELECT id FROM client_invoices WHERE order_id = ?1 OR grant_id = ?1')
+      .bind(order.id)
+      .first<{ id: string }>()
     if (existing) throw new HttpError(409, 'followup_exists', 'Reminders are already set up for this order.')
     throw new HttpError(500, 'internal_error', 'Something went wrong. Please try again.')
   }
@@ -388,6 +399,7 @@ export async function manageFollowup(request: Request, deps: Deps, provider: Ema
         throw new HttpError(400, 'invalid_followup', 'Choose whether to send the latest missed reminder.')
       }
       if (!row.client_email) throw validationError(['Add the client’s email address before turning reminders on.'])
+      if (!row.reply_to) throw validationError([REPLY_TO_REQUIRED])
       await db.prepare('UPDATE client_invoices SET reminders_enabled = 1, updated_at = ? WHERE id = ?').bind(nowIso, id).run()
       // By default, reminders whose date passed while paused are skipped, so resuming never sends an old
       // reminder by surprise. `sendMissed` opts in to sending the latest missed one at the next run.
@@ -507,6 +519,7 @@ export async function manageFollowup(request: Request, deps: Deps, provider: Ema
       const stage = stageOf(body.stage)
       if (row.reminders_enabled !== 1) throw new HttpError(409, 'reminders_paused', 'Turn reminders on before retrying.')
       if (!row.client_email) throw validationError(['Add the client’s email address before retrying.'])
+      if (!row.reply_to) throw validationError([REPLY_TO_REQUIRED])
       const changed = await db
         .prepare(
           `UPDATE client_reminders SET status = 'scheduled', next_attempt_at = ?, attempts = 0, error_reason = NULL, claim_id = NULL, updated_at = ?
@@ -647,22 +660,27 @@ export async function runDueReminders(env: CronEnv, provider: EmailProvider | nu
     // Final gate, checked atomically just before the provider call: the freelancer may have marked
     // the invoice paid, paused reminders, or removed the email since the claim.
     const gate =
-      invoice && invoice.client_email
+      invoice && invoice.client_email && invoice.reply_to
         ? await db
             .prepare(
               `UPDATE client_reminders SET claimed_at = ?
                WHERE id = ? AND claim_id = ? AND status = 'sending'
                  AND EXISTS (${INVOICE_OF_REMINDER} AND i.payment_status = 'unpaid' AND i.reminders_enabled = 1
-                             AND i.client_email IS NOT NULL AND i.mode = ?)`,
+                             AND i.client_email IS NOT NULL AND i.reply_to IS NOT NULL AND i.mode = ?)`,
             )
             .bind(nowIso, reminder.id, claimId, mode)
             .run()
         : null
-    if (!invoice || !invoice.client_email || !gate?.meta.changes) {
+    if (!invoice || !invoice.client_email || !invoice.reply_to || !gate?.meta.changes) {
       await settle(
         reminder.id,
         `UPDATE client_reminders SET status = ${unlessPaidOrPaused("'failed'")}, attempts = attempts - 1,
-           error_reason = ${reasonUnlessPaid(`CASE WHEN EXISTS (${INVOICE_OF_REMINDER} AND i.reminders_enabled = 0) THEN NULL ELSE 'No client email address.' END`)},
+           error_reason = ${reasonUnlessPaid(
+             `CASE WHEN EXISTS (${INVOICE_OF_REMINDER} AND i.reminders_enabled = 0) THEN NULL
+                   WHEN EXISTS (${INVOICE_OF_REMINDER} AND i.client_email IS NOT NULL AND i.reply_to IS NULL)
+                     THEN 'Add your email address for client replies, then retry.'
+                   ELSE 'No client email address.' END`,
+           )},
            claim_id = NULL, updated_at = ?`,
         nowIso,
       )

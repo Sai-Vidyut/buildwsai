@@ -5,6 +5,7 @@ import { EASE_OUT } from './motion-tokens'
 import {
   exportDocument,
   findPaidOrder,
+  isGrantRef,
   PAYMENT_CONFIRMED_EVENT,
   PaymentsApiError,
   type ExportKind,
@@ -184,7 +185,7 @@ export function ExportPanel({
                     <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
-                Paid · order {state.order.ref}
+                {isGrantRef(state.order.ref) ? `Free access · ${state.order.ref}` : `Paid · order ${state.order.ref}`}
               </p>
               <p className="ip-export-note">
                 Exporting sends these details to our server, which builds the final {copy.noun} and does not keep them.

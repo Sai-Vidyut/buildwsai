@@ -6,7 +6,8 @@ export type EmailMessage = {
   subject: string
   text: string
   fromName: string
-  replyTo: string | null
+  // The freelancer's address, so client replies never go to the Invoice Pack sender.
+  replyTo: string
   // Same key for every attempt at one reminder, so a provider that supports it drops duplicates.
   idempotencyKey: string
 }
@@ -53,7 +54,7 @@ export class ResendProvider implements EmailProvider {
           to: [message.to],
           subject: message.subject,
           text: message.text,
-          ...(message.replyTo ? { reply_to: message.replyTo } : {}),
+          reply_to: message.replyTo,
         }),
       })
     } catch {
