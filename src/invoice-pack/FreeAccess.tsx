@@ -1,7 +1,15 @@
 import { useId, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { EASE_OUT } from './motion-tokens'
-import { claimAdminGrant, forgetAdminPass, heldAdminPass, PaymentsApiError, redeemPromoCode, type IssuedGrant } from './payments-api'
+import {
+  adminConsoleAuthed,
+  claimAdminGrant,
+  forgetAdminPass,
+  heldAdminPass,
+  PaymentsApiError,
+  redeemPromoCode,
+  type IssuedGrant,
+} from './payments-api'
 
 type Phase = { name: 'idle' } | { name: 'busy' } | { name: 'done'; grant: IssuedGrant } | { name: 'error'; message: string }
 
@@ -80,7 +88,7 @@ export function FreeAccess() {
     </AnimatePresence>
   )
 
-  if (pass) {
+  if (pass && adminConsoleAuthed()) {
     return (
       <div className="ip-free" data-testid="free-access-admin">
         <p className="ip-free-title">
