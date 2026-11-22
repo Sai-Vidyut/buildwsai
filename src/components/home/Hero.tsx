@@ -239,14 +239,14 @@ export function Hero() {
           ))}
         </motion.div>
 
-        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar lg:hidden">
+        <div className="-mx-[clamp(1.25rem,4.5vw,3.5rem)] flex snap-x snap-mandatory gap-3 overflow-x-auto px-[clamp(1.25rem,4.5vw,3.5rem)] pb-2 no-scrollbar lg:hidden">
           {mobile.map((item) => (
             <a
               key={item.id}
               href={`#${item.id}`}
-              className="w-[78%] max-w-sm shrink-0 snap-start bg-[var(--color-void)]"
+              className="w-[calc(100%-0.25rem)] max-w-none shrink-0 snap-center bg-[var(--color-void)]"
             >
-              <span className="flex items-center justify-between px-2.5 py-2 label text-[0.58rem] text-[var(--color-void-mute)]">
+              <span className="flex items-center justify-between gap-2 px-2.5 py-2 label text-[0.58rem] text-[var(--color-void-mute)]">
                 <span className="text-[var(--color-paper)]">{item.name}</span>
                 <span>{item.tag}</span>
               </span>
@@ -255,7 +255,7 @@ export function Hero() {
                 alt={item.alt}
                 width={996}
                 height={504}
-                className="aspect-[996/504] w-full object-cover object-top"
+                className="block h-auto w-full"
                 draggable={false}
               />
             </a>
