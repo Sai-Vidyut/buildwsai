@@ -1,30 +1,9 @@
 import { stateMatchesQuery } from './state-search.ts'
 import { makeQr } from './qr.ts'
-import {
-  ADVANCE_CHECKOUT,
-  DEMO_RECEIPT,
-  INVOICE_CHECKOUT,
-  INVOICE_TITLE,
-  WHATSAPP_URL,
-  buildPack,
-  buildReceipt,
-  demoInput,
-  newOrderRef,
-  upiPayUri,
-} from './logic.ts'
+import { INVOICE_TITLE, WHATSAPP_URL, buildPack, demoInput, newOrderRef } from './logic.ts'
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
-}
-
-function params(uri: string): Record<string, string> {
-  const query = uri.split('?')[1] || ''
-  const map: Record<string, string> = {}
-  query.split('&').forEach((part) => {
-    const at = part.indexOf('=')
-    map[decodeURIComponent(part.slice(0, at))] = decodeURIComponent(part.slice(at + 1))
-  })
-  return map
 }
 
 const gstOn = buildPack(demoInput({ gst: true, foreign: false, sameState: false }))
@@ -104,33 +83,11 @@ const markup = buildPack({
 })
 assert(markup.ok && markup.invoice?.lines[0].description === '<img src=x onerror=alert(1)>', 'description stays text')
 
-const ref = 'IP261121120000ABCD'
-const uri = upiPayUri(INVOICE_CHECKOUT, ref)
-const got = params(uri)
-assert(got.pa === 'saividyut2@okicici', 'invoice VPA')
-assert(got.pn === 'Invoice Pack', 'invoice payee name')
-assert(got.am === '499', 'invoice amount')
-assert(got.tn === ref && got.tr === ref, 'same order ref in tn and tr')
-
-const arRef = 'AR261121120000WXYZ'
-const arUri = upiPayUri(ADVANCE_CHECKOUT, arRef)
-const ar = params(arUri)
-assert(ar.pa === 'saividyut2@okicici' && ar.am === '399' && ar.pn === 'Advance Receipt', 'advance checkout')
-assert(ar.tn === arRef && ar.tr === arRef, 'advance tn and tr match')
-
 const made = newOrderRef('IP')
 assert(/^IP[0-9]{12}[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/.test(made), 'order ref shape')
 
-const receipt = buildReceipt(DEMO_RECEIPT)
-assert(receipt.ok && receipt.receipt, 'advance demo builds')
-assert(receipt.receipt.advanceLabel === '₹20,000.00', 'advance amount')
-assert(receipt.receipt.balanceLabel === '₹60,000.00', 'advance balance')
-assert(receipt.message.includes('Advance of ₹20,000.00 is received from Sample Client.'), 'advance message')
-assert(!receipt.message.includes('GST') && !receipt.message.includes('IGST'), 'advance receipt has no GST math')
-assert(!('taxLines' in (receipt.receipt as object)), 'receipt has no tax lines')
-
-const grid = makeQr(uri)
-assert(grid.count >= 21, 'QR draws the UPI URI')
+const grid = makeQr('https://buildwsai.online/invoice-pack')
+assert(grid.count >= 21, 'QR encodes a URL')
 assert(typeof grid.dark(0, 0) === 'boolean', 'QR modules are booleans')
 
 assert(stateMatchesQuery(['29', 'Karnataka'], 'ka'), 'state search by abbreviation')

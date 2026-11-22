@@ -62,7 +62,7 @@ export function onlinePaymentsEnabled(): boolean {
 const FRIENDLY: Record<number, string> = {
   429: 'Too many attempts. Please wait a minute and try again.',
   502: 'The payment provider could not be reached. Please try again.',
-  503: 'Online payments are not available right now. You can still pay using UPI.',
+  503: 'Online payments are not available right now.',
 }
 
 async function request<T>(path: string, init: RequestInit = {}, extraHeaders: Record<string, string> = {}): Promise<T> {

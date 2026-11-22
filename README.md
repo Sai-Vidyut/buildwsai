@@ -27,10 +27,11 @@ npm run preview
 
 ## Payments (Razorpay)
 
-Invoice Pack (₹499) and Advance Receipt (₹399) can be paid through Razorpay Checkout or by direct UPI. Razorpay payments are created, verified, and recorded by a Cloudflare Worker with a D1 database in [`payments-worker/`](payments-worker/). The static site stays on GitHub Pages.
+Invoice Pack (₹499) is sold through Razorpay Checkout only. Payments are created, verified, and recorded by a Cloudflare Worker with a D1 database in [`payments-worker/`](payments-worker/). The static site stays on GitHub Pages.
 
-- The build reads `VITE_PAYMENTS_API_URL` (GitHub repository variable `PAYMENTS_API_URL`). When it is empty, only the direct UPI option is shown and documents print freely as before.
-- When it is set, the invoice preview hides amounts and payment details, the receipt preview is watermarked, and the final invoice or receipt is exported by the Worker only for a paid order.
+- The build reads `VITE_PAYMENTS_API_URL` (GitHub repository variable `PAYMENTS_API_URL`). When it is empty, checkout is unavailable and the page explains how to reach support; documents are not locked behind payment on that build.
+- When it is set, the invoice preview hides amounts and payment details, and the final invoice is exported by the Worker only for a paid order (or a free grant / promo code).
+- Legacy `advance-receipt` orders in D1 can still download their receipt through the Worker API; Advance Receipt is no longer sold on the site.
 - After paying, the freelancer can schedule three payment reminders to their client (day 0/7/14 by default, 10:00 IST). A Cron Trigger emails them when `RESEND_API_KEY` and `EMAIL_FROM` are set; otherwise they are drafts to copy or open in an email app. See [Payment follow-ups](docs/payments/razorpay-setup.md#payment-follow-ups).
 - The owner can unlock Invoice Pack for free and issue one-time promotional codes from `/invoice-pack#admin`. Every admin action and every free unlock is authorized by the Worker, and nothing is recorded as a Razorpay payment. See [Free access](docs/payments/razorpay-setup.md#free-access-admin-and-promotional-codes).
 - The `/invoice-pack` share image (`public/og-invoice-pack.png`) is the landing page's sample invoice rendered by the Worker's own export template. Regenerate it after changing the sample or the invoice design with `npm run og:invoice-pack` (needs Chrome; set `CHROME_PATH` if it is not on `PATH`).

@@ -1,5 +1,8 @@
 export type ProductId = 'invoice-pack' | 'advance-receipt'
 
+/** Products still sold through Razorpay. Legacy `advance-receipt` rows stay readable for exports. */
+export const PURCHASABLE_PRODUCT_IDS = ['invoice-pack'] as const satisfies ReadonlyArray<ProductId>
+
 export type Product = {
   id: ProductId
   name: string
@@ -16,4 +19,9 @@ export const PRODUCTS: Readonly<Record<ProductId, Product>> = Object.freeze({
 
 export function findProduct(id: unknown): Product | null {
   return typeof id === 'string' && Object.hasOwn(PRODUCTS, id) ? PRODUCTS[id as ProductId] : null
+}
+
+export function purchasableProduct(id: unknown): Product | null {
+  const product = findProduct(id)
+  return product && (PURCHASABLE_PRODUCT_IDS as readonly string[]).includes(product.id) ? product : null
 }

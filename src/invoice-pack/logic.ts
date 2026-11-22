@@ -53,30 +53,6 @@ export const WHATSAPP_NUMBER = '918072350391'
 export const WHATSAPP_MESSAGE = "Hi, I'm interested in the Invoice Pack."
 export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
-export type Checkout = {
-  pa: 'saividyut2@okicici'
-  pn: string
-  am: '499' | '399'
-  cu: 'INR'
-  prefix: 'IP' | 'AR'
-}
-
-export const INVOICE_CHECKOUT: Checkout = {
-  pa: 'saividyut2@okicici',
-  pn: 'Invoice Pack',
-  am: '499',
-  cu: 'INR',
-  prefix: 'IP',
-}
-
-export const ADVANCE_CHECKOUT: Checkout = {
-  pa: 'saividyut2@okicici',
-  pn: 'Advance Receipt',
-  am: '399',
-  cu: 'INR',
-  prefix: 'AR',
-}
-
 export function round2(n: number): number {
   return Math.round((n + Number.EPSILON) * 100) / 100
 }
@@ -114,27 +90,6 @@ export function clean(value: unknown): string {
 
 export function todayKolkata(now = new Date()): string {
   return now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
-}
-
-function encodePay(value: string): string {
-  return encodeURIComponent(value).replace(/%40/g, '@')
-}
-
-export function upiPayUri(checkout: Checkout, orderRef: string): string {
-  const pairs: Array<[string, string]> = [
-    ['pa', checkout.pa],
-    ['pn', checkout.pn],
-    ['am', checkout.am],
-    ['cu', checkout.cu],
-    ['tn', orderRef],
-    ['tr', orderRef],
-  ]
-  return (
-    'upi://pay?' +
-    pairs
-      .map((pair) => encodePay(pair[0]) + '=' + encodePay(pair[1]))
-      .join('&')
-  )
 }
 
 export function newOrderRef(prefix: 'IP' | 'AR', now = new Date()): string {

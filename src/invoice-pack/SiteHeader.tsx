@@ -7,11 +7,10 @@ const LINKS = [
   { id: 'how-it-works', label: 'How it works' },
   { id: 'example', label: 'Example' },
   { id: 'pricing', label: 'Pricing' },
-  { id: 'advance', label: 'Advance Receipt' },
   { id: 'about', label: 'About' },
 ] as const
 
-const SPY_IDS = ['product', 'how-it-works', 'example', 'create', 'receive', 'pricing', 'advance', 'about', 'legal']
+const SPY_IDS = ['product', 'how-it-works', 'example', 'create', 'receive', 'pricing', 'about', 'legal']
 
 function sectionToLink(id: string | null): string | null {
   if (id === 'receive') return 'pricing'

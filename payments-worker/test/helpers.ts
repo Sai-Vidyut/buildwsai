@@ -1,7 +1,9 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
-import { hmacSha256Hex } from '../src/crypto.ts'
+import { hmacSha256Hex, newAccessToken, newOrderRef, sha256Hex } from '../src/crypto.ts'
+import { keyMode } from '../src/env.ts'
+import { PRODUCTS } from '../src/products.ts'
 import type { EmailProvider } from '../src/email.ts'
 import type { Env, RateLimiter } from '../src/env.ts'
 import { createHandler } from '../src/index.ts'
@@ -175,8 +177,42 @@ export function setup(options: { limiter?: RateLimiter; emailProvider?: EmailPro
     })
   }
 
+  async function seedLegacyOrder(productId: 'advance-receipt') {
+    const product = PRODUCTS[productId]
+    const mode = keyMode(KEY_ID)
+    if (!mode) throw new Error('test key mode missing')
+    const orderRef = newOrderRef(product.refPrefix)
+    const rzRes = await razorpay.fetch('https://api.razorpay.com/v1/orders', {
+      method: 'POST',
+      headers: { Authorization: `Basic ${btoa(`${KEY_ID}:${KEY_SECRET}`)}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: product.amountPaise,
+        currency: product.currency,
+        receipt: orderRef,
+        notes: { order_ref: orderRef, product_id: product.id },
+      }),
+    })
+    const rz = (await rzRes.json()) as { id: string }
+    const accessToken = newAccessToken()
+    const now = new Date().toISOString()
+    sqlite
+      .prepare(
+        `INSERT INTO orders (id, product_id, amount_paise, currency, mode, razorpay_order_id, status, access_token_hash, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'created', ?, ?, ?)`,
+      )
+      .run(orderRef, product.id, product.amountPaise, product.currency, mode, rz.id, await sha256Hex(accessToken), now, now)
+    return {
+      orderRef,
+      accessToken,
+      razorpayOrderId: rz.id,
+      amount: product.amountPaise,
+      currency: product.currency,
+      keyId: KEY_ID,
+    }
+  }
+
   async function paidOrder(productId: 'invoice-pack' | 'advance-receipt' = 'invoice-pack') {
-    const order = await createOrder(productId)
+    const order = productId === 'advance-receipt' ? await seedLegacyOrder(productId) : await createOrder(productId)
     const payment = razorpay.addPayment(order.razorpayOrderId)
     const res = await call('POST', '/api/payments/verify', {
       body: {
@@ -193,5 +229,5 @@ export function setup(options: { limiter?: RateLimiter; emailProvider?: EmailPro
   const orderRow = (ref: string) => sqlite.prepare('SELECT * FROM orders WHERE id = ?').get(ref) as Record<string, unknown> | undefined
   const count = (table: string) => Number((sqlite.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n)
 
-  return { env, sqlite, razorpay, call, createOrder, paidOrder, sendWebhook, orderRow, count, responses }
+  return { env, sqlite, razorpay, call, createOrder, seedLegacyOrder, paidOrder, sendWebhook, orderRow, count, responses }
 }

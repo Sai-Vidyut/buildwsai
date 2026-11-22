@@ -199,7 +199,7 @@ export function InvoiceBuilder() {
               </>
             )}
           </div>
-          {PROTECTED_EXPORTS ? <ExportPanel kind="invoice" getInput={() => form} onExported={setExported} /> : null}
+          {PROTECTED_EXPORTS ? <ExportPanel getInput={() => form} onExported={setExported} /> : null}
         </motion.div>
       </section>
     )
