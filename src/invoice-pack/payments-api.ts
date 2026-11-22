@@ -200,8 +200,35 @@ export async function redeemPromoCode(code: string, email: string): Promise<Issu
 }
 
 const ADMIN_PASS_KEY = 'invoice-pack-admin-pass'
+const ADMIN_CONSOLE_SESSION_KEY = 'invoice-pack-admin-console'
 const ADMIN_PASS_ID = /^AP-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{20}$/
 export type HeldAdminPass = { id: string; token: string }
+
+// Pay-box “admin access” is only shown after a successful admin-key sign-in at /invoice-pack#admin
+// in this tab (sessionStorage). The browser pass alone is not enough to surface owner-only UI.
+export function markAdminConsoleAuthed(): void {
+  try {
+    sessionStorage.setItem(ADMIN_CONSOLE_SESSION_KEY, '1')
+  } catch {
+    // sessionStorage may be blocked
+  }
+}
+
+export function adminConsoleAuthed(): boolean {
+  try {
+    return sessionStorage.getItem(ADMIN_CONSOLE_SESSION_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function clearAdminConsoleAuthed(): void {
+  try {
+    sessionStorage.removeItem(ADMIN_CONSOLE_SESSION_KEY)
+  } catch {
+    // ignore
+  }
+}
 
 // The admin pass lets this browser claim free Invoice Pack purchases. The server checks it on every use
 // and the admin can revoke it; holding a stale copy here grants nothing.
@@ -219,6 +246,7 @@ export function heldAdminPass(): HeldAdminPass | null {
 export function rememberAdminPass(pass: HeldAdminPass): void {
   try {
     localStorage.setItem(ADMIN_PASS_KEY, JSON.stringify(pass))
+    markAdminConsoleAuthed()
   } catch {
     // Storage may be blocked; admin access then lasts only until the page closes.
   }

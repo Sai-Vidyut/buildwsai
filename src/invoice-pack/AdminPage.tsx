@@ -4,8 +4,10 @@ import { copyText } from './copy'
 import { EASE_OUT } from './motion-tokens'
 import {
   adminRequest,
+  clearAdminConsoleAuthed,
   forgetAdminPass,
   heldAdminPass,
+  markAdminConsoleAuthed,
   onlinePaymentsEnabled,
   PaymentsApiError,
   rememberAdminPass,
@@ -77,6 +79,7 @@ export default function AdminPage() {
       <AdminFrame>
         <SignIn
           onSignedIn={(key, data) => {
+            markAdminConsoleAuthed()
             setAdminKey(key)
             setOverview(data)
           }}
@@ -88,11 +91,20 @@ export default function AdminPage() {
   return (
     <AdminFrame
       onSignOut={() => {
+        clearAdminConsoleAuthed()
         setAdminKey(null)
         setOverview(null)
       }}
     >
-      <Dashboard adminKey={adminKey} overview={overview} onChange={setOverview} onSignedOut={() => setAdminKey(null)} />
+      <Dashboard
+        adminKey={adminKey}
+        overview={overview}
+        onChange={setOverview}
+        onSignedOut={() => {
+          clearAdminConsoleAuthed()
+          setAdminKey(null)
+        }}
+      />
     </AdminFrame>
   )
 }
