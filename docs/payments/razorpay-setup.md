@@ -268,7 +268,7 @@ Then point the site at it:
 1. Open https://buildwsai.online/invoice-pack, go to Pricing, choose **Pay using Razorpay**, and click **Pay ₹499 with Razorpay**.
 2. Pay with UPI id `success@razorpay` (or test card `4100 2800 0000 1007`, any future expiry, any CVV). The page should show **Payment confirmed** with an order reference and a `pay_…` id.
 3. Repeat with `failure@razorpay` to see the failure message, and close the window once to see the cancelled message.
-4. Build an invoice in **Create invoice**. Before paying, the preview hides amounts and payment details, and the export panel and Payment follow-ups say they are locked. After the successful payment, click **Export final invoice**: the complete invoice appears and the print dialog opens. Changing the invoice number and exporting again should be refused. Repeat for the Advance Receipt.
+4. Build an invoice in **Create invoice**. Before paying, the preview hides amounts and payment details, and the export panel and Payment follow-ups say they are locked. After the successful payment, click **Export final invoice**: the complete invoice appears and the print dialog opens. Changing the invoice number and exporting again should be refused.
 5. In **Payment follow-ups**, enter your own second email address as the client, confirm consent and set up follow-ups. Without email secrets, reminders show as drafts. With them, the first reminder arrives within 15 minutes of 10:00 IST on the invoice date. Then try **Mark invoice paid** and check the remaining reminders are cancelled.
 6. Check the records:
 
