@@ -1,139 +1,97 @@
-import { useEffect, useRef, useState } from 'react'
-import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { navLinks, site } from '../../data/site'
 import { cn } from '../../lib/cn'
-import { useActiveNav } from '../../hooks/useActiveNav'
-import { useIsMobile } from '../../hooks/useIsMobile'
-import { useNavTone } from '../../hooks/useNavTone'
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
-import { mobileSpring } from '../../lib/mobileMotion'
-
-const links = [
-  { href: '#work', label: 'Work' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#resume', label: 'Resume' },
-  { href: '#lab', label: 'Lab' },
-  { href: '#contact', label: 'Contact' },
-  { href: '/invoice-pack', label: 'Invoice Pack' },
-]
+import { useReducedMotion } from '../../hooks/useReducedMotion'
 
 export function Nav() {
+  const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
-  const lastY = useRef(0)
-  const ticking = useRef(false)
-  const tone = useNavTone()
-  const activeHref = useActiveNav()
-  const mobile = useIsMobile()
-  const reduced = usePrefersReducedMotion()
-  const inverted = tone === 'dark'
-  const showBar = scrolled || inverted
+  const reduced = useReducedMotion()
 
   useEffect(() => {
-    lastY.current = window.scrollY
-
-    const update = () => {
-      const y = window.scrollY
-      const delta = y - lastY.current
-
-      setScrolled(y > 20)
-
-      if (y < 64) {
-        setCollapsed(false)
-      } else if (delta > 6) {
-        setCollapsed(true)
-      } else if (delta < -6) {
-        setCollapsed(false)
-      }
-
-      lastY.current = y
-      ticking.current = false
-    }
-
-    const onScroll = () => {
-      if (!ticking.current) {
-        ticking.current = true
-        requestAnimationFrame(update)
-      }
-    }
-
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    update()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const headerClass = cn(
-    'fixed top-0 inset-x-0 z-50 safe-top safe-x print:hidden',
-    showBar
-      ? inverted
-        ? 'bg-[var(--color-black)]/92 backdrop-blur-lg border-b border-[var(--color-line-inverse)]'
-        : 'bg-[var(--color-white)]/95 backdrop-blur-lg border-b border-[var(--color-line)]'
-      : 'bg-transparent border-b border-transparent',
-  )
-
-  const navContent = (
-    <nav
-      aria-label="Primary"
-      className="editorial-container flex items-center justify-between h-14 md:h-[4.5rem] gap-3 md:gap-4"
-    >
-      <a
-        href="#"
-        className={cn(
-          'font-display text-[0.8125rem] font-semibold tracking-tight shrink-0 min-h-11 flex items-center',
-          inverted ? 'text-white' : 'text-[var(--color-black)]',
-        )}
-      >
-        BuildWSai
-      </a>
-
-      <ul className="flex items-center gap-4 sm:gap-6 md:gap-10 overflow-x-auto no-scrollbar -mr-1 pr-1 scroll-pl-1 mobile-nav-links">
-        {links.map((link) => {
-          const isActive = activeHref === link.href
-          return (
-            <li key={link.href} className="shrink-0">
-              <a
-                href={link.href}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  'label-brand transition-colors duration-300 whitespace-nowrap min-h-11 inline-flex items-center px-0.5 mobile-nav-link',
-                  inverted
-                    ? isActive
-                      ? 'text-white'
-                      : 'text-white/45 hover:text-white/80'
-                    : isActive
-                      ? 'text-[var(--color-black)]'
-                      : 'text-[var(--color-muted)] hover:text-[var(--color-black)]',
-                )}
-              >
-                {link.label}
-              </a>
-            </li>
-          )
-        })}
-      </ul>
-    </nav>
-  )
-
-  if (mobile && !reduced) {
-    return (
-      <motion.header
-        className={headerClass}
-        animate={{ y: collapsed ? '-100%' : '0%' }}
-        transition={mobileSpring}
-      >
-        {navContent}
-      </motion.header>
-    )
-  }
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
 
   return (
     <header
       className={cn(
-        headerClass,
-        'transition-[transform,background-color,border-color] duration-500 ease-out will-change-transform',
-        collapsed ? '-translate-y-full' : 'translate-y-0',
+        'fixed inset-x-0 top-0 z-40 safe-top transition-[background,border-color,backdrop-filter] duration-300',
+        scrolled || open
+          ? 'border-b border-[var(--color-line)] bg-[color-mix(in_oklab,var(--color-paper)_88%,transparent)] backdrop-blur-md'
+          : 'border-b border-transparent bg-transparent',
       )}
     >
-      {navContent}
+      <div className="shell flex h-14 items-center justify-between md:h-16">
+        <a
+          href="#top"
+          className="display text-[1.05rem] tracking-[-0.03em] text-[var(--color-ink)] no-underline md:text-[1.15rem]"
+          onClick={() => setOpen(false)}
+        >
+          {site.brand}
+          <span className="text-[var(--color-signal)]">.</span>
+        </a>
+
+        <nav aria-label="Primary" className="hidden items-center gap-5 xl:gap-7 md:flex">
+          {navLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="label text-[var(--color-mute)] no-underline transition-colors hover:text-[var(--color-ink)]"
+            >
+              {link.label}
+            </a>
+          ))}
+        </nav>
+
+        <button
+          type="button"
+          className="label inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--color-ink)] md:hidden"
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? 'Close' : 'Menu'}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {open ? (
+          <motion.nav
+            id="mobile-nav"
+            aria-label="Mobile"
+            className="border-t border-[var(--color-line)] bg-[var(--color-paper)] md:hidden"
+            initial={reduced ? false : { height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={reduced ? undefined : { height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <ul className="shell flex flex-col gap-1 py-4">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    className="display block py-3 text-3xl tracking-[-0.03em] text-[var(--color-ink)] no-underline"
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.nav>
+        ) : null}
+      </AnimatePresence>
     </header>
   )
 }

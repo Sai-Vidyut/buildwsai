@@ -44,8 +44,10 @@ Invoice Pack (₹499) is sold through Razorpay Checkout only. Payments are creat
 
 - Vite + React 19 + TypeScript
 - Tailwind CSS 4
-- Motion (`motion/react`) for Invoice Pack transitions; respects reduced motion
+- Motion (`motion/react`) for portfolio + Invoice Pack transitions; respects reduced motion
 - Cloudflare Workers + D1 for the payments API
+
+Portfolio content lives in `src/data/`. Invoice Pack stays under `src/invoice-pack/` and is routed separately via `Root.tsx`.
 
 ## Resume
 
