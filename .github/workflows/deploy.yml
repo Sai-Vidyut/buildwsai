@@ -30,11 +30,23 @@ jobs:
     steps:
       - name: Resolve Slyvr tip / requested SHA
         id: tip
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TIP="$(curl -fsSL https://api.github.com/repos/Sai-Vidyut/slyvr/commits/main | jq -r .sha)"
+          TIP=""
+          for attempt in 1 2 3 4 5; do
+            if TIP="$(gh api repos/Sai-Vidyut/slyvr/commits/main --jq .sha 2>/dev/null)" && [ -n "$TIP" ] && [ "$TIP" != "null" ]; then
+              break
+            fi
+            TIP=""
+            if [ "$attempt" -lt 5 ]; then
+              echo "Slyvr tip lookup failed (attempt $attempt); retrying in ${attempt}0s…" >&2
+              sleep $((attempt * 10))
+            fi
+          done
           if [ -z "$TIP" ] || [ "$TIP" = "null" ]; then
-            echo "Failed to resolve Slyvr main tip SHA" >&2
+            echo "Failed to resolve Slyvr main tip SHA (GitHub API). Unauthenticated api.github.com calls often return 403 on shared runners." >&2
             exit 1
           fi
           echo "sha=$TIP" >> "$GITHUB_OUTPUT"
