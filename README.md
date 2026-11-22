@@ -2,6 +2,8 @@
 
 Curated portfolio for [buildwsai.online](https://buildwsai.online).
 
+> **Invoice Pack** is being split into a dedicated repository: [Sai-Vidyut/invoice-pack](https://github.com/Sai-Vidyut/invoice-pack) (create the repo and push from the migration bundle if it is not live yet — see Project doc `invoice-pack-repository-migration.md`). **Production** at [`/invoice-pack`](https://buildwsai.online/invoice-pack) still deploys from this monorepo until you cut over GitHub Pages or add a redirect.
+
 ## Development
 
 ```bash
