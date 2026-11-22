@@ -3,32 +3,19 @@ main = "src/index.ts"
 compatibility_date = "2026-11-01"
 workers_dev = true
 
-# Secrets (never put them in this file):
-#   wrangler secret put RAZORPAY_KEY_ID
-#   wrangler secret put RAZORPAY_KEY_SECRET
-#   wrangler secret put RAZORPAY_WEBHOOK_SECRET
-#   wrangler secret put ADMIN_KEY_SHA256   (optional; SHA-256 hex of your admin key, enables the admin API)
-# For `wrangler dev`, copy .dev.vars.example to .dev.vars (git-ignored).
-
 [vars]
-# Comma-separated list of browser origins allowed to call the API.
 ALLOWED_ORIGINS = "https://buildwsai.online,https://www.buildwsai.online"
-# Optional automatic reminder email. Set EMAIL_FROM to a sender on a domain verified with Resend,
-# and `wrangler secret put RESEND_API_KEY`. Without both, reminders become drafts the freelancer sends.
-# EMAIL_FROM = "reminders@buildwsai.online"
+EMAIL_FROM = "reminders@buildwsai.online"
 
-# Sends due client payment reminders. Runs every 15 minutes, UTC.
 [triggers]
 crons = ["*/15 * * * *"]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "invoice-pack-payments"
-# Replace with the id printed by `wrangler d1 create invoice-pack-payments`.
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "63f02ab3-fbcc-4b92-b2b1-078a1af40099"
 migrations_dir = "migrations"
 
-# Per-client-IP limits. Counters are per Cloudflare location and approximate.
 [[ratelimits]]
 name = "ORDER_LIMITER"
 namespace_id = "4901"
@@ -39,7 +26,6 @@ name = "VERIFY_LIMITER"
 namespace_id = "4902"
 simple = { limit = 30, period = 60 }
 
-# Admin API and admin-key attempts. Kept strict to slow down guessing.
 [[ratelimits]]
 name = "ADMIN_LIMITER"
 namespace_id = "4903"
