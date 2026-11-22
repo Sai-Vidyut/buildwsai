@@ -25,8 +25,8 @@ export function FeaturedProject({ project, index }: Props) {
     >
       <div
         className={cn(
-          'grid items-center gap-8 lg:gap-14',
-          flip ? 'lg:grid-cols-[1.05fr_0.95fr]' : 'lg:grid-cols-[0.95fr_1.05fr]',
+          'grid min-w-0 items-center gap-8 lg:gap-14',
+          flip ? 'lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]' : 'lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]',
         )}
       >
         <Reveal
@@ -100,7 +100,7 @@ export function FeaturedProject({ project, index }: Props) {
               </button>
             ))}
           </div>
-          <div className="project-media min-h-[22rem] w-full shadow-[0_24px_60px_rgba(18,20,16,0.12)] md:aspect-[996/504] md:min-h-0">
+          <div className="project-media w-full min-w-0 shadow-[0_24px_60px_rgba(18,20,16,0.12)]">
             <div
               aria-hidden
               className="absolute inset-x-0 top-0 z-10 h-1"
@@ -118,7 +118,7 @@ export function FeaturedProject({ project, index }: Props) {
                   height={project.image.height}
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="block h-auto w-full"
                   initial={reduced ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={reduced ? undefined : { opacity: 0 }}
@@ -127,7 +127,7 @@ export function FeaturedProject({ project, index }: Props) {
               ) : (
                 <motion.div
                   key="system"
-                  className="absolute inset-0"
+                  className="relative h-[26rem]"
                   initial={reduced ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={reduced ? undefined : { opacity: 0 }}

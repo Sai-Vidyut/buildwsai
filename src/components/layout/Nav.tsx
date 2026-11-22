@@ -42,7 +42,7 @@ export function Nav() {
           <span className="text-[var(--color-signal)]">.</span>
         </a>
 
-        <nav aria-label="Primary" className="hidden items-center gap-5 xl:gap-7 md:flex">
+        <nav aria-label="Primary" className="hidden items-center gap-5 xl:gap-7 lg:flex">
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -56,7 +56,7 @@ export function Nav() {
 
         <button
           type="button"
-          className="label inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--color-ink)] md:hidden"
+          className="label inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--color-ink)] lg:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           onClick={() => setOpen((v) => !v)}
@@ -70,7 +70,7 @@ export function Nav() {
           <motion.nav
             id="mobile-nav"
             aria-label="Mobile"
-            className="border-t border-[var(--color-line)] bg-[var(--color-paper)] md:hidden"
+            className="border-t border-[var(--color-line)] bg-[var(--color-paper)] lg:hidden"
             initial={reduced ? false : { height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={reduced ? undefined : { height: 0, opacity: 0 }}

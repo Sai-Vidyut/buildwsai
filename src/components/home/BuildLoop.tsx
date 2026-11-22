@@ -12,11 +12,10 @@ const steps = [
 ] as const
 
 type Props = {
-  compact?: boolean
   className?: string
 }
 
-export function BuildLoop({ compact = false, className }: Props) {
+export function BuildLoop({ className }: Props) {
   const reduced = useReducedMotion()
 
   return (
@@ -53,8 +52,7 @@ export function BuildLoop({ compact = false, className }: Props) {
               />
               <span
                 className={cn(
-                  'label mt-3 block text-center',
-                  compact ? 'text-[0.58rem] tracking-[0.12em]' : '',
+                  'label mt-3 block text-center text-[0.58rem] tracking-[0.04em] sm:text-[0.6875rem] sm:tracking-[0.14em]',
                   step.id === 'model' ? 'text-[var(--color-signal)]' : 'text-[var(--color-ink)]',
                 )}
               >
