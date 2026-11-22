@@ -207,6 +207,9 @@ jobs:
           rm -rf dist/slyvr
           mkdir -p dist/slyvr
           cp -R .slyvr-src/frontend/dist/. dist/slyvr/
+          # Slyvr ships the Vite logo as favicon.svg. Use the portfolio mark instead.
+          cp public/favicon.svg dist/slyvr/favicon.svg
+          cmp -s public/favicon.svg dist/slyvr/favicon.svg
 
           # Inject path-restore into the nested shell so /slyvr/login survives the
           # root 404 → /slyvr/ redirect without modifying Slyvr source.

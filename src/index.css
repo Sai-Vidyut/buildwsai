@@ -277,6 +277,20 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  .hero-drift {
+    animation: hero-drift 9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+}
+
+@keyframes hero-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
 }
 
 @media print {
